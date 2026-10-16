@@ -1,6 +1,6 @@
 ---
 title: "SAC（Soft Actor-Critic）完整推导与设计动机"
-subtitle: "从最大熵强化学习到连续控制实现 · 17 节完整教程"
+subtitle: "从最大熵强化学习到连续控制实现 · 16 节完整教程"
 author: "强化学习技术教程"
 date: "2026-10-15"
 lang: zh-CN
@@ -8,9 +8,35 @@ toc: true
 toc-depth: 2
 ---
 
-> **阅读说明**：本教程以现代连续动作 SAC（两个 Q Critic、无单独 V 网络、可自动调节温度）为主线，完整介绍理论动机、数学推导、工程实现及与 PPO、机器人操作、Flow Matching 策略的联系。第 14 节单独说明原始 SAC v1。文中符号在全文保持一致。
+# SAC（Soft Actor-Critic）完整推导与设计动机
 
-# 1. 从标准强化学习开始
+> **阅读说明**：本教程以现代连续动作 SAC（两个 Q Critic、无单独 V 网络、可自动调节温度）为主线，完整介绍理论动机、数学推导、工程实现及与 PPO 的联系。第 14 节单独说明原始 SAC v1。文中符号在全文保持一致。
+
+
+## 目录
+
+- [1. 从标准强化学习开始](#section-1)
+- [2. 第一步：最大熵强化学习](#section-2)
+- [3. 第二步：Soft Bellman 方程](#section-3)
+- [4. 第三步：Soft Policy Improvement](#section-4)
+- [5. 第四步：把策略改进转为 KL 最小化](#section-5)
+- [6. 第五步：从 Soft Policy Iteration 到 Actor-Critic](#section-6)
+- [7. 第六步：为什么能够 Off-Policy 学习？](#section-7)
+- [8. 第七步：完整推导 Critic Loss](#section-8)
+- [9. 第八步：完整推导 Actor Loss](#section-9)
+- [10. 第九步：Reparameterization Trick](#section-10)
+- [11. 第十步：Tanh Gaussian 的 Log Probability 修正](#section-11)
+- [12. 第十一步：Automatic Entropy Tuning](#section-12)
+- [13. 第十二步：完整的现代 SAC 算法](#section-13)
+- [14. SAC v1 与现代 SAC 的区别](#section-14)
+- [15. SAC 与 PPO 的本质区别](#section-15)
+- [16. 最终总结：五组关键公式与理解框架](#section-16)
+
+- [参考资料](#references)
+
+<a id="section-1"></a>
+
+## 1. 从标准强化学习开始
 
 SAC（Soft Actor-Critic）是一种面向连续控制的 **Off-Policy、随机策略、Actor-Critic** 强化学习算法。其基本思路是：在最大化长期回报的同时鼓励策略维持适当的随机性，借助 Soft Bellman 递推学习动作价值，再用可微的 Q 函数优化 Actor。其主要组成包括最大熵目标、Soft Policy Iteration、Replay Buffer、双 Q 网络、目标网络、重参数化技巧和自动熵温度调节。
 
@@ -38,9 +64,11 @@ $$
 
 于是我们希望策略不只是选择当前估计的最佳动作，还可以在高价值动作附近保持适度的随机性。这就是最大熵强化学习（Maximum Entropy RL）的出发点。
 
-# 2. 第一步：最大熵强化学习
+<a id="section-2"></a>
 
-## 2.1 策略熵与温度参数
+## 2. 第一步：最大熵强化学习
+
+### 2.1 策略熵与温度参数
 
 离散动作的 Shannon 熵是 $\mathcal H(\pi(\cdot\mid s))=-\sum_a\pi(a\mid s)\log\pi(a\mid s)$；连续动作通常使用微分熵：
 
@@ -65,7 +93,7 @@ $$
 
 $\alpha$ 控制高回报与高熵之间的权衡：$\alpha\to0$ 时趋于普通 RL；$\alpha$ 较大时鼓励更分散的策略。需要单独的系数，是因为奖励与熵的数值尺度可能完全不同。例如 $r\approx100$，而 $\mathcal H(\pi)\approx5$，若直接相加，熵项可能影响很小；通过 $\alpha$ 才能控制相对权重。
 
-## 2.2 把熵写成可采样的形式
+### 2.2 把熵写成可采样的形式
 
 由 $\mathcal H(\pi(\cdot\mid s))=\mathbb E_{a\sim\pi}[-\log\pi(a\mid s)]$，有：
 
@@ -75,9 +103,11 @@ $$
 
 可以将 $\tilde r_t=r_t-\alpha\log\pi(a_t\mid s_t)$ 看成带熵正则的奖励表达。它依赖当前策略，**不是**与策略无关的固定环境奖励。改写的关键好处是：连续动作算法只需采样 $a\sim\pi$ 并计算 $\log\pi(a\mid s)$，而不必对整个动作空间显式积分求熵。
 
-# 3. 第二步：Soft Bellman 方程
+<a id="section-3"></a>
 
-## 3.1 与普通 Bellman 方程对比
+## 3. 第二步：Soft Bellman 方程
+
+### 3.1 与普通 Bellman 方程对比
 
 标准价值函数满足：
 
@@ -94,7 +124,7 @@ $$
 
 最大熵 RL 需要把未来策略的熵也纳入价值计算。
 
-## 3.2 定义 Soft V 和 Soft Q
+### 3.2 定义 Soft V 和 Soft Q
 
 采用 SAC 常用的一种一致约定：
 
@@ -120,7 +150,7 @@ $$
 
 普通 $V$ 衡量当前策略未来可获得的奖励；Soft $V$ 同时衡量奖励与可保持的随机性。
 
-## 3.3 Soft Bellman Expectation Equation
+### 3.3 Soft Bellman Expectation Equation
 
 由定义和马尔可夫性质：
 
@@ -136,9 +166,11 @@ $$
 
 与普通 Bellman 方程相比，增加了 $-\alpha\log\pi(a'\mid s')$。这正是熵奖励通过下一状态的 Soft Value 进入 Critic Target 的方式。该公式给出了 SAC **策略评估** 的理论基础，但还需要推导策略改进。
 
-# 4. 第三步：Soft Policy Improvement
+<a id="section-4"></a>
 
-## 4.1 为什么普通贪心改进不够？
+## 4. 第三步：Soft Policy Improvement
+
+### 4.1 为什么普通贪心改进不够？
 
 普通策略迭代使用 $\pi_{\mathrm{new}}(s)\in\arg\max_aQ^{\pi_{\mathrm{old}}}(s,a)$。随机策略若只最大化 $\mathbb E_a Q$，最优解也可能退化为集中于最大 Q 动作的确定性分布。SAC 希望在改进动作价值的同时保留熵。
 
@@ -156,7 +188,7 @@ $$
 
 并约束 $\int\pi(a\mid s)\,da=1$。
 
-## 4.2 变分法求 Boltzmann Policy
+### 4.2 变分法求 Boltzmann Policy
 
 设 $\alpha>0$，并假定归一化常数有限。拉格朗日函数为：
 
@@ -190,9 +222,11 @@ $$
 
 **动机总结**：最大熵策略改进不再是简单地选择 $\arg\max_aQ$，而是学习一个由价值函数决定的高价值动作分布。
 
-# 5. 第四步：把策略改进转为 KL 最小化
+<a id="section-5"></a>
 
-## 5.1 计算 Boltzmann 分布为什么困难？
+## 5. 第四步：把策略改进转为 KL 最小化
+
+### 5.1 计算 Boltzmann 分布为什么困难？
 
 对高维连续动作，$Z(s)=\int e^{Q(s,a)/\alpha}\,da$ 通常无法高效计算，因而不能直接构造或采样归一化后的理想策略。SAC 通过参数化 Actor $\pi_\theta$，让它 **投影到 Boltzmann 分布**，并消去 $Z(s)$。
 
@@ -228,7 +262,7 @@ $$
 
 这表明：最大化 Soft Value 与逼近 Boltzmann Policy 是同一优化问题的两种表述。
 
-## 5.2 为什么精确 Soft Policy Iteration 可以改进策略？
+### 5.2 为什么精确 Soft Policy Iteration 可以改进策略？
 
 设 $\pi_{\mathrm{old}}$ 在允许的策略族中，且在每个状态上准确求解 KL 投影。根据最优性：
 
@@ -274,7 +308,9 @@ $$
 
 这说明精确的 **Soft Policy Evaluation + Soft Policy Improvement** 具有策略改进性质。**边界条件**：这里是精确评估与精确投影下的理论结论；神经网络、有限采样、随机梯度和函数逼近的实际 SAC 并不因此获得全局收敛保证。
 
-# 6. 第五步：从 Soft Policy Iteration 到 Actor-Critic
+<a id="section-6"></a>
+
+## 6. 第五步：从 Soft Policy Iteration 到 Actor-Critic
 
 至此得到了两步：
 
@@ -297,9 +333,11 @@ $$
 
 注意：用一个不断变化的 $Q_\phi$ 同时预测与构造自身目标，可能造成训练不稳定；第 8 节会引入目标网络和双 Q。
 
-# 7. 第六步：为什么能够 Off-Policy 学习？
+<a id="section-7"></a>
 
-## 7.1 PPO 的数据分布依赖
+## 7. 第六步：为什么能够 Off-Policy 学习？
+
+### 7.1 PPO 的数据分布依赖
 
 PPO 的 Clipped Objective 依赖旧策略产生的数据和概率比值：
 
@@ -309,7 +347,7 @@ $$
 
 因此标准 PPO 主要使用近期 On-Policy Rollouts；旧得太久的数据会造成严重分布偏移。
 
-## 7.2 Bellman 更新为何可以使用旧经验？
+### 7.2 Bellman 更新为何可以使用旧经验？
 
 在固定 MDP 中，环境的条件转移 $P(s'\mid s,a)$ 与**是哪一个行为策略采样到** $(s,a)$ 无关。过去行为策略产生的样本 $(s,a,r,s')$ 仍是有效的环境转移样本。只需在下一个状态 $s'$，使用**当前策略**重新采样 $a'\sim\pi_\theta(\cdot\mid s')$，就能构造当前策略的 Soft Bellman Target：
 
@@ -333,9 +371,11 @@ $$
 
 **重要限制**：Off-Policy 不等于分布差异完全无害。若 Replay Buffer 对某些关键状态动作缺乏覆盖，神经网络 Q 在这些区域可能严重外推错误。有限数据、函数逼近与 Bootstrapping 的组合也可能引起不稳定，因此样本效率与可靠性之间仍需权衡。
 
-# 8. 第七步：完整推导 Critic Loss
+<a id="section-8"></a>
 
-## 8.1 从 Soft Bellman Target 到 TD Regression
+## 8. 第七步：完整推导 Critic Loss
+
+### 8.1 从 Soft Bellman Target 到 TD Regression
 
 用当前策略采样 $a'\sim\pi_\theta(\cdot\mid s')$，理论单样本目标为：
 
@@ -351,7 +391,7 @@ $$
 
 但这还不是完整 SAC：此时目标也使用同一个正在更新的网络，且 Actor 会倾向利用 Critic 的高估误差。
 
-## 8.2 Target Network：减缓目标漂移
+### 8.2 Target Network：减缓目标漂移
 
 为 Critic 维护慢更新参数 $\bar\phi$，构造 $Q_{\bar\phi}$，并使用 Polyak Averaging：
 
@@ -361,7 +401,7 @@ $$
 
 例如 $\tau=0.005$。此举减慢 TD Target 的变化速度，而非解决估计偏差本身。
 
-## 8.3 Clipped Double Q：缓解价值高估
+### 8.3 Clipped Double Q：缓解价值高估
 
 如果 $\hat Q(s,a)=Q(s,a)+\epsilon(s,a)$，Actor 倾向选择 $\hat Q$ 较大的动作，即使该动作的高估主要来自误差 $\epsilon$。例如两动作真实值都为 $10$，Critic 却给出 $12$ 和 $8$，Actor 会错误地偏好前者，并可能进一步放大误差。
 
@@ -385,7 +425,7 @@ $$
 
 取最小值有助于缓解过高估计，但可能引入低估，并**不保证** Q 估计无偏。
 
-## 8.4 最终 Critic Target 和 Loss
+### 8.4 最终 Critic Target 和 Loss
 
 令 $d=1$ 表示真实终止（而非单纯 Time-Limit Truncation），最终 Target 为：
 
@@ -405,7 +445,9 @@ $$
 
 执行 $\phi_i\leftarrow\phi_i-\eta_Q\nabla_{\phi_i}J_{Q_i}$。构造 Target 时必须停止目标分支梯度：$y\gets\operatorname{stopgrad}(y)$。对于**真实终止**，$d=1$ 从而 $y=r$；对于仅因最大步数被截断的非终止状态，通常仍应保留 Bootstrapping。
 
-# 9. 第八步：完整推导 Actor Loss
+<a id="section-9"></a>
+
+## 9. 第八步：完整推导 Actor Loss
 
 第 5 节 KL 投影给出：
 
@@ -429,9 +471,11 @@ $$
 
 **关键区别**：PPO 主要使用采样动作的 Advantage 和概率比更新策略；连续动作 SAC 则希望梯度穿过动作 $a$，利用 $\nabla_aQ_\phi(s,a)$ 对 Actor 提供局部方向信息。不过动作来自随机分布，普通“采样”不能直接写成可微的确定性计算，因此需要重参数化。
 
-# 10. 第九步：Reparameterization Trick
+<a id="section-10"></a>
 
-## 10.1 把依赖参数的随机采样变成可微函数
+## 10. 第九步：Reparameterization Trick
+
+### 10.1 把依赖参数的随机采样变成可微函数
 
 令 Actor 输出均值和标准差：
 
@@ -453,7 +497,7 @@ $$
 
 此时噪声 $\epsilon$ 与参数无关，并且 $u_\theta$ 对 $\theta$ 可微。例如 $\partial u/\partial\mu=I$、$\partial u/\partial\sigma=\operatorname{diag}(\epsilon)$。
 
-## 10.2 Tanh-Squashed Gaussian Policy
+### 10.2 Tanh-Squashed Gaussian Policy
 
 真实机器人动作一般有界（如 $[-1,1]^d$），而 Gaussian 支持整个实数域。SAC 使用逐维 $\tanh$：
 
@@ -463,7 +507,7 @@ $$
 
 对于实际动作区间 $[a_{\min,i},a_{\max,i}]$，可以进一步做 $a_i^{\mathrm{env}}=c_i+b_i\tanh(u_i)$，其中 $c_i=(a_{\max,i}+a_{\min,i})/2$、$b_i=(a_{\max,i}-a_{\min,i})/2$。
 
-## 10.3 把 Actor Loss 改写为 Pathwise Objective
+### 10.3 把 Actor Loss 改写为 Pathwise Objective
 
 记 $a=f_\theta(s,\epsilon)$，用固定噪声分布替换动作分布中的随机性：
 
@@ -497,7 +541,9 @@ $$
 
 这使 SAC 与 DDPG 的确定性策略梯度有直接联系：SAC 在可重参数化的**随机策略**中利用 Critic 的动作梯度，并额外进行熵正则化。Pathwise Gradient 通常比直接使用 Score-Function Estimator 具有更低的方差，但效果仍依赖 Critic 的质量。
 
-# 11. 第十步：Tanh Gaussian 的 Log Probability 修正
+<a id="section-11"></a>
+
+## 11. 第十步：Tanh Gaussian 的 Log Probability 修正
 
 Gaussian 变量 $u$ 与 $a=\tanh(u)$ 的分布不同，因此不能直接使用 $\log\mathcal N(a;\mu,\Sigma)$。对可逆变换 $a=g(u)$，由密度变换：
 
@@ -525,9 +571,11 @@ $$
 
 **动机总结**：SAC 的 Actor 和温度调节都依赖 $\log\pi$；漏掉 Tanh 的 Jacobian Correction 会直接改变优化目标和梯度方向。
 
-# 12. 第十一步：Automatic Entropy Tuning
+<a id="section-12"></a>
 
-## 12.1 从固定温度到熵约束
+## 12. 第十一步：Automatic Entropy Tuning
+
+### 12.1 从固定温度到熵约束
 
 手工设定 $\alpha$ 对奖励缩放和动作维度敏感。与其直接选择熵正则化系数，不如要求平均策略熵达到目标水平。一个常用的概括形式为：
 
@@ -551,7 +599,7 @@ $$
 
 固定 $\alpha$ 优化 $\pi$，就回到最大熵策略优化；固定策略优化 $\alpha$，则得到熵目标的对偶更新。
 
-## 12.2 温度损失及其更新方向
+### 12.2 温度损失及其更新方向
 
 用 $\mathcal H(\pi)=-\mathbb E\log\pi$，得：
 
@@ -573,7 +621,7 @@ $$
 
 熵偏低时，提高 $\alpha$ 让 Actor 更重视探索；熵偏高时，降低 $\alpha$ 让 Actor 更集中于高价值动作。
 
-## 12.3 为什么学习 Log-Alpha？
+### 12.3 为什么学习 Log-Alpha？
 
 直接更新 $\alpha$ 可能导致负值。因此定义 $\eta=\log\alpha$、$\alpha=e^\eta>0$。严格代入对偶损失为：
 
@@ -589,13 +637,15 @@ $$
 
 温度更新时必须将 Log Probability `detach`，避免温度损失反向更新 Actor。
 
-## 12.4 Target Entropy 的经验选择
+### 12.4 Target Entropy 的经验选择
 
 对于 $d$ 维归一化连续动作，常见启发式为 $\mathcal H_{\mathrm{target}}=-d$。例如 $d=12$ 时可先试 $-12$。这不是理论上的最优公式；连续微分熵允许负值，且会受动作尺度与概率密度约定影响。机器人高维动作、手部关节或动作序列控制往往需要验证这一超参数，而不能机械套用。
 
-# 13. 第十二步：完整的现代 SAC 算法
+<a id="section-13"></a>
 
-## 13.1 模块与三个优化问题
+## 13. 第十二步：完整的现代 SAC 算法
+
+### 13.1 模块与三个优化问题
 
 现代连续动作 SAC 一般包含以下模块：
 
@@ -613,7 +663,7 @@ $$
 \boxed{\min_{\phi_1,\phi_2}J_Q,\qquad\min_\theta J_\pi,\qquad\min_{\alpha\ge0}J_\alpha.}
 $$
 
-## 13.2 一次更新的完整步骤
+### 13.2 一次更新的完整步骤
 
 **步骤 1：交互并写入 Buffer。** 由当前状态 $s_t$ 采样 $a_t\sim\pi_\theta(\cdot\mid s_t)$，执行动作，记录 $(s_t,a_t,r_t,s_{t+1},d_t)$。初始训练阶段可以使用随机动作收集一定的覆盖数据。
 
@@ -643,7 +693,7 @@ Actor 更新时冻结 Critic **参数**，但必须允许梯度通过 Critic 输
 
 **步骤 7：更新目标网络。** 对每个 Critic 做 $\bar\phi_j\leftarrow(1-\tau)\bar\phi_j+\tau\phi_j$。然后重复。
 
-## 13.3 教学用伪代码
+### 13.3 教学用伪代码
 
 ```python
 initialize actor pi_theta
@@ -691,9 +741,11 @@ for each environment interaction:
 
 > **实现警告**：上面是为了说明更新顺序而写的伪代码，不是可以直接运行的完整库。真实代码需正确执行优化器零梯度、参数冻结、动作缩放、概率变换、初始探索、环境 Reset 和 Batch Shape 处理；还需要区分 `terminated` 与 `truncated`。
 
-# 14. SAC v1 与现代 SAC 的区别
+<a id="section-14"></a>
 
-## 14.1 原始 SAC v1：显式训练 V 网络
+## 14. SAC v1 与现代 SAC 的区别
+
+### 14.1 原始 SAC v1：显式训练 V 网络
 
 最初的 SAC 除双 Q 和 Actor 外，还维护状态价值网络 $V_\psi(s)$：
 
@@ -713,7 +765,7 @@ $$
 \boxed{y_Q=r+\gamma(1-d)V_{\bar\psi}(s').}
 $$
 
-## 14.2 现代 SAC：去掉显式 V 网络
+### 14.2 现代 SAC：去掉显式 V 网络
 
 由于：
 
@@ -729,9 +781,11 @@ $$
 
 这样 Q Target 直接写成式 (12)，不需要单独的 V 网络，减少额外拟合误差及网络复杂度。现在提及“标准 SAC”，通常是指该现代双 Q 版本，并经常搭配自动温度调节。
 
-# 15. SAC 与 PPO 的本质区别
+<a id="section-15"></a>
 
-## 15.1 策略更新公式对比
+## 15. SAC 与 PPO 的本质区别
+
+### 15.1 策略更新公式对比
 
 PPO 使用采样动作的 Advantage 及策略概率比：
 
@@ -749,7 +803,7 @@ $$
 
 其中包含 $\nabla_aQ_\phi(s,a_\theta)\,\partial a_\theta/\partial\theta$。PPO 通常无需 $\nabla_aQ$；SAC 标准连续 Actor 更新需要它。
 
-## 15.2 对比表
+### 15.2 对比表
 
 | 对比维度 | PPO | SAC |
 |:--|:--|:--|
@@ -767,7 +821,7 @@ $$
 
 PPO Clipping 与 SAC 的 Double Q **不是同一类机制**：前者主要限制策略概率变化，后者主要缓解 Critic 高估；SAC 没有标准 PPO 式的概率比 Clipping。
 
-## 15.3 为什么机器人仿真中 PPO 仍常见？
+### 15.3 为什么机器人仿真中 PPO 仍常见？
 
 在 Isaac Lab 等平台上，大规模并行仿真可以以较低单位成本生成大量轨迹。PPO 通过高吞吐的并行 Rollout 获得出色的训练速度；SAC 虽复用样本，但 Critic Bootstrapping、频繁梯度更新和 Replay Buffer 访问也有成本。因此：
 
@@ -777,55 +831,9 @@ $$
 
 高接触非线性、稀疏奖励、状态分布偏移也会增加 SAC 的价值学习难度。在真实机器人环境交互昂贵时，SAC 的 Off-Policy 数据复用通常更具吸引力，但仍需考虑安全探索和离线数据偏移。
 
-# 16. 对灵巧手与 Flow Matching Policy 的启示
+<a id="section-16"></a>
 
-## 16.1 机器人连续动作的局部优化
-
-灵巧操作可以采用状态 $s=(q,\dot q,T_{\mathrm{object}},\ldots)$，动作 $a=(\Delta q_{\mathrm{arm}},\Delta q_{\mathrm{hand}})$。Critic 估计 $Q_\phi(s,a)$；Actor 利用 $\nabla_aQ_\phi(s,a)$ 改善动作。在动作价值较平滑、Critic 估计准确时，这提供了有效的局部优化方向。
-
-接触操作可能含接触模式切换、碰撞和摩擦等非光滑过程，神经网络的 $\nabla_aQ$ 未必真实反映物理系统的局部变化；因此学习到的梯度质量往往是关键瓶颈。
-
-## 16.2 冻结预训练动作生成器，优化输入噪声
-
-考虑预训练可微动作生成器：
-
-$$
-a=f_{\mathrm{pretrained}}(s,z).
-$$
-
-冻结生成器，仅学习噪声分布 $z\sim\pi_\theta(z\mid s)$，可设计 Latent-Space Maximum-Entropy Actor-Critic 目标：
-
-$$
-\boxed{J(\theta)=\mathbb E_{s,z}\left[\alpha\log\pi_\theta(z\mid s)-Q_\phi(s,f_{\mathrm{pretrained}}(s,z))\right].}\tag{31}
-$$
-
-如果生成器可微，梯度包含：
-
-$$
-\boxed{\nabla_aQ_\phi(s,a)\;\frac{\partial f_{\mathrm{pretrained}}(s,z)}{\partial z}\;\frac{\partial z_\theta}{\partial\theta}.}
-$$
-
-这可以解释“冻结大生成器、只训练较小的噪声 Actor”的一种理论路径。不过 $\mathcal H(\pi(z\mid s))$ 是**潜变量熵**，并不自动等于最终动作分布的熵 $\mathcal H(\pi(a\mid s))$；只有满足适当可逆性及密度变换条件时才能进一步关联。因此，这与动作空间标准 SAC 不可无条件等同。
-
-## 16.3 为什么 Flow Matching Policy 直接接 SAC 更困难？
-
-Flow Matching 用连续速度场生成动作：
-
-$$
-\frac{dx_t}{dt}=v_\theta(x_t,s,t),\qquad x_0\sim p_0,\quad a=x_1.
-$$
-
-若直接套用 SAC，需要：
-
-$$
-J(\theta)=\mathbb E\left[\alpha\log\pi_\theta(a\mid s)-Q_\phi(s,a)\right].
-$$
-
-但动作来自速度场数值积分，梯度可能需要穿过 ODE 求解；精确动作 Log Density 可能需要连续变量变换以及 Jacobian Trace 的计算；对大规模生成模型会带来时间与内存成本。Flow Matching **并非理论上无法**计算密度，而是通常比 Squashed Gaussian 更复杂。
-
-由此产生几类研究路径：优化低维初始噪声分布、训练 Residual Policy、使用 Q-Guided 或 Advantage-Guided 的速度场适配，以及构造不显式依赖动作 Log Probability 的替代优化目标。这些方法都希望把价值信息反馈到生成策略，但对应的损失函数与约束必须分别推导。
-
-# 17. 最终总结：五组关键公式与理解框架
+## 16. 最终总结：五组关键公式与理解框架
 
 **（1）Maximum-Entropy Objective**：
 
@@ -871,7 +879,7 @@ $$
 
 *动机*：根据目标熵自动调节探索强度。
 
-## 最关键的 PPO / SAC 区别
+### 最关键的 PPO / SAC 区别
 
 PPO 主要通过 $\nabla_\theta\log\pi_\theta(a\mid s)A^\pi(s,a)$ 调整**已采样动作的概率**；连续 SAC 使用 $\nabla_aQ_\phi(s,a)\,\partial a_\theta/\partial\theta$（同时有熵梯度），调整**可微动作生成函数**以提高动作价值。
 
@@ -882,6 +890,8 @@ $$
 $$
 
 Double Q、Target Critics 和 Automatic Temperature Tuning 则使上述理论更加适合复杂连续控制任务。
+
+<a id="references"></a>
 
 ## 参考资料
 
