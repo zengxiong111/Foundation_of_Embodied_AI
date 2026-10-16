@@ -1,0 +1,16 @@
+# Local editor and OS files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+# Temporary exports, backups, and logs
+__pycache__/
+*.pyc
+*.tmp
+*.temp
+*.bak
+*~
+*.log
+.candidate*
+# Repository policy: no changelogs
+[Cc][Hh][Aa][Nn][Gg][Ee][Ll][Oo][Gg]*
