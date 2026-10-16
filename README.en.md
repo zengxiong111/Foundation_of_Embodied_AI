@@ -1,8 +1,9 @@
 # Foundation of Embodied AI · 具身智能基础
 
+[简体中文](README.md) | **English**
+
 A public teaching-material repository for a future course titled “Foundation of Embodied AI” (具身智能基础), collecting Chinese and English tutorials on robot learning, engineering tools, and core algorithms. The course is currently in preparation; a formal teaching schedule is not yet available.
 
-[简体中文](README.md)
 
 ## Contents
 

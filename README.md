@@ -1,8 +1,9 @@
 # 具身智能基础 · Foundation of Embodied AI
 
+**简体中文** | [English](README.en.md)
+
 为未来开设「具身智能基础」课程准备的公开教学资料库，汇集机器人学习、工程工具与核心算法的中英文教程。当前处于课程筹备阶段，尚未形成正式授课安排。
 
-[English](README.en.md)
 
 ## 目录
 
