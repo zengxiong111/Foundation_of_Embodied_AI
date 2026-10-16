@@ -54,7 +54,7 @@ This is a preparation proposal that can be adapted to students' backgrounds, rat
 
 ## Quick start
 
-1. Choose a topic, language, and format from the index above. Read Markdown on GitHub or download PDF without installing software.
+1. Choose a topic, language, and format from the index above. Links open the corresponding files under the personal website’s `files/` directory. PDFs can be read in the browser; Markdown files may display as text or download, depending on the browser.
 2. To read locally or contribute to the materials, run in a terminal:
 
 ```bash
