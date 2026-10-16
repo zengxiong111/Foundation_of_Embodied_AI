@@ -1,4 +1,4 @@
-# 具身智能基础 · Foundation of Embodied AI
+# 具身智能基础  
 
 **简体中文** | [English](README.md)
 
