@@ -28,14 +28,14 @@
 
 ## 资料目录
 
-当前收录 **8 个主题、14 个 Markdown 文件和 16 个 PDF 文件**，每个主题均提供中文和英文资料。Markdown 适合在线阅读和编辑，PDF 适合下载、打印与课堂阅读。具身强化学习概览目前仅提供 PDF。
+当前收录 **8 个主题、16 个 Markdown 文件和 16 个 PDF 文件**，每个主题均提供中文和英文资料。Markdown 适合在线阅读和编辑，PDF 适合下载、打印与课堂阅读。
 
 | 主题 | 中文 Markdown | English Markdown | 中文 PDF | English PDF |
 |---|---|---|---|---|
 | Git 与协作基础 | [MD](md/Git_%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B_%E4%B8%AD%E6%96%87%E7%89%88.md) | [MD](md/Git_Tutorial_English.md) | [PDF](pdf/Git_%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B_%E4%B8%AD%E6%96%87%E7%89%88.pdf) | [PDF](pdf/Git_Tutorial_English-1.pdf) |
 | ROS 2 与机器人学习 | [MD](md/ROS2_Robot_Learning_Tutorial_ZH.md) | [MD](md/ROS2_Robot_Learning_Tutorial_EN.md) | [PDF](pdf/ROS2_Robot_Learning_Tutorial_ZH.pdf) | [PDF](pdf/ROS2_Robot_Learning_Tutorial_EN-1.pdf) |
 | 机器人相机标定 | [MD](md/Robot_Camera_Calibration_Tutorial_ZH.md) | [MD](md/Robot_Camera_Calibration_Tutorial_EN.md) | [PDF](pdf/Robot_Camera_Calibration_Tutorial_ZH-1.pdf) | [PDF](pdf/Robot_Camera_Calibration_Tutorial_EN-1.pdf) |
-| 具身强化学习概览 | 暂无 | 暂无 | [PDF](pdf/Embodied_RL_Tutorial_Full_ZH-1.pdf) | [PDF](pdf/Embodied_RL_Tutorial_Full_EN-1.pdf) |
+| 具身强化学习概览 | [MD](md/Embodied_RL_Tutorial_Full_ZH.md) | [MD](md/Embodied_RL_Tutorial_Full_EN.md) | [PDF](pdf/Embodied_RL_Tutorial_Full_ZH-1.pdf) | [PDF](pdf/Embodied_RL_Tutorial_Full_EN-1.pdf) |
 | 运动控制强化学习 | [MD](md/Embodied_Motion_Control_RL_Tutorial_ZH.md) | [MD](md/Embodied_Motion_Control_RL_Tutorial_EN.md) | [PDF](pdf/Embodied_Motion_Control_RL_Tutorial_ZH.pdf) | [PDF](pdf/Embodied_Motion_Control_RL_Tutorial_EN.pdf) |
 | PPO 推导与设计动机 | [MD](md/PPO_%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC%E4%B8%8E%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA_%E4%B8%AD%E6%96%87.md) | [MD](md/PPO_Complete_Derivation_and_Design_Motivations_English.md) | [PDF](pdf/PPO_%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC%E4%B8%8E%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA_%E4%B8%AD%E6%96%87.pdf) | [PDF](pdf/PPO_Complete_Derivation_and_Design_Motivations_English-1.pdf) |
 | SAC 推导与设计动机 | [MD](md/SAC_Complete_Derivation_CN.md) | [MD](md/SAC_Complete_Derivation_EN.md) | [PDF](pdf/SAC_Complete_Derivation_CN-1.pdf) | [PDF](pdf/SAC_Complete_Derivation_EN-1.pdf) |
@@ -70,7 +70,7 @@ cd Foundation_of_Emboadied_AI
 Foundation_of_Emboadied_AI/
 ├── README.md       # 中文课程入口
 ├── README.en.md    # English course overview
-├── md/             # 14 份中英文 Markdown 教程
+├── md/             # 16 份中英文 Markdown 教程
 └── pdf/            # 16 份中英文 PDF 资料
 ```
 
@@ -88,7 +88,7 @@ Foundation_of_Emboadied_AI/
 ## 使用说明与限制
 
 - 当前主要交付阅读资料；教程中的示例代码不代表已在统一环境中完成验证。
-- 现有中英文资料按主题配对，PDF 与 Markdown 的逐段一致性尚未审校；概览主题没有对应 Markdown。
+- 现有中英文资料按主题配对，PDF 与 Markdown 的逐段一致性尚未审校。
 - 软件版本、设备接口及硬件参数以各教程说明和实际环境为准；硬件实验需独立完成设备核对与安全验证。
 - 后续修改教程时同步维护中英文内容，并更新对应 PDF 和本索引。
 - 本仓库当前未声明统一开源许可证；公开可访问不等于授予任意再分发或商业使用许可。引用资料请注明来源，并遵守其中第三方材料的许可要求。

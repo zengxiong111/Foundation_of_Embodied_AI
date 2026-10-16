@@ -28,14 +28,14 @@ Learning objectives:
 
 ## Material index
 
-The collection contains **8 topics, 14 Markdown files, and 16 PDF files**, with Chinese and English materials for every topic. Markdown supports online reading and editing; PDF supports downloading, printing, and classroom reading. The embodied RL overview is currently available only as PDF.
+The collection contains **8 topics, 16 Markdown files, and 16 PDF files**, with Chinese and English materials for every topic. Markdown supports online reading and editing; PDF supports downloading, printing, and classroom reading.
 
 | Topic | Chinese Markdown | English Markdown | Chinese PDF | English PDF |
 |---|---|---|---|---|
 | Git and collaboration | [MD](md/Git_%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B_%E4%B8%AD%E6%96%87%E7%89%88.md) | [MD](md/Git_Tutorial_English.md) | [PDF](pdf/Git_%E4%BD%BF%E7%94%A8%E6%95%99%E7%A8%8B_%E4%B8%AD%E6%96%87%E7%89%88.pdf) | [PDF](pdf/Git_Tutorial_English-1.pdf) |
 | ROS 2 for robot learning | [MD](md/ROS2_Robot_Learning_Tutorial_ZH.md) | [MD](md/ROS2_Robot_Learning_Tutorial_EN.md) | [PDF](pdf/ROS2_Robot_Learning_Tutorial_ZH.pdf) | [PDF](pdf/ROS2_Robot_Learning_Tutorial_EN-1.pdf) |
 | Robot camera calibration | [MD](md/Robot_Camera_Calibration_Tutorial_ZH.md) | [MD](md/Robot_Camera_Calibration_Tutorial_EN.md) | [PDF](pdf/Robot_Camera_Calibration_Tutorial_ZH-1.pdf) | [PDF](pdf/Robot_Camera_Calibration_Tutorial_EN-1.pdf) |
-| Embodied reinforcement learning overview | Not available | Not available | [PDF](pdf/Embodied_RL_Tutorial_Full_ZH-1.pdf) | [PDF](pdf/Embodied_RL_Tutorial_Full_EN-1.pdf) |
+| Embodied reinforcement learning overview | [MD](md/Embodied_RL_Tutorial_Full_ZH.md) | [MD](md/Embodied_RL_Tutorial_Full_EN.md) | [PDF](pdf/Embodied_RL_Tutorial_Full_ZH-1.pdf) | [PDF](pdf/Embodied_RL_Tutorial_Full_EN-1.pdf) |
 | Reinforcement learning for motion control | [MD](md/Embodied_Motion_Control_RL_Tutorial_ZH.md) | [MD](md/Embodied_Motion_Control_RL_Tutorial_EN.md) | [PDF](pdf/Embodied_Motion_Control_RL_Tutorial_ZH.pdf) | [PDF](pdf/Embodied_Motion_Control_RL_Tutorial_EN.pdf) |
 | PPO derivation and design motivations | [MD](md/PPO_%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC%E4%B8%8E%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA_%E4%B8%AD%E6%96%87.md) | [MD](md/PPO_Complete_Derivation_and_Design_Motivations_English.md) | [PDF](pdf/PPO_%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC%E4%B8%8E%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA_%E4%B8%AD%E6%96%87.pdf) | [PDF](pdf/PPO_Complete_Derivation_and_Design_Motivations_English-1.pdf) |
 | SAC derivation and design motivations | [MD](md/SAC_Complete_Derivation_CN.md) | [MD](md/SAC_Complete_Derivation_EN.md) | [PDF](pdf/SAC_Complete_Derivation_CN-1.pdf) | [PDF](pdf/SAC_Complete_Derivation_EN-1.pdf) |
@@ -70,7 +70,7 @@ cd Foundation_of_Emboadied_AI
 Foundation_of_Emboadied_AI/
 ├── README.md       # Chinese course overview
 ├── README.en.md    # English course overview
-├── md/             # 14 Chinese and English Markdown tutorials
+├── md/             # 16 Chinese and English Markdown tutorials
 └── pdf/            # 16 Chinese and English PDF materials
 ```
 
@@ -88,7 +88,7 @@ The following items are planned and are not yet delivered:
 ## Usage notes and limitations
 
 - The current delivery primarily consists of reading materials; tutorial examples have not been validated together in a unified environment.
-- Chinese and English materials are paired by topic. Paragraph-level consistency between PDF and Markdown has not been reviewed; the overview topic has no Markdown counterpart.
+- Chinese and English materials are paired by topic. Paragraph-level consistency between PDF and Markdown has not been reviewed.
 - Software versions, device interfaces, and hardware parameters depend on each tutorial and the actual environment. Hardware experiments require separate equipment checks and safety validation.
 - Maintain Chinese and English content together when revising tutorials, and update the corresponding PDFs and this index.
 - No repository-wide open-source license is currently declared. Public access does not grant unrestricted redistribution or commercial-use rights. Credit sources and comply with licenses for third-party materials.
