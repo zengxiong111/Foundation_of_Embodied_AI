@@ -61,8 +61,8 @@
 2. 如需本地阅读或参与资料整理，在终端执行：
 
 ```bash
-git clone https://github.com/zengxiong111/Foundation_of_Emboadied_AI.git
-cd Foundation_of_Emboadied_AI
+git clone https://github.com/zengxiong111/Foundation_of_Embodied_AI.git
+cd Foundation_of_Embodied_AI
 ```
 
 3. 在 `md/` 中编辑教程，在 `pdf/` 中查看对应阅读版本。运行教程示例前，请按各篇文档准备依赖环境；本仓库没有统一安装或训练入口。
@@ -70,14 +70,14 @@ cd Foundation_of_Emboadied_AI
 ## 仓库结构
 
 ```text
-Foundation_of_Emboadied_AI/
+Foundation_of_Embodied_AI/
 ├── README.md       # English course overview (default)
 ├── README.zh-CN.md # 中文课程入口
 ├── md/             # 18 份中英文 Markdown 教程
 └── pdf/            # 18 份中英文 PDF 资料
 ```
 
-仓库标识沿用 `Foundation_of_Emboadied_AI`，课程中文名为「具身智能基础」，英文展示名为 “Foundation of Embodied AI”。现有资料保留原文件名（包括部分 PDF 的 `-1` 后缀），所有原有文件均完整收录。
+仓库标识为 `Foundation_of_Embodied_AI`，课程中文名为「具身智能基础」，英文展示名为 “Foundation of Embodied AI”。现有资料保留原文件名（包括部分 PDF 的 `-1` 后缀），所有原有文件均完整收录。
 
 ## 课程建设计划
 

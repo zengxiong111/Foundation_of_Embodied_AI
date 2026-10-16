@@ -61,8 +61,8 @@ This is a preparation proposal that can be adapted to students' backgrounds, rat
 2. To read locally or contribute to the materials, run in a terminal:
 
 ```bash
-git clone https://github.com/zengxiong111/Foundation_of_Emboadied_AI.git
-cd Foundation_of_Emboadied_AI
+git clone https://github.com/zengxiong111/Foundation_of_Embodied_AI.git
+cd Foundation_of_Embodied_AI
 ```
 
 3. Edit tutorials in `md/` and view their reading versions in `pdf/`. Prepare dependencies according to each tutorial before running examples; this repository has no unified installation or training entry point.
@@ -70,14 +70,14 @@ cd Foundation_of_Emboadied_AI
 ## Repository structure
 
 ```text
-Foundation_of_Emboadied_AI/
+Foundation_of_Embodied_AI/
 ├── README.md       # English course overview (default)
 ├── README.zh-CN.md # Chinese course overview
 ├── md/             # 18 Chinese and English Markdown tutorials
 └── pdf/            # 18 Chinese and English PDF materials
 ```
 
-The repository identifier remains `Foundation_of_Emboadied_AI`. The Chinese course title is “具身智能基础”, and the English display title is “Foundation of Embodied AI”. Existing filenames are preserved, including the `-1` suffix on some PDFs. All original files are included in full.
+The repository identifier is `Foundation_of_Embodied_AI`. The Chinese course title is “具身智能基础”, and the English display title is “Foundation of Embodied AI”. Existing filenames are preserved, including the `-1` suffix on some PDFs. All original files are included in full.
 
 ## Course development plan
 
