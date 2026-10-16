@@ -25,10 +25,11 @@
 - 理解具身强化学习的任务分类、运动控制与 Sim-to-Real 工作流程。
 - 理解 PPO、SAC 的核心推导、设计动机及适用场景。
 - 理解 Flow Matching 的基本构造及推导，为后续学习生成式策略做准备。
+- 理解人形机器人中 VLA 与全身运动控制的分工，以及 GR00T 与 SONIC 的系统衔接。
 
 ## 资料目录
 
-当前收录 **8 个主题、16 个 Markdown 文件和 16 个 PDF 文件**，每个主题均提供中文和英文资料。Markdown 适合在线阅读和编辑，PDF 适合下载、打印与课堂阅读。
+当前收录 **9 个主题、18 个 Markdown 文件和 18 个 PDF 文件**，每个主题均提供中文和英文资料。Markdown 适合在线阅读和编辑，PDF 适合下载、打印与课堂阅读。
 
 | 主题 | 中文 Markdown | English Markdown | 中文 PDF | English PDF |
 |---|---|---|---|---|
@@ -40,6 +41,7 @@
 | PPO 推导与设计动机 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_EN.pdf" target="_blank">PDF</a> |
 | SAC 推导与设计动机 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_EN.pdf" target="_blank">PDF</a> |
 | Flow Matching 逐步推导 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.pdf" target="_blank">PDF</a> |
+| 人形机器人 System 1 / System 0：GR00T 与 SONIC | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.pdf" target="_blank">PDF</a> |
 
 ## 建议学习路线
 
@@ -50,7 +52,8 @@
 3. **任务全景**：具身强化学习概览 → 运动控制强化学习。
 4. **算法推导**：PPO → SAC，比较 on-policy 与 off-policy 学习。
 5. **生成式方法**：Flow Matching 逐步推导，衔接后续策略学习专题。
-6. **综合实践（待建设）**：结合感知、通信与控制设计课程项目。
+6. **系统架构**：System 1 / System 0，结合 GR00T 与 SONIC 理解高层动作生成和低层全身控制。
+7. **综合实践（待建设）**：结合感知、通信与控制设计课程项目。
 
 ## 快速使用
 
@@ -70,8 +73,8 @@ cd Foundation_of_Emboadied_AI
 Foundation_of_Emboadied_AI/
 ├── README.md       # English course overview (default)
 ├── README.zh-CN.md # 中文课程入口
-├── md/             # 16 份中英文 Markdown 教程
-└── pdf/            # 16 份中英文 PDF 资料
+├── md/             # 18 份中英文 Markdown 教程
+└── pdf/            # 18 份中英文 PDF 资料
 ```
 
 仓库标识沿用 `Foundation_of_Emboadied_AI`，课程中文名为「具身智能基础」，英文展示名为 “Foundation of Embodied AI”。现有资料保留原文件名（包括部分 PDF 的 `-1` 后缀），所有原有文件均完整收录。
