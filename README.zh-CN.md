@@ -22,6 +22,8 @@
 学习目标：
 
 - 使用 Git、ROS 2 和相机标定方法组织机器人学习工程。
+- 理解机器人动力学、执行器与接触如何连接策略动作和物理状态变化。
+- 理解 Isaac Sim、Isaac Lab 与 MuJoCo 的分工，以及仿真、强化学习训练和跨引擎验证流程。
 - 理解具身强化学习的任务分类、运动控制与 Sim-to-Real 工作流程。
 - 理解 PPO、SAC 的核心推导、设计动机及适用场景。
 - 理解 Flow Matching 的基本构造及推导，为后续学习生成式策略做准备。
@@ -29,7 +31,7 @@
 
 ## 资料目录
 
-当前收录 **9 个主题、18 个 Markdown 文件和 18 个 PDF 文件**，每个主题均提供中文和英文资料。Markdown 适合在线阅读和编辑，PDF 适合下载、打印与课堂阅读。
+当前收录 **11 个主题、22 个 Markdown 文件和 22 个 PDF 文件**，每个主题均提供中文和英文资料。Markdown 适合在线阅读和编辑，PDF 适合下载、打印与课堂阅读。
 
 | 主题 | 中文 Markdown | English Markdown | 中文 PDF | English PDF |
 |---|---|---|---|---|
@@ -42,6 +44,8 @@
 | SAC 推导与设计动机 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_EN.pdf" target="_blank">PDF</a> |
 | Flow Matching 逐步推导 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.pdf" target="_blank">PDF</a> |
 | 人形机器人 System 1 / System 0：GR00T 与 SONIC | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.pdf" target="_blank">PDF</a> |
+| Isaac Sim、Isaac Lab 与 MuJoCo 仿真及强化学习 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Isaac_MuJoCo_RL_%E5%AE%8C%E6%95%B4%E6%95%99%E7%A8%8B_%E4%B8%AD%E6%96%87.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Isaac_MuJoCo_RL_Complete_Guide_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Isaac_MuJoCo_RL_%E5%AE%8C%E6%95%B4%E6%95%99%E7%A8%8B_%E4%B8%AD%E6%96%87.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf" target="_blank">PDF</a> |
+| 具身智能中的机器人动力学 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Dynamics_Embodied_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Dynamics_Embodied_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Dynamics_Embodied_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Dynamics_Embodied_EN.pdf" target="_blank">PDF</a> |
 
 ## 建议学习路线
 
@@ -49,11 +53,12 @@
 
 1. **工程准备**：Git 与协作基础 → ROS 2 与机器人学习。
 2. **感知基础**：相机内参、外参、手眼标定与坐标系。
-3. **任务全景**：具身强化学习概览 → 运动控制强化学习。
-4. **算法推导**：PPO → SAC，比较 on-policy 与 off-policy 学习。
-5. **生成式方法**：Flow Matching 逐步推导，衔接后续策略学习专题。
-6. **系统架构**：System 1 / System 0，结合 GR00T 与 SONIC 理解高层动作生成和低层全身控制。
-7. **综合实践（待建设）**：结合感知、通信与控制设计课程项目。
+3. **动力学与仿真**：机器人动力学 → Isaac Sim、Isaac Lab 与 MuJoCo，建立动作、执行器、接触与仿真训练之间的联系。
+4. **任务全景**：具身强化学习概览 → 运动控制强化学习。
+5. **算法推导**：PPO → SAC，比较 on-policy 与 off-policy 学习。
+6. **生成式方法**：Flow Matching 逐步推导，衔接后续策略学习专题。
+7. **系统架构**：System 1 / System 0，结合 GR00T 与 SONIC 理解高层动作生成和低层全身控制。
+8. **综合实践（待建设）**：结合感知、通信与控制设计课程项目。
 
 ## 快速使用
 
@@ -73,8 +78,8 @@ cd Foundation_of_Embodied_AI
 Foundation_of_Embodied_AI/
 ├── README.md       # English course overview (default)
 ├── README.zh-CN.md # 中文课程入口
-├── md/             # 18 份中英文 Markdown 教程
-└── pdf/            # 18 份中英文 PDF 资料
+├── md/             # 22 份中英文 Markdown 教程
+└── pdf/            # 22 份中英文 PDF 资料
 ```
 
 仓库标识为 `Foundation_of_Embodied_AI`，课程中文名为「具身智能基础」，英文展示名为 “Foundation of Embodied AI”。现有资料保留原文件名（包括部分 PDF 的 `-1` 后缀），所有原有文件均完整收录。

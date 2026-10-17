@@ -22,6 +22,8 @@ For students and researchers interested in embodied AI, robot control, and robot
 Learning objectives:
 
 - Organize robot-learning engineering workflows with Git, ROS 2, and camera calibration.
+- Understand how robot dynamics, actuation, and contact connect policy actions to physical state changes.
+- Understand the roles of Isaac Sim, Isaac Lab, and MuJoCo, and workflows for simulation, RL training, and cross-engine validation.
 - Understand embodied RL task categories, motion control, and Sim-to-Real workflows.
 - Understand the core derivations, design motivations, and use cases of PPO and SAC.
 - Understand the basic construction and derivation of Flow Matching as preparation for generative policies.
@@ -29,7 +31,7 @@ Learning objectives:
 
 ## Material index
 
-The collection contains **9 topics, 18 Markdown files, and 18 PDF files**, with Chinese and English materials for every topic. Markdown supports online reading and editing; PDF supports downloading, printing, and classroom reading.
+The collection contains **11 topics, 22 Markdown files, and 22 PDF files**, with Chinese and English materials for every topic. Markdown supports online reading and editing; PDF supports downloading, printing, and classroom reading.
 
 | Topic | Chinese Markdown | English Markdown | Chinese PDF | English PDF |
 |---|---|---|---|---|
@@ -42,6 +44,8 @@ The collection contains **9 topics, 18 Markdown files, and 18 PDF files**, with 
 | SAC derivation and design motivations | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_EN.pdf" target="_blank">PDF</a> |
 | Flow Matching step-by-step derivation | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.pdf" target="_blank">PDF</a> |
 | Humanoid System 1 / System 0: GR00T and SONIC | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.pdf" target="_blank">PDF</a> |
+| Isaac Sim, Isaac Lab, and MuJoCo simulation and RL | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Isaac_MuJoCo_RL_%E5%AE%8C%E6%95%B4%E6%95%99%E7%A8%8B_%E4%B8%AD%E6%96%87.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Isaac_MuJoCo_RL_Complete_Guide_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Isaac_MuJoCo_RL_%E5%AE%8C%E6%95%B4%E6%95%99%E7%A8%8B_%E4%B8%AD%E6%96%87.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf" target="_blank">PDF</a> |
+| Robot dynamics for embodied intelligence | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Dynamics_Embodied_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Dynamics_Embodied_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Dynamics_Embodied_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Dynamics_Embodied_EN.pdf" target="_blank">PDF</a> |
 
 ## Suggested learning path
 
@@ -49,11 +53,12 @@ This is a preparation proposal that can be adapted to students' backgrounds, rat
 
 1. **Engineering preparation**: Git and collaboration → ROS 2 for robot learning.
 2. **Perception foundations**: camera intrinsics, extrinsics, hand-eye calibration, and coordinate frames.
-3. **Task landscape**: embodied RL overview → motion-control RL.
-4. **Algorithm derivations**: PPO → SAC, comparing on-policy and off-policy learning.
-5. **Generative methods**: Flow Matching derivation, leading into future policy-learning topics.
-6. **System architecture**: System 1 / System 0, using GR00T and SONIC to understand high-level action generation and low-level whole-body control.
-7. **Integrated practice (planned)**: course projects combining perception, communication, and control.
+3. **Dynamics and simulation**: robot dynamics → Isaac Sim, Isaac Lab, and MuJoCo, connecting actions, actuators, contact, and simulation-based training.
+4. **Task landscape**: embodied RL overview → motion-control RL.
+5. **Algorithm derivations**: PPO → SAC, comparing on-policy and off-policy learning.
+6. **Generative methods**: Flow Matching derivation, leading into future policy-learning topics.
+7. **System architecture**: System 1 / System 0, using GR00T and SONIC to understand high-level action generation and low-level whole-body control.
+8. **Integrated practice (planned)**: course projects combining perception, communication, and control.
 
 ## Quick start
 
@@ -73,8 +78,8 @@ cd Foundation_of_Embodied_AI
 Foundation_of_Embodied_AI/
 ├── README.md       # English course overview (default)
 ├── README.zh-CN.md # Chinese course overview
-├── md/             # 18 Chinese and English Markdown tutorials
-└── pdf/            # 18 Chinese and English PDF materials
+├── md/             # 22 Chinese and English Markdown tutorials
+└── pdf/            # 22 Chinese and English PDF materials
 ```
 
 The repository identifier is `Foundation_of_Embodied_AI`. The Chinese course title is “具身智能基础”, and the English display title is “Foundation of Embodied AI”. Existing filenames are preserved, including the `-1` suffix on some PDFs. All original files are included in full.
