@@ -29,7 +29,7 @@
 | 数据采集与模仿学习 | 示教、数据集、BC、DAgger、ACT、生成式动作块与 RTC 概念；不规定统一且经过运行测试的软件环境 | 2026-10-18 |
 | Flow Matching | CFM 理论；OpenPI pi0.py 代码引用固定如下；示例不代表已完成微调实验 | 2026-10-18 |
 | GR00T 与 SONIC | SONIC 论文集成：GR00T N1.5；文档 G1 工作流：N1.7、78 维动作、2.5 Hz 推理 / 50 Hz 动作流。Checkpoint 与观测配置须匹配 | 2026-10-18 |
-| 先进 Robot Agent | RAX、Gemini Robotics ER、SayCan、Code as Policies：概念比较 | 2026-10-18 |
+| 先进 Robot Agent | ASPIRE 与 RAX：在线探索、执行轨迹诊断、程序修复与编译、技能记忆及验证概念 | 2026-10-18 |
 
 <a id="snapshots"></a>
 

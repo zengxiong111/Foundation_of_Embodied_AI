@@ -397,10 +397,10 @@
       "title_en": "Advanced Robot Agents",
       "title_zh": "先进 Robot Agent",
       "reviewed_at": "2026-10-18",
-      "review_scope_en": "Research workflow and methodology discussion; no robot deployment validated.",
-      "review_scope_zh": "公开研究工作流与方法综述；未进行真机部署验证。",
-      "versions_en": "RAX, Gemini Robotics ER, SayCan, Code as Policies: conceptual comparison",
-      "versions_zh": "RAX、Gemini Robotics ER、SayCan、Code as Policies：概念比较",
+      "review_scope_en": "Document integration and rendering checks only; no reproduced success rates, transfer results or robot deployment. No experimental chapter is included.",
+      "review_scope_zh": "仅进行文档整合与排版检查；未复现成功率、迁移结果或真机部署。不包含实验章节。",
+      "versions_en": "ASPIRE and RAX: online exploration, trace-guided repair, program compilation, skill memory and verification concepts",
+      "versions_zh": "ASPIRE 与 RAX：在线探索、执行轨迹诊断、程序修复与编译、技能记忆及验证概念",
       "source_refs": [],
       "documents": {
         "zh": {
