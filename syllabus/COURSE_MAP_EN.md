@@ -54,7 +54,7 @@ Documentation, formulae, references and proposed experiments **do not establish 
 
 ## Advanced Robot Agents for System Integration
 
-Final topic: [Robot Agents: planning, execution, verification and recovery](../md/Robot_Agent_Workflow_EN.md). Its scope is task orchestration, not repeating perception, BC or Flow Matching derivations.
+Final topic: [Robot Agents: planning, execution, verification and recovery](../md/Robot_Agent_Workflow_EN.md). It covers RAX exploration and compilation, ASPIRE trace-guided repair, skill reuse and a dexterous-hand screwdriver example. The combined workflow is a teaching example; no code or experiments are included.
 
 ## Cross-Chapter Ownership to Avoid Duplication
 

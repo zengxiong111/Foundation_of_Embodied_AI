@@ -395,11 +395,11 @@
       "id": "robot-agent",
       "title_en": "Advanced Robot Agents",
       "title_zh": "先进 Robot Agent",
-      "reviewed_at": "2026-10-18",
-      "review_scope_en": "Document integration and rendering checks only; no reproduced success rates, transfer results or robot deployment. No experimental chapter is included.",
-      "review_scope_zh": "仅进行文档整合与排版检查；未复现成功率、迁移结果或真机部署。不包含实验章节。",
-      "versions_en": "ASPIRE and RAX: online exploration, trace-guided repair, program compilation, skill memory and verification concepts",
-      "versions_zh": "ASPIRE 与 RAX：在线探索、执行轨迹诊断、程序修复与编译、技能记忆及验证概念",
+      "reviewed_at": "2026-10-19",
+      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDF bytes preserved without regeneration. No reproduced experiments, executable-code validation or robot deployment.",
+      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 保持原始字节且未重新生成；未复现实验、验证可执行代码或进行真机部署。",
+      "versions_en": "Task-level agent roles; RAX Explore–Compile–Evaluate; ASPIRE multimodal traces, Coordinator–Actor, iterative debugging and evolutionary search; verified execution, skill reuse and a pedagogical dexterous-hand screwdriver example. No code or experimental chapters.",
+      "versions_zh": "任务级 Agent 职责；RAX Explore–Compile–Evaluate；ASPIRE 多模态 Trace、Coordinator–Actor、迭代调试与进化搜索；可验证执行、技能复用及灵巧手螺丝刀教学案例。不含代码或实验章节。",
       "source_refs": [],
       "documents": {
         "zh": {

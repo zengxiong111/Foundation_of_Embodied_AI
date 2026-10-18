@@ -54,7 +54,7 @@ flowchart LR
 
 ## 先进 Robot Agent 的系统集成
 
-最终专题：[Robot Agent：规划、执行、验证与恢复](../md/Robot_Agent_Workflow_ZH.md)。任务级决策与恢复在该章集中介绍，不再重复视觉基础模型、BC 或 Flow Matching 的理论推导。
+最终专题：[Robot Agent：规划、执行、验证与恢复](../md/Robot_Agent_Workflow_ZH.md)。内容涵盖 RAX 探索与编译、ASPIRE 执行轨迹诊断与修复、技能复用及灵巧手螺丝刀案例。融合工作流属于教学示例，不含代码或实验章节。
 
 ## 跨章节职责：减少重复教学
 
