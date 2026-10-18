@@ -317,10 +317,10 @@
       "title_en": "Data Collection and Imitation Learning",
       "title_zh": "数据采集与模仿学习",
       "reviewed_at": "2026-10-18",
-      "review_scope_en": "Methods survey and proposed experiments; no validated training results.",
-      "review_scope_zh": "方法与实验设计，未实际复现训练。",
-      "versions_en": "Demonstrations, BC, DAgger, ACT and generative chunk policies",
-      "versions_zh": "示教数据、BC、DAgger、ACT、生成式动作块策略",
+      "review_scope_en": "Document integration and rendering checks only; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "仅进行文档整合与排版检查；未进行教程环境、训练或硬件验证。",
+      "versions_en": "Demonstrations, datasets, BC, DAgger, ACT, generative action chunks and RTC concepts; no single tested software environment is prescribed",
+      "versions_zh": "示教、数据集、BC、DAgger、ACT、生成式动作块与 RTC 概念；不规定统一且经过运行测试的软件环境",
       "source_refs": [],
       "documents": {
         "zh": {

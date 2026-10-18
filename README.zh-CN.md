@@ -6,13 +6,15 @@
 
 **课程导读：** 按“工具 → 物理与视觉 → 强化学习 → 示教与生成策略 → 系统集成”的路径阅读；Git 和 ROS 2 可按需作为工具参考。完整路径见 [课程大纲](syllabus/COURSE_MAP_ZH.md)。
 
+[课程合订本](#中英文课程合订本) · [课程资料](#课程资料) · [使用与反馈](#使用与反馈)
+
 ## 中英文课程合订本
 
 [下载中文版完整讲义 PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Foundation_of_Embodied_AI_Complete_Chinese.pdf) · [下载英文版完整讲义 PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Foundation_of_Embodied_AI_Complete_English.pdf)
 
 ## 课程资料
 
-14 个主题，28 份 Markdown 和 28 份 PDF（新增 PDF 由构建流程生成）。点击表格中的链接阅读或下载。
+14 个主题，28 份 Markdown 和 28 份 PDF。点击表格中的链接阅读或下载。
 
 | 主题 | 中文 Markdown | English Markdown | 中文 PDF | English PDF |
 |---|---|---|---|---|
@@ -30,6 +32,8 @@
 | Flow Matching | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.pdf" target="_blank">PDF</a> |
 | GR00T 与 SONIC | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.pdf" target="_blank">PDF</a> |
 | 先进 Robot Agent | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.pdf" target="_blank">PDF</a> |
+
+数据与模仿学习：涵盖 BC、DAgger、ACT、生成式动作块与 RTC；不包含实验章节。
 
 ## 使用与反馈
 

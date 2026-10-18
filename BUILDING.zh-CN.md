@@ -41,7 +41,7 @@ PDF 默认采用黑白为主的打印样式：黑色正文、标题、公式和�
 
 ## 课程合订本
 
-执行 `npm run build`、`npm run check` 成功后，安装构建依赖 `python3 -m pip install pymupdf==1.26.7`，再运行 `python3 scripts/merge_collections.py`。它将生成 `books/Foundation_of_Embodied_AI_Complete_Chinese.pdf` 和 `books/Foundation_of_Embodied_AI_Complete_English.pdf`，包含可点击总目录与章节书签。合订本直接使用验证通过的 26 份独立章节 PDF。
+执行 `npm run build`、`npm run check` 成功后，安装构建依赖 `python3 -m pip install pymupdf==1.26.7`，再运行 `python3 scripts/merge_collections.py`。它将生成 `books/Foundation_of_Embodied_AI_Complete_Chinese.pdf` 和 `books/Foundation_of_Embodied_AI_Complete_English.pdf`，包含可点击总目录与章节书签。合订本直接使用验证通过的 28 份独立章节 PDF。
 
 ## 网站同步
 
@@ -52,7 +52,7 @@ python3 scripts/publish.py --publish --wait
 python3 scripts/publish.py --verify-only
 ```
 
-发布使用非强制的原子 commit，保留个人网站其他文件；等待现有 Pages 工作流完成后，下载并校验所有 52 个章节资料文件。含 YAML 元数据的 Markdown 网站副本会增加开头空行，以便 Jekyll 按静态文件提供下载；正文保持一致。`npm run check` 自动校验已提交 PDF 的绑定；只有显式执行发布命令才会更新网站。
+发布使用非强制的原子 commit，保留个人网站其他文件；等待现有 Pages 工作流完成后，下载并校验所有 56 个章节资料文件。含 YAML 元数据的 Markdown 网站副本会增加开头空行，以便 Jekyll 按静态文件提供下载；正文保持一致。`npm run check` 自动校验已提交 PDF 的绑定；只有显式执行发布命令才会更新网站。
 
 ## 许可与贡献范围
 

@@ -41,7 +41,7 @@ Dependencies are locked in `package-lock.json`; print styling lives in `scripts/
 
 ## Whole-course PDFs
 
-After successful `npm run build` and `npm run check`, install the independent book generator once with `python3 -m pip install pymupdf==1.26.7` and run `python3 scripts/merge_collections.py`. It generates `books/Foundation_of_Embodied_AI_Complete_Chinese.pdf` and `books/Foundation_of_Embodied_AI_Complete_English.pdf` with clickable contents and chapter bookmarks. Book PDFs are derived from the 26 validated per-topic chapter PDFs, not independently edited versions.
+After successful `npm run build` and `npm run check`, install the independent book generator once with `python3 -m pip install pymupdf==1.26.7` and run `python3 scripts/merge_collections.py`. It generates `books/Foundation_of_Embodied_AI_Complete_Chinese.pdf` and `books/Foundation_of_Embodied_AI_Complete_English.pdf` with clickable contents and chapter bookmarks. Book PDFs are derived from the 28 validated per-topic chapter PDFs, not independently edited versions.
 
 ## Website synchronization
 
@@ -52,7 +52,7 @@ python3 scripts/publish.py --publish --wait
 python3 scripts/publish.py --verify-only
 ```
 
-Publication uses a non-force atomic commit and preserves other website files. After the existing Pages workflow completes, it downloads and checks all 52 chapter materials. A leading blank line is added to website Markdown copies containing YAML metadata so Jekyll serves them statically; body content is preserved. `npm run check` automatically checks committed PDF bindings; website updates require the explicit publication command.
+Publication uses a non-force atomic commit and preserves other website files. After the existing Pages workflow completes, it downloads and checks all 56 chapter materials. A leading blank line is added to website Markdown copies containing YAML metadata so Jekyll serves them statically; body content is preserved. `npm run check` automatically checks committed PDF bindings; website updates require the explicit publication command.
 
 ## Licensing and contribution scope
 

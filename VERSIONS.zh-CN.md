@@ -26,7 +26,7 @@
 | 运动控制 RL | Isaac Lab / RSL-RL 工作流为说明性示例；任务、训练器、资产和执行器版本需一起绑定 | 2026-10-18 |
 | PPO | PPO-Clip / GAE 理论；PyTorch 风格示例为教学内容，非已测试训练包 | 2026-10-18 |
 | SAC | 现代连续动作 SAC；双 Critic 与自动温度调节；伪代码为主 | 2026-10-18 |
-| 数据采集与模仿学习 | 示教数据、BC、DAgger、ACT、生成式动作块策略 | 2026-10-18 |
+| 数据采集与模仿学习 | 示教、数据集、BC、DAgger、ACT、生成式动作块与 RTC 概念；不规定统一且经过运行测试的软件环境 | 2026-10-18 |
 | Flow Matching | CFM 理论；OpenPI pi0.py 代码引用固定如下；示例不代表已完成微调实验 | 2026-10-18 |
 | GR00T 与 SONIC | SONIC 论文集成：GR00T N1.5；文档 G1 工作流：N1.7、78 维动作、2.5 Hz 推理 / 50 Hz 动作流。Checkpoint 与观测配置须匹配 | 2026-10-18 |
 | 先进 Robot Agent | RAX、Gemini Robotics ER、SayCan、Code as Policies：概念比较 | 2026-10-18 |
