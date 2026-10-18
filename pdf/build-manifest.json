@@ -107,8 +107,8 @@
     },
     "md/Git_使用教程_中文版.md": {
       "pdf": "pdf/Git_使用教程_中文版.pdf",
-      "source_sha256": "8c0378841476402e0b46d88880ba1a523cefaa324cd5e8e79604420e8b85c1f6",
-      "pdf_sha256": "092896b5ebf371fd2cd921e101fafa58630089f5f729ddd8508c89fbfb2d8fb2",
+      "source_sha256": "614325d124d5b915ebd651f282354e53ede0523ec2dc30dc896ad4cd2c3379ee",
+      "pdf_sha256": "64d780ef86d43e432c59c4052c3a4428cc97453bff399299eabb31b649c21ddd",
       "build_inputs_sha256": "74af51448c06503eb8b124f5d2c560c221e1de5e572325961e54b397603c1ea8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -125,16 +125,16 @@
           "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
         }
       ],
-      "pages": 23,
+      "pages": 19,
       "math_nodes": 0,
       "math_errors": 0,
-      "diagrams_rendered": 1,
+      "diagrams_rendered": 0,
       "equation_overflows": 0
     },
     "md/Git_Tutorial_English.md": {
       "pdf": "pdf/Git_Tutorial_English-1.pdf",
-      "source_sha256": "29212961b083f49be2abfd46dd205d42875d98903becf09f0c7160be0f332037",
-      "pdf_sha256": "19a78e1e721350a6f0e6ec69d89c43e9169c875ca8dfd7d9bd8b75a577fd1aa7",
+      "source_sha256": "2836f6e0a7bf5a1cf7450069847425792014f5554be22d85f7f9647a916e600a",
+      "pdf_sha256": "6a13466339eee4ac8bac16db9ab29e6000d1944b824bf4946be427bb84779064",
       "build_inputs_sha256": "74af51448c06503eb8b124f5d2c560c221e1de5e572325961e54b397603c1ea8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -151,10 +151,10 @@
           "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
         }
       ],
-      "pages": 24,
+      "pages": 20,
       "math_nodes": 0,
       "math_errors": 0,
-      "diagrams_rendered": 1,
+      "diagrams_rendered": 0,
       "equation_overflows": 0
     },
     "md/ROS2_Robot_Learning_Tutorial_ZH.md": {
