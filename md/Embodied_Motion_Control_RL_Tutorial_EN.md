@@ -590,6 +590,9 @@ Direct exploration can be difficult for jumping, dance, gymnastics, and high-dim
 
 ### 6.1 The basic pipeline
 
+**Motion Tracking / Motion Imitation RL** learns physical tracking behavior with environment rewards and rollouts; it is not equivalent to supervised action-label BC. For BC/ACT/generative action-chunk training, consult [Data and Imitation Learning](Data_Imitation_Learning_EN.md).
+
+
 ```text
 Human motion / Teleoperation
               |
