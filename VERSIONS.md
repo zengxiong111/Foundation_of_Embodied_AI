@@ -25,7 +25,7 @@ Record the current materials’ applicability and upstream source snapshots. Rev
 | Embodied RL | Algorithm and task taxonomy; no single framework environment is prescribed | 2026-10-18 |
 | Motion Control RL | Isaac Lab / RSL-RL workflows are illustrative; task, trainer, asset and actuator versions must be bound together | 2026-10-18 |
 | PPO | PPO-Clip / GAE theory; PyTorch-style examples are instructional, not a tested training package | 2026-10-18 |
-| SAC | Modern continuous-action SAC; twin critics and automatic temperature tuning; pseudocode only | 2026-10-18 |
+| SAC | Q-learning, TD/SARSA, DQN, soft Bellman equations, modern SAC, twin critics, reparameterization and automatic entropy tuning; instructional pseudocode | 2026-10-18 |
 | Data Collection and Imitation Learning | Demonstrations, datasets, BC, DAgger, ACT, generative action chunks and RTC concepts; no single tested software environment is prescribed | 2026-10-18 |
 | Flow Matching | CFM theory; OpenPI pi0.py code reference pinned below; examples are not a tested fine-tuning run | 2026-10-18 |
 | GR00T & SONIC | SONIC paper integration: GR00T N1.5; documented G1 workflow: N1.7, 78-dim actions, 2.5 Hz inference / 50 Hz stream. Checkpoint and observation config must match | 2026-10-18 |

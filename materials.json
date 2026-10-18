@@ -292,10 +292,10 @@
       "title_en": "SAC",
       "title_zh": "SAC",
       "reviewed_at": "2026-10-18",
-      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
-      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
-      "versions_en": "Modern continuous-action SAC; twin critics and automatic temperature tuning; pseudocode only",
-      "versions_zh": "现代连续动作 SAC；双 Critic 与自动温度调节；伪代码为主",
+      "review_scope_en": "Document integration and rendering checks only; no training or robot validation. No experimental chapter is included.",
+      "review_scope_zh": "仅进行文档整合与排版检查；未进行训练或真机验证。不包含实验章节。",
+      "versions_en": "Q-learning, TD/SARSA, DQN, soft Bellman equations, modern SAC, twin critics, reparameterization and automatic entropy tuning; instructional pseudocode",
+      "versions_zh": "Q-learning、TD/SARSA、DQN、Soft Bellman 方程、现代 SAC、双 Critic、重参数化与自动熵调节；教学伪代码",
       "source_refs": [],
       "documents": {
         "zh": {
