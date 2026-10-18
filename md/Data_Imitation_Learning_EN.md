@@ -44,22 +44,31 @@
 - [9. Interactive Imitation and Recovering from Failure](#course-section-27)
   - [9.1 DAgger: Expert Queries on Learner-Visited States](#course-section-28)
   - [9.2 Failures, Recoveries, and Event-Biased Sampling](#course-section-29)
-- [10. ACT, Diffusion Policy, Flow Matching, and RTC: Training vs. Execution](#course-section-30)
+- [10. ACT, Diffusion Policy, and Flow Matching for Actions](#course-section-30)
   - [10.1 ACT: Conditional VAE and Transformer Chunks](#course-section-31)
   - [10.2 Diffusion Policy: Predict Noise in Action Space](#course-section-32)
   - [10.3 Flow Matching: Generative Velocity Is Not Joint Velocity](#course-section-33)
   - [10.4 Fair Comparisons Against BC](#course-section-34)
-  - [10.5 Why RTC Matters: From Synchronous Chunks to Asynchronous Control](#course-section-35)
-  - [10.6 Inference-Time RTC: Inpainting With a Frozen Prefix and Soft Overlap](#course-section-36)
-  - [10.7 Training-Time RTC: Learn the Prefix Constraint From Demonstrations](#course-section-37)
-  - [10.8 Comparing RTC Against Temporal Ensembling and Naive Async](#course-section-38)
-- [11. Human Video Retargeting, Contact, and Augmentation](#course-section-39)
-  - [11.1 Human-to-Robot Is Not Pixel Imitation](#course-section-40)
-  - [11.2 Augmentation Must Preserve Geometry and Physics](#course-section-41)
-- [12. Training and Evaluation Protocol](#course-section-42)
-  - [12.1 Offline Metrics, Closed-Loop Success, and Recovery](#course-section-43)
-  - [12.2 A Shared Panda Tabletop Benchmark](#course-section-44)
-- [13. Where This Fits and References](#course-section-45)
+- [11. Human Video Retargeting, Contact, and Augmentation](#course-section-35)
+  - [11.1 Human-to-Robot Is Not Pixel Imitation](#course-section-36)
+  - [11.2 Augmentation Must Preserve Geometry and Physics](#course-section-37)
+- [12. Training and Evaluation Protocol](#course-section-38)
+  - [12.1 Offline Metrics, Closed-Loop Success, and Recovery](#course-section-39)
+  - [12.2 A Shared Panda Tabletop Benchmark](#course-section-40)
+- [13. Where This Fits and References](#course-section-41)
+- [8. Deeper Foundations: Demonstrations and Supervised Objectives](#course-section-42)
+  - [8.1 Episodes, Behavior Policies, and Causality](#course-section-43)
+  - [8.2 Deterministic and Probabilistic BC](#course-section-44)
+  - [8.3 Compounding Error and DAgger](#course-section-45)
+- [9. Action Chunking, ACT, and Generative Imitation](#course-section-46)
+  - [9.1 Prediction Versus Execution Horizon](#course-section-47)
+  - [9.2 ACT and the CVAE Objective](#course-section-48)
+  - [9.3 Diffusion Policy](#course-section-49)
+  - [9.4 Flow Matching for Action Chunks](#course-section-50)
+- [10. Data Quality and Evaluation](#course-section-51)
+  - [10.1 Contacts, Failures, and Event-Aware Sampling](#course-section-52)
+  - [10.2 Shared Panda Evaluation](#course-section-53)
+  - [10.3 Connection to Agentic Robotics](#course-section-54)
 <!-- course-toc:end -->
 
 **Learning outcomes:** Identify demonstration quality risks; understand BC, DAgger, ACT, and diffusion/flow chunk training; distinguish inference-time and training-time RTC; evaluate timing, continuity, and task success.
@@ -230,9 +239,12 @@ In real manipulation the full world state $s_t$ (object motion, friction, contac
 $$
 \tau_i=\{g_i,(o_t^{\mathrm{cam}},q_t,a_t,r_t^{\mathrm{event}})_{t=0}^{T_i-1}\}.
 $$
+
 The event label $r_t^{\mathrm{event}}$ may encode contact, slip, recovery, or completion; it need not be an RL reward. Ground-truth simulated object poses, future expert commands, or post-hoc outcome labels must not leak into the deployed policy observations. Keep issued commands distinct from delayed joint feedback.
 
 <a id="course-section-21"></a>
+
+**Expert vs. behavior policy:** Let $\pi_E$ denote the expert and $\mu$ the actual data-collection policy. When demonstrations include exploratory actions, corrective trials or multiple operators, $\mu$ need not equal $\pi_E$. Preserve action provenance and evaluate on unbiased held-out episodes.
 
 ### 7.2 The Action-Chunk Prediction Problem
 
@@ -242,6 +254,7 @@ $$
 A_t=(a_t,a_{t+1},\ldots,a_{t+H-1}),\qquad
 p_\theta(A_t\mid c_t).
 $$
+
 Prediction horizon $H$ is **not** the number of steps that must run open-loop. Execute only $h\le H$ steps, observe, then replan. Document control interval, inference call interval, queueing and interpolation. For example, 30-Hz vision and 100-Hz servo feedback do not imply that the large VLA must run at 100 Hz; it does require a safe interpolation, hold and timeout policy.
 
 <a id="course-section-22"></a>
@@ -256,6 +269,7 @@ $$
 \tilde a=(a-\mu_D)/(\sigma_D+\varepsilon),\qquad
 a_{\rm deployed}=\tilde a(\sigma_D+\varepsilon)+\mu_D.
 $$
+
 Different joints, gripper apertures, rotations and force commands require consistent units and independent safety limits. Never use test data to fit normalization parameters.
 
 <a id="course-section-23"></a>
@@ -271,16 +285,18 @@ Given expert samples $(c,a)\sim d_E$, a deterministic baseline minimizes
 $$
 \mathcal L_{\rm BC}(\theta)=\mathbb E_{(c,a)\sim d_E}\|\pi_\theta(c)-a\|_2^2.
 $$
+
 Under squared loss it converges toward the conditional mean $\mathbb E[a\mid c]$. This works for sufficiently unimodal behavior. If going left and going right around an obstacle are equally valid, the mean could collide with the obstacle. A probabilistic policy instead minimizes the negative log-likelihood
 
 $$
 \mathcal L_{\rm NLL}(\theta)=-\mathbb E_{(c,a)\sim d_E}\log p_\theta(a\mid c).
 $$
-For general Gaussian $p_\theta(a\mid c)=\mathcal N(\mu_\theta(c),\Sigma_\theta(c))$, the NLL includes $\frac12(a-\mu_\theta)^\top\Sigma_\theta^{-1}(a-\mu_\theta)$ and $\frac12\log|\Sigma_\theta|$; it reduces to a weighted MSE only when the covariance is fixed.
 
 For a Gaussian distribution with fixed isotropic variance, NLL is MSE up to scaling and constants. Mixtures or generative action distributions can represent multiple modes. **High dimensionality alone is not proof that ordinary BC is inadequate.**
 
 <a id="course-section-25"></a>
+
+For general Gaussian $p_\theta(a\mid c)=\mathcal N(\mu_\theta(c),\Sigma_\theta(c))$, the NLL includes $\frac12(a-\mu_\theta)^\top\Sigma_\theta^{-1}(a-\mu_\theta)$ and $\frac12\log|\Sigma_\theta|$; it reduces to a weighted MSE only when the covariance is fixed.
 
 ### 8.2 Covariate Shift and Compounding Error
 
@@ -291,6 +307,7 @@ $$
 \quad\not\Rightarrow\quad
 \min_\theta\mathbb E_{s\sim d_{\pi_\theta}}\ell(\pi_\theta(s),\pi_E(s)).
 $$
+
 A small contact error may move the object to a state absent from expert training data. Collect intervention and recovery data; evaluate under deliberate safe perturbations, not solely on shuffled held-out action labels.
 
 <a id="course-section-26"></a>
@@ -304,6 +321,7 @@ $$
 \frac{\sum_{t,k}m_{t,k}w_k\|\hat a_{t+k\mid t}-a_{t+k}\|_1}
 {\sum_{t,k}m_{t,k}w_k}.
 $$
+
 A smoothness penalty $\lambda_s\sum_k\|\hat a_{k+1}-\hat a_k\|^2$ may suppress unwanted oscillation, yet can also erase necessary changes at contact onset or release. Measure task success and contact-force peaks before choosing it based on visual smoothness.
 
 <a id="course-section-27"></a>
@@ -320,15 +338,16 @@ $$
 D_{i+1}=D_i\cup\{(s,\pi_E(s)):s\sim d_{\pi_i}\},\qquad
 \theta_{i+1}=\arg\min_\theta\sum_{(s,a)\in D_{i+1}}\ell(\pi_\theta(s),a).
 $$
+
 The expert mixing probability $\beta_i$ is often decreased gradually. Hardware requires human intervention authority, velocity/force limits and emergency stops. Merely retraining from static offline trajectories is not DAgger.
 
 <a id="course-section-29"></a>
 
+One optional event-biased sampler uses $w_t=1+\lambda\sum_j\exp[-(t-t_j)^2/(2\sigma^2)]$ around contact/slip events $t_j$.
+
 ### 9.2 Failures, Recoveries, and Event-Biased Sampling
 
 Classify demonstrations as successful, recoverable failure, irrecoverable failure, or intervention. Annotate first contact, slip, drop, reacquisition and regrasp. Imitate only **safe and meaningful recovery actions**; unsafe failures may still be kept as negative outcome labels.
-
-One optional event-biased sampler uses $w_t=1+\lambda\sum_j\exp[-(t-t_j)^2/(2\sigma^2)]$ around contact/slip events $t_j$.
 
 Compare uniform time sampling against event-biased sampling. A weighted loss is $\mathcal L=\sum_tw_t\ell_t/\sum_tw_t$, but modified sampling changes the training distribution. Always report unbiased test performance as well.
 
@@ -347,6 +366,7 @@ $$
 \mathbb E_{z\sim q_\phi}[-\log p_\theta(A\mid z,c)]
 +\beta D_{\rm KL}(q_\phi(z\mid A,c)\|p(z)).
 $$
+
 The KL term regularizes the posterior against the latent prior. At inference there is no future ground-truth action chunk $A$; use the declared prior or a deterministic representative. Large $\beta$ can cause posterior collapse; tiny $\beta$ can create a mismatch between training posterior and inference prior.
 
 <a id="course-section-32"></a>
@@ -358,12 +378,14 @@ Let $A_0$ be a demonstrated action chunk, $\epsilon\sim\mathcal N(0,I)$, and $k$
 $$
 A_k=\sqrt{\bar\alpha_k}A_0+\sqrt{1-\bar\alpha_k}\epsilon
 $$
+
 and fit the conditional noise prediction objective
 
 $$
 \mathcal L_{\rm diff}=
 \mathbb E_{A_0,c,k,\epsilon}\|\epsilon-\epsilon_\theta(A_k,k,c)\|_2^2.
 $$
+
 At deployment, iterative denoising produces an action chunk. Execute a subset and replan from the next observation. The denoising step count, visual encoder and network architecture all affect latency; "generative" does not imply real-time.
 
 <a id="course-section-33"></a>
@@ -377,6 +399,7 @@ $$
 \mathbb E_{c,A_0,A_1,\tau}
 \|v_\theta(A_\tau,\tau,c)-(A_1-A_0)\|_2^2.
 $$
+
 Sample by solving $dA_\tau/d\tau=v_\theta(A_\tau,\tau,c)$. This vector field is a derivative in **generative time**, not the robot's physical $\dot q$. Path choices and time orientations vary by implementation. The continuity equation, conditional-expectation argument and OpenPI time convention are derived exclusively in the [Flow Matching tutorial](Flow_Matching_Step_by_Step_Derivation_EN.md); this chapter focuses on the imitation-learning interface.
 
 <a id="course-section-34"></a>
@@ -503,9 +526,10 @@ This method belongs naturally in imitation learning because it changes **sample 
 
 <a id="course-section-39"></a>
 
+
 ## 11. Human Video Retargeting, Contact, and Augmentation
 
-<a id="course-section-40"></a>
+<a id="course-section-36"></a>
 
 ### 11.1 Human-to-Robot Is Not Pixel Imitation
 
@@ -517,19 +541,20 @@ $$
 w_R d_{SO(3)}(R_{\rm robot},R_{\rm target})^2+
 w_c\mathcal L_{\rm contact}+w_j\mathcal L_{\rm limits}.
 $$
+
 Define $\mathcal L_{\rm contact}$ for the task, e.g. contact point error, surface normals, grasp maintenance or object slip. Mere proximity does not certify physical contact.
 
-<a id="course-section-41"></a>
+<a id="course-section-37"></a>
 
 ### 11.2 Augmentation Must Preserve Geometry and Physics
 
 When perturbing object position, scale or orientation, transform task goals, observable geometry, trajectories and reference-frame-dependent labels consistently. Rotating an image without adjusting Cartesian action labels is typically invalid. Contact phases should be physically replayed to check penetration, limits, slip and unreasonable forces before accepting augmented episodes.
 
-<a id="course-section-42"></a>
+<a id="course-section-38"></a>
 
 ## 12. Training and Evaluation Protocol
 
-<a id="course-section-43"></a>
+<a id="course-section-39"></a>
 
 ### 12.1 Offline Metrics, Closed-Loop Success, and Recovery
 
@@ -543,7 +568,7 @@ When perturbing object position, scale or orientation, transform task goals, obs
 
 For $k$ successes in $N$ independent episodes, report $\hat p=k/N$ and a confidence interval. The rough standard error is $\sqrt{\hat p(1-\hat p)/N}$; use a Wilson interval for small $N$ or near-boundary success rates. Frames from the same episode are not independent trials.
 
-<a id="course-section-44"></a>
+<a id="course-section-40"></a>
 
 ### 12.2 A Shared Panda Tabletop Benchmark
 
@@ -552,7 +577,7 @@ Use the same Panda arm, cube, and tabletop in simulation. First validate control
 **Chapter ownership:** this tutorial owns demonstration quality, supervised imitation, distribution shift and action-policy comparisons. Complete PPO/SAC derivations belong to their respective chapters; formal FM derivations belong to the [Flow Matching tutorial](Flow_Matching_Step_by_Step_Derivation_EN.md); the visual model toolbox belongs to [Visual Perception and State Estimation](Visual_State_Estimation_EN.md).
 
 
-<a id="course-section-45"></a>
+<a id="course-section-41"></a>
 
 ## 13. Where This Fits and References
 
@@ -567,3 +592,4 @@ This chapter bridges [camera calibration](Robot_Camera_Calibration_Tutorial_EN.m
 **Verification boundary:** this chapter is a methods and experiment-design primer, not a claim that those policies were reproduced in the shared Panda setup.
 
 
+<a id="course-section-42"></a>

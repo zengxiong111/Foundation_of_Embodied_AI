@@ -97,7 +97,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No regenerated changes."
           else
-            git commit -m "Rebuild 28 bilingual chapters and complete course PDFs"
+            git commit -m "Rebuild 26 bilingual chapters and complete course PDFs"
             git push origin "HEAD:${{ github.ref_name }}"
           fi
 

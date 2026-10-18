@@ -44,22 +44,31 @@
 - [9. 从离线 BC 到交互式模仿学习](#course-section-27)
   - [9.1 DAgger 的数据聚合与专家查询](#course-section-28)
   - [9.2 失败轨迹、恢复示教与标签质量](#course-section-29)
-- [10. ACT、Diffusion Policy、Flow Matching 与 RTC：训练和执行](#course-section-30)
+- [10. 从 ACT 到扩散与 Flow Matching 动作策略](#course-section-30)
   - [10.1 ACT：CVAE 与 Transformer 动作块](#course-section-31)
   - [10.2 Diffusion Policy：以噪声预测学习动作块分布](#course-section-32)
   - [10.3 Flow Matching：动作速度场与物理速度不是一回事](#course-section-33)
   - [10.4 生成式策略和 BC 的公平对照](#course-section-34)
-  - [10.5 RTC 为什么重要：从同步动作块到异步执行](#course-section-35)
-  - [10.6 Inference-time RTC：把两段动作块衔接变成 Inpainting](#course-section-36)
-  - [10.7 Training-time RTC：在模仿学习阶段学会遵守已承诺动作](#course-section-37)
-  - [10.8 RTC 和 Temporal Ensembling、普通异步执行如何比较](#course-section-38)
-- [11. 人类视频重定向、接触与数据增强](#course-section-39)
-  - [11.1 从人类视频到机器人动作不是直接复制像素](#course-section-40)
-  - [11.2 轨迹增强必须保持物理和标签一致](#course-section-41)
-- [12. 建议的训练与评估规范](#course-section-42)
-  - [12.1 区分离线预测、闭环成功率和扰动恢复](#course-section-43)
-  - [12.2 一个贯穿课程的最小实验](#course-section-44)
-- [13. 课程衔接与参考资料](#course-section-45)
+- [11. 人类视频重定向、接触与数据增强](#course-section-35)
+  - [11.1 从人类视频到机器人动作不是直接复制像素](#course-section-36)
+  - [11.2 轨迹增强必须保持物理和标签一致](#course-section-37)
+- [12. 建议的训练与评估规范](#course-section-38)
+  - [12.1 区分离线预测、闭环成功率和扰动恢复](#course-section-39)
+  - [12.2 一个贯穿课程的最小实验](#course-section-40)
+- [13. 课程衔接与参考资料](#course-section-41)
+- [8. 深入：从示教轨迹到监督学习目标](#course-section-42)
+  - [8.1 数据集、闭环系统与行为策略](#course-section-43)
+  - [8.2 确定性与概率式 BC](#course-section-44)
+  - [8.3 分布偏移与 DAgger](#course-section-45)
+- [9. 深入：动作块、ACT 与生成式模仿学习](#course-section-46)
+  - [9.1 预测长度和执行长度](#course-section-47)
+  - [9.2 ACT 的 CVAE 目标](#course-section-48)
+  - [9.3 Diffusion Policy 的去噪训练](#course-section-49)
+  - [9.4 Flow Matching 形式的动作块学习](#course-section-50)
+- [10. 数据工程与评估的完整清单](#course-section-51)
+  - [10.1 轨迹质量、标签可靠性与事件分层](#course-section-52)
+  - [10.2 Panda 统一实验与最小消融](#course-section-53)
+  - [10.3 从模仿学习到 Robot Agent 的接口](#course-section-54)
 <!-- course-toc:end -->
 
 **学习目标：** 识别示教数据质量问题；理解 BC、DAgger、ACT、Diffusion/Flow 的动作块训练；区分 Inference-time 与 Training-time RTC，并设计兼顾延迟、连续性和任务成功率的实验。
@@ -230,9 +239,12 @@ flowchart LR
 $$
 \tau_i=\{g_i,(o_t^{\mathrm{cam}},q_t,a_t,r_t^{\mathrm{event}})_{t=0}^{T_i-1}\}.
 $$
+
 事件标注 $r_t^{\mathrm{event}}$ 可以表示接触、滑落、恢复与任务完成，**不是必须使用的强化学习奖励**。不要把仿真器的真实物体位姿、示教者未来的动作或后处理的成功标签偷放到部署策略输入。若监督信号来自动作命令而观测来自延迟的反馈，应明确这一时序关系。
 
 <a id="course-section-21"></a>
+
+**专家与行为策略：** 设 $\pi_E$ 为专家，$\mu$ 为实际数据收集策略，混入随机探索、恢复片段和多操作者时未必有 $\mu=\pi_E$。不是每个动作都应作为无差别的最优监督标签，需记录质量来源并在无权重测试集评估。
 
 ### 7.2 Action Chunk 的学习目标
 
@@ -242,6 +254,7 @@ $$
 A_t=(a_t,a_{t+1},\ldots,a_{t+H-1}),\qquad
 p_\theta(A_t\mid c_t).
 $$
+
 $H$ 是**预测长度**，不是必须开环执行的步数。实际执行 $h\le H$ 步后重新观测，构成滚动时域控制。策略查询周期、机器人低层控制周期、动作块执行长度必须分别记录。例如视觉为 30 Hz、低层伺服为 100 Hz 时，策略可以低于伺服频率运行，但中间的插值和超时机制不可省略。
 
 <a id="course-section-22"></a>
@@ -256,6 +269,7 @@ $$
 \tilde a=(a-\mu_D)/(\sigma_D+\varepsilon),\qquad
 a_{\rm deployed}=\tilde a(\sigma_D+\varepsilon)+\mu_D .
 $$
+
 不同关节角、夹爪开合或末端旋转需要正确的单位与限幅。检查归一化统计是否意外使用测试集数据。
 
 <a id="course-section-23"></a>
@@ -271,6 +285,7 @@ $$
 $$
 \mathcal L_{\rm BC}(\theta)=\mathbb E_{(c,a)\sim d_E}\|\pi_\theta(c)-a\|_2^2.
 $$
+
 它在均方损失下趋向条件均值 $\mathbb E[a\mid c]$。当专家行为近似单峰时，它是低成本、值得保留的强基线；当同一条件下“从左绕开”和“从右绕开”都是合理动作时，平均行为可能撞上障碍物。
 
 用概率模型更一般地写为最大似然：
@@ -278,11 +293,12 @@ $$
 $$
 \mathcal L_{\rm NLL}(\theta)=-\mathbb E_{(c,a)\sim d_E}\log p_\theta(a\mid c).
 $$
-对于一般高斯 $p_\theta(a\mid c)=\mathcal N(\mu_\theta(c),\Sigma_\theta(c))$，NLL 包含 $\frac12(a-\mu_\theta)^\top\Sigma_\theta^{-1}(a-\mu_\theta)$ 和 $\frac12\log|\Sigma_\theta|$；因此只有协方差固定时才退化为加权 MSE。
 
 若 $p_\theta$ 为方差固定的各向同性高斯分布，NLL 与带常数系数的 MSE 等价。多峰分布需要混合密度模型或生成式动作策略，**不能只因为动作维度高就认定 BC 必然失败**。
 
 <a id="course-section-25"></a>
+
+对于一般高斯 $p_\theta(a\mid c)=\mathcal N(\mu_\theta(c),\Sigma_\theta(c))$，NLL 包含 $\frac12(a-\mu_\theta)^\top\Sigma_\theta^{-1}(a-\mu_\theta)$ 和 $\frac12\log|\Sigma_\theta|$；因此只有协方差固定时才退化为加权 MSE。
 
 ### 8.2 分布偏移：为什么测试时误差会累积
 
@@ -293,6 +309,7 @@ $$
 \quad\not\Rightarrow\quad
 \min_\theta\,\mathbb E_{s\sim d_{\pi_\theta}}\ell(\pi_\theta(s),\pi_E(s)).
 $$
+
 一个小的接触误差可能触发物体滑动，使后续观察脱离训练分布。专家示教集中在成功轨迹时，模型可能根本没有见过“物体掉落后重新抓取”的状态。这解释了为什么测试需要扰动恢复回合，而不仅是随机抽样的动作回归误差。
 
 <a id="course-section-26"></a>
@@ -306,6 +323,7 @@ $$
 \frac{\sum_{t,k}m_{t,k}w_k\|\hat a_{t+k\mid t}-a_{t+k}\|_1}
 {\sum_{t,k}m_{t,k}w_k},
 $$
+
 其中 $m_{t,k}\in\{0,1\}$ 排除越界步，$w_k$ 可以减小远期预测权重。可选的动作平滑正则为 $\lambda_s\sum_k\|\hat a_{k+1}-\hat a_k\|^2$，但精密插装、接触切换时动作变化可能是必要的，**过度平滑会抹掉真实接触事件**。比较正则前后成功率和力/速度峰值，而不是只看曲线是否光滑。
 
 <a id="course-section-27"></a>
@@ -322,15 +340,16 @@ $$
 D_{i+1}=D_i\cup\{(s,\pi_E(s)):s\sim d_{\pi_i}\},\qquad
 \theta_{i+1}=\arg\min_\theta\sum_{(s,a)\in D_{i+1}}\ell(\pi_\theta(s),a).
 $$
+
 $\beta_i$ 通常逐步降低。真实机器人上必须给专家接管、安全停止和强制限幅预留控制权；不能直接让未经审查的探索命令在硬件上自由执行。
 
 <a id="course-section-29"></a>
 
+可选的事件采样权重为 $w_t=1+\lambda\sum_j\exp[-(t-t_j)^2/(2\sigma^2)]$，其中 $t_j$ 表示接触/滑移等事件时刻。
+
 ### 9.2 失败轨迹、恢复示教与标签质量
 
 示教可以分为成功完成、可恢复失败、不可恢复失败、人工中断四类。只对**可安全模仿的动作**建立监督，记录接触开始、滑移、掉落、重新定位、重新抓取等事件。对于不可安全复现的行为，应保留结果标签与日志用于分析，而不是直接做正例 BC。
-
-可选的事件采样权重为 $w_t=1+\lambda\sum_j\exp[-(t-t_j)^2/(2\sigma^2)]$，其中 $t_j$ 表示接触/滑移等事件时刻。
 
 建议在均匀时间采样的 baseline 之后再加入 event-biased sampling。若事件权重为 $w_t$，可以采用 $\mathcal L=\sum_tw_t\ell_t/\sum_tw_t$；必须披露其改变的训练分布，并在无偏的测试集上评估。
 
@@ -349,6 +368,7 @@ $$
 \mathbb E_{z\sim q_\phi}\big[-\log p_\theta(A\mid z,c)\big]
 +\beta\,D_{\rm KL}(q_\phi(z\mid A,c)\|p(z)).
 $$
+
 第二项把示教编码分布约束到先验 $p(z)$；推理阶段没有真实未来动作块 $A$ 可用，应从约定先验采样或使用其确定性代表。$\beta$ 过大可能造成后验塌缩，过小则易使训练与推理潜变量分布不一致。
 
 <a id="course-section-32"></a>
@@ -360,6 +380,7 @@ $$
 $$
 A_k=\sqrt{\bar\alpha_k}A_0+\sqrt{1-\bar\alpha_k}\epsilon.
 $$
+
 一个常见的条件噪声预测目标为
 
 $$
@@ -367,6 +388,7 @@ $$
 \mathbb E_{A_0,c,k,\epsilon}
 \|\epsilon-\epsilon_\theta(A_k,k,c)\|_2^2.
 $$
+
 推理时从高斯噪声迭代去噪得到动作块，并只执行其中一部分，再基于新观测重规划。计算量由去噪步数、动作维度和视觉编码器共同决定；“生成式”本身不保证实时。
 
 <a id="course-section-33"></a>
@@ -380,6 +402,7 @@ $$
 \mathbb E_{c,A_0,A_1,\tau}
 \|v_\theta(A_\tau,\tau,c)-(A_1-A_0)\|_2^2.
 $$
+
 采样时求解生成空间 ODE：$dA_\tau/d\tau=v_\theta(A_\tau,\tau,c)$。其中 $v_\theta$ 是**动作样本在生成时间 $\tau$ 上的变化方向**，不是机械臂关节速度 $\dot q$。不同论文的时间方向和路径不同；严格的连续性方程、条件期望推导及 OpenPI 的时间约定统一放在 [Flow Matching 专题](Flow_Matching_详细推导_精简版.md)，本章只说明与模仿学习的接口。
 
 <a id="course-section-34"></a>
@@ -504,9 +527,10 @@ $$
 
 <a id="course-section-39"></a>
 
+
 ## 11. 人类视频重定向、接触与数据增强
 
-<a id="course-section-40"></a>
+<a id="course-section-36"></a>
 
 ### 11.1 从人类视频到机器人动作不是直接复制像素
 
@@ -518,19 +542,20 @@ $$
 +w_R\,d_{SO(3)}(R_{\rm robot},R_{\rm target})^2
 +w_c\mathcal L_{\rm contact}+w_j\mathcal L_{\rm limits}.
 $$
+
 这里 $\mathcal L_{\rm contact}$ 必须针对具体任务定义，例如接触点距离、接触法线、抓握保持或物体相对滑移；不等于“两个物体距离近”就保证存在力学接触。
 
-<a id="course-section-41"></a>
+<a id="course-section-37"></a>
 
 ### 11.2 轨迹增强必须保持物理和标签一致
 
 对物体姿态的随机旋转与平移，需同步变换目标、观测几何和所有依赖参考系的动作标签。图像旋转不伴随动作坐标变换通常会导致错误监督。接触阶段还应在短时物理回放中检查指尖穿透、物体滑落、关节限位、控制频率和接触力，删去不可信增强片段。
 
-<a id="course-section-42"></a>
+<a id="course-section-38"></a>
 
 ## 12. 建议的训练与评估规范
 
-<a id="course-section-43"></a>
+<a id="course-section-39"></a>
 
 ### 12.1 区分离线预测、闭环成功率和扰动恢复
 
@@ -544,7 +569,7 @@ $$
 
 成功率估计 $\hat p=k/N$ 应同时报告独立试验数 $N$、训练随机种子及置信区间；粗略标准误差为 $\sqrt{\hat p(1-\hat p)/N}$，当 $N$ 小或成功率接近 0/1 时采用 Wilson 区间。不能将相互相关的同一条轨迹的动作帧当作独立 episode。
 
-<a id="course-section-44"></a>
+<a id="course-section-40"></a>
 
 ### 12.2 一个贯穿课程的最小实验
 
@@ -553,7 +578,7 @@ $$
 **章节边界：** 本章深入讲采集、示教监督、分布偏移、生成动作策略和数据设计；PPO/SAC 的理论推导仍在各自专题，Flow Matching 的严格数学推导见相应章节，视觉 6D 位姿与 SAM/Foundation 系列见 [视觉感知与状态估计](Visual_State_Estimation_ZH.md)。
 
 
-<a id="course-section-45"></a>
+<a id="course-section-41"></a>
 
 ## 13. 课程衔接与参考资料
 
@@ -568,3 +593,4 @@ $$
 **核验边界：** 本章是方法与实验设计导论；没有声称这些算法已在本课程统一 Panda 环境复现。
 
 
+<a id="course-section-42"></a>

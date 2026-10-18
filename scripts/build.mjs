@@ -45,8 +45,15 @@ try {
     const { content } = matter(source.toString());
     const title = /^# (.+)$/m.exec(content)?.[1];
     if (!title) throw Error(`Missing title: ${doc.md}`);
+    // texmath catches KaTeX exceptions and emits plain error text, without a
+    // .katex-error node. Track errors at the engine boundary so none reach PDFs.
+    const mathErrors = [];
+    const engine = { renderToString(tex, options) {
+      try { return katex.renderToString(tex, options); }
+      catch (error) { mathErrors.push(error.message); throw error; }
+    } };
     const md = new MarkdownIt({ html: true }).use(texmath, {
-      engine: katex, delimiters: 'dollars', katexOptions: { throwOnError: true, strict: 'ignore' },
+      engine, delimiters: 'dollars', katexOptions: { throwOnError: true, strict: 'ignore' },
     });
     const baseFence = md.renderer.rules.fence.bind(md.renderer.rules);
     let diagrams = 0;
@@ -58,6 +65,7 @@ try {
       return baseFence(tokens, idx, opts, env, self);
     };
     const html = `<!doctype html><html lang="${lang === 'zh' ? 'zh-CN' : 'en'}"><head><meta charset="utf-8"><title>${esc(title)}</title><style>${mathCSS}\n${fs.readFileSync('scripts/print.css', 'utf8')}</style></head><body>${md.render(content)}</body></html>`;
+    if (mathErrors.length) throw Error(`${doc.md}: ${mathErrors.join('\n')}`);
     const htmlPath = path.join(temp, `${topic.id}-${lang}.html`);
     fs.writeFileSync(htmlPath, html);
     const page = await browser.newPage({ viewport: { width: 658, height: 950 } });

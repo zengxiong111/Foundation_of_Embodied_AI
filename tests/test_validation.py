@@ -19,6 +19,16 @@ class CourseValidationTests(unittest.TestCase):
     def test_duplicate_title_rejected(self):
         self.assertIn('exactly one H1 is required', check.document_errors(GOOD + '\n# Other title\n'))
 
+    def test_standalone_single_dollar_rejected(self):
+        self.assertTrue(any('single-dollar' in e for e in check.document_errors(GOOD + '\n$\nx^2\n$\n')))
+
+    def test_supported_math_and_literal_code_accepted(self):
+        self.assertEqual(check.document_errors(GOOD + '\nInline $x^2$.\n\n$$\nx^2\n$$\n\n```text\n$\n```\n\n~~~text\n$\n~~~\n'), [])
+
+    def test_unpaired_math_delimiter_rejected(self):
+        errors = check.document_errors(GOOD + '\n$$\nx^2\n')
+        self.assertTrue(any('unpaired $$' in e for e in errors))
+
     def test_broken_toc_rejected(self):
         self.assertTrue(any('broken contents anchor' in e for e in check.document_errors(GOOD.replace('](#course-section-01)', '](#course-section-99)'))))
 
@@ -27,17 +37,6 @@ class CourseValidationTests(unittest.TestCase):
 
     def test_duplicate_explicit_anchor_rejected(self):
         self.assertIn('duplicate explicit anchor', check.document_errors(GOOD + '\n<a id="course-section-01"></a>'))
-
-    def test_bare_single_dollar_math_fence_rejected(self):
-        errors = check.document_errors(GOOD + '\n$\nx^2\n$\n')
-        self.assertTrue(any('standalone $' in e for e in errors))
-
-    def test_unpaired_display_math_rejected(self):
-        errors = check.document_errors(GOOD + '\n$$\nx^2\n')
-        self.assertTrue(any('unpaired $$' in e for e in errors))
-
-    def test_valid_display_math_accepted(self):
-        self.assertEqual(check.document_errors(GOOD + '\n$$\nx^2\n$$\n'), [])
 
     def test_stale_source_pdf_and_renderer_rejected(self):
         self.assertEqual(len(check.binding_errors({'math_errors': 0, 'equation_overflows': 0}, b'changed source', b'changed PDF', 'new renderer')), 3)
