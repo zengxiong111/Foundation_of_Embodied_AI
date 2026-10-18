@@ -203,3 +203,93 @@ This chapter bridges [camera calibration](Robot_Camera_Calibration_Tutorial_EN.m
 - [LeRobot](https://github.com/huggingface/lerobot)
 
 **Verification boundary:** this chapter is a methods and experiment-design primer, not a claim that those policies were reproduced in the shared Panda setup.
+
+
+## 8. Deeper Foundations: Demonstrations and Supervised Objectives
+
+### 8.1 Episodes, Behavior Policies, and Causality
+
+Represent an episode by $\\tau_i=(g_i,\\{o_t,q_t,a_t,r_t,\\delta_t\\}_{t=0}^{T_i-1})$ and a dataset by $D=\\{\\tau_i\\}_{i=1}^N$. Preserve camera and control timestamps separately. The logged label $a_t$ must specify the **actual command** rather than confusing commands with measured joint positions. Separate the expert $\\pi_E$, the collection policy $\\mu$, and the learner $\\pi_\\theta$; a mixed collection policy is not automatically an expert.
+
+For a causal controller, $t_{\\mathrm{obs}}\\le t_{\\mathrm{act}}$. With observation and communication delay $d$, the deployed conditioning resembles $\\pi_\\theta(a_t\\mid o_{t-d},q_{t-d},g)$. Using future frames during offline training leaks information into the policy.
+
+### 8.2 Deterministic and Probabilistic BC
+
+Deterministic behavioral cloning minimizes
+
+$$
+\\mathcal L_{\\mathrm{BC}}(\\theta)=\\frac1{|D|}\\sum_{(o,a)\\in D}\\|\\pi_\\theta(o)-a\\|_2^2.
+$$
+
+A multimodal task, such as approaching an object from either side, may make the conditional mean unsafe. Stochastic BC instead minimizes
+
+$$
+\\mathcal L_{\\mathrm{NLL}}=-\\mathbb E_{(o,a)\\sim D}\\log\\pi_\\theta(a\\mid o,g).
+$$
+
+For a Gaussian policy, the objective contains $\\frac12(a-\\mu_\\theta)^\\top\\Sigma_\\theta^{-1}(a-\\mu_\\theta)+\\frac12\\log|\\Sigma_\\theta|$. MSE is an appropriate special case only when covariance assumptions are fixed. Normalize action units across joints, end-effector pose and hands.
+
+### 8.3 Compounding Error and DAgger
+
+Offline BC fits the state distribution $d^{\\pi_E}$ of collected demonstrations, whereas deployment visits $d^{\\pi_\\theta}$. Small one-step deviations can compound with horizon. DAgger collects learner-visited states and asks the expert for corresponding actions:
+
+$$
+D_{k+1}=D_k\\cup\\{(o,\\pi_E(o)):o\\sim d^{\\pi_{\\theta_k}}\\},\\qquad
+\\theta_{k+1}=\\arg\\min_\\theta\\mathbb E_{(o,a)\\sim D_{k+1}}\\ell(\\pi_\\theta(o),a).
+$$
+
+Expert relabeling is essential. Retraining on an unchanged offline dataset is not DAgger. Human intervention and physical safety limits are necessary on robots.
+
+## 9. Action Chunking, ACT, and Generative Imitation
+
+### 9.1 Prediction Versus Execution Horizon
+
+Let $A_t=(a_t,\\ldots,a_{t+H-1})$ be a predicted action chunk. Conditioning $c_t=(o_{t-k:t},q_t,g)$ leads to $\\hat A_t=f_\\theta(c_t)$. Execute only the first $h\\le H$ steps and replan. Distinguish policy inference rate $f_\\pi$, servo rate $f_c$ and execution time $h/f_c$. A controller must be able to interrupt a chunk after slip, tracking loss, or unexpected contact.
+
+### 9.2 ACT and the CVAE Objective
+
+In its original formulation, ACT uses a Transformer and a CVAE-like latent variable. A representative training objective is
+
+$$
+\\mathcal L_{\\mathrm{ACT}}=\\mathbb E_{q_\\phi(z\\mid A,c)}\\|A-f_\\theta(c,z)\\|_1+\\beta D_{\\mathrm{KL}}\\left(q_\\phi(z\\mid A,c)\\|p(z)\\right).
+$$
+
+The reconstruction term fits chunked actions; the KL term aligns the training posterior with the inference prior. Temporal ensembling between overlapping predictions should be evaluated particularly around discontinuous contact events.
+
+### 9.3 Diffusion Policy
+
+Given a clean chunk $A^0$ and noise $\\epsilon\\sim\\mathcal N(0,I)$, define $A^k=\\sqrt{\\bar\\alpha_k}A^0+\\sqrt{1-\\bar\\alpha_k}\\epsilon$. A common noise prediction objective is
+
+$$
+\\mathcal L_{\\mathrm{diff}}=\\mathbb E_{A^0,c,k,\\epsilon}\\|\\epsilon-\\epsilon_\\theta(A^k,k,c)\\|_2^2.
+$$
+
+Iterative denoising generates a chunk. Denoising steps are **generative compute steps**, not robot servo updates. Compare runtime and episode success under a fixed hardware budget.
+
+### 9.4 Flow Matching for Action Chunks
+
+Sample $x_0\\sim\\mathcal N(0,I)$ and take $x_1=A$. For the linear interpolation $x_s=(1-s)x_0+s x_1$, train
+
+$$
+\\mathcal L_{\\mathrm{FM}}=\\mathbb E_{s,x_0,x_1,c}\\|v_\\theta(x_s,s,c)-(x_1-x_0)\\|_2^2.
+$$
+
+Inference solves $\\mathrm dx_s/\\mathrm ds=v_\\theta(x_s,s,c)$. This notation integrates noise to data; implementations with reversed time require corresponding sign changes. **Full conditional/marginal velocity field derivations live in the [Flow Matching chapter](Flow_Matching_Step_by_Step_Derivation_EN.md)**. Here we focus on demonstration supervision and robot action interfaces.
+
+## 10. Data Quality and Evaluation
+
+### 10.1 Contacts, Failures, and Event-Aware Sampling
+
+Maintain separate labels for successful expert behavior, expert recovery, informative failures, and unsafe failures not suitable for imitation. A contact label $c_t\\in\\{0,1\\}$ should come from a sensor or validated physical event; vision-only inferred contact must be labeled as estimated.
+
+An optional event-biased sampler uses $w_t=1+\\lambda\\sum_j\\exp[-(t-t_j)^2/(2\\sigma^2)]$ around contact transition times $t_j$. This modifies the training distribution and is not necessarily better than uniform sampling. Compare both methods experimentally.
+
+### 10.2 Shared Panda Evaluation
+
+Use the shared Panda + table + cube task, with fixed cameras, controls, randomization seeds, and evaluation splits. Compare one-step BC, chunk BC, ACT, Diffusion Policy, and Flow Matching while separately ablating dataset size, execution horizon, recovery examples, perception noise, and inference budget.
+
+Over $N$ test episodes, report $\\hat p=\\frac1N\\sum_i\\mathbf1[\\mathrm{success}_i]$ with uncertainty intervals, object and scene holdout protocols, contact failures, recovery, inference latency and total episode duration. Training action MSE alone is insufficient.
+
+### 10.3 Connection to Agentic Robotics
+
+This chapter owns the **demonstration-to-skill training process**. Task-level planning, verification and replanning are described in [Robot Agents](Robot_Agent_Workflow_EN.md); visual model selection and tracking live in [Visual State Estimation](Visual_State_Estimation_EN.md).
