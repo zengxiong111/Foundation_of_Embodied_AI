@@ -51,7 +51,6 @@ jobs:
           sudo apt-get install -y poppler-utils fontconfig fonts-noto-cjk
           npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium
-          python -m pip install --disable-pip-version-check 'pymupdf==1.26.7' 
 
       - name: Synchronize bilingual source references
         run: npm run sync
@@ -65,48 +64,25 @@ jobs:
       - name: Validate PDFs, mathematical layout and manifest hashes
         run: npm run check
 
-      - name: Generate Chinese and English complete course books
-        run: python scripts/merge_collections.py
-
-      - name: Validate course books and counted PDF outputs
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          import pymupdf
-          config = json.loads(Path('materials.json').read_text())
-          assert len(config['topics']) == 14
-          chapter_pdfs = [Path(t['documents'][l]['pdf']) for t in config['topics'] for l in ('zh', 'en')]
-          assert len(chapter_pdfs) == 28 and all(f.is_file() for f in chapter_pdfs)
-          for lang, name in [('zh','Chinese'),('en','English')]:
-              p = Path(f'books/Foundation_of_Embodied_AI_Complete_{name}.pdf')
-              with pymupdf.open(p) as book:
-                  total = 2 + sum(len(pymupdf.open(t['documents'][lang]['pdf'])) for t in config['topics'])
-                  assert len(book) == total
-                  assert len(book[1].get_links()) >= 14
-              print(lang, 'book verified:', p, 'pages:', total)
-          PY
-
       - name: Commit validated course outputs
         shell: bash
         run: |
           set -eu
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add md/ VERSIONS.md VERSIONS.zh-CN.md pdf/ books/
+          git add md/ VERSIONS.md VERSIONS.zh-CN.md pdf/
           if git diff --cached --quiet; then
             echo "No regenerated changes."
           else
-            git commit -m "Rebuild 26 bilingual chapters and complete course PDFs"
+            git commit -m "Rebuild bilingual chapter PDFs"
             git push origin "HEAD:${{ github.ref_name }}"
           fi
 
-      - name: Upload verified chapter and book files
+      - name: Upload verified chapter PDFs
         uses: actions/upload-artifact@v4
         with:
-          name: embodied-course-28-pdfs-and-books
+          name: embodied-course-28-chapter-pdfs
           path: |
             pdf/*.pdf
-            books/*.pdf
           if-no-files-found: error
           retention-days: 7
