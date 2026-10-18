@@ -88,6 +88,14 @@
 - [参考资料（官方资料优先）](#course-section-71)
 <!-- course-toc:end -->
 
+**章节知识地图**
+
+```mermaid
+flowchart LR
+  A["机器人模型"] --> B["仿真环境"] --> C["并行训练"] --> D["部署检查"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. 三个平台究竟是什么？

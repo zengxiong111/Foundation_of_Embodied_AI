@@ -42,6 +42,14 @@
 - [8. Final Summary](#course-section-25)
 <!-- course-toc:end -->
 
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A["Task observation"] --> B["PPO / SAC"] --> C["Policy class"] --> D["Evaluation"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. Overall Classification of Embodied Reinforcement Learning

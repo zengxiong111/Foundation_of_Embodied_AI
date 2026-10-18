@@ -94,6 +94,14 @@ lang: zh-CN
 - [参考资料与开源链接](#course-section-69)
 <!-- course-toc:end -->
 
+**章节知识地图**
+
+```mermaid
+flowchart LR
+  A["状态与目标"] --> B["RL 策略"] --> C["执行器"] --> D["机器人反馈"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 第一章：什么是运动控制强化学习？
