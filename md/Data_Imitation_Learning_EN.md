@@ -290,6 +290,8 @@ $
 \mathcal L_{\rm NLL}(\theta)=-\mathbb E_{(c,a)\sim d_E}\log p_\theta(a\mid c).
 $
 
+For general Gaussian $p_\theta(a\mid c)=\mathcal N(\mu_\theta(c),\Sigma_\theta(c))$, the NLL includes $\frac12(a-\mu_\theta)^\top\Sigma_\theta^{-1}(a-\mu_\theta)$ and $\frac12\log|\Sigma_\theta|$; it reduces to a weighted MSE only when the covariance is fixed.
+
 For a Gaussian distribution with fixed isotropic variance, NLL is MSE up to scaling and constants. Mixtures or generative action distributions can represent multiple modes. **High dimensionality alone is not proof that ordinary BC is inadequate.**
 
 <a id="course-section-25"></a>
@@ -342,6 +344,8 @@ The expert mixing probability $\beta_i$ is often decreased gradually. Hardware r
 ### 9.2 Failures, Recoveries, and Event-Biased Sampling
 
 Classify demonstrations as successful, recoverable failure, irrecoverable failure, or intervention. Annotate first contact, slip, drop, reacquisition and regrasp. Imitate only **safe and meaningful recovery actions**; unsafe failures may still be kept as negative outcome labels.
+
+One optional event-biased sampler uses $w_t=1+\lambda\sum_j\exp[-(t-t_j)^2/(2\sigma^2)]$ around contact/slip events $t_j$.
 
 Compare uniform time sampling against event-biased sampling. A weighted loss is $\mathcal L=\sum_tw_t\ell_t/\sum_tw_t$, but modified sampling changes the training distribution. Always report unbiased test performance as well.
 
@@ -403,6 +407,114 @@ Sample by solving $dA_\tau/d\tau=v_\theta(A_\tau,\tau,c)$. This vector field is 
 Use the same demonstrations, observation encoder, action representation, prediction/execution horizons and evaluation protocol for one-step BC, chunked BC, ACT, Diffusion Policy and Flow Matching. Record data volume, model calls, generation steps, inference latency and closed-loop success. Do not mistake the benefit of action chunking for the benefit of a Transformer, or of extra test-time computation for the learning algorithm itself.
 
 <a id="course-section-35"></a>
+
+
+### 10.5 Why RTC Matters: From Synchronous Chunks to Asynchronous Control
+
+**Real-Time Chunking (RTC) is not a new BC objective or a standalone motor policy.** It is an execution/conditional generation technique for keeping diffusion- or flow-based chunk policies responsive despite inference latency. Synchronous chunk execution pauses at chunk boundaries. Naive asynchronous switching removes the pause but may jump between different valid yet incompatible future trajectories. Temporal ensembling averages predictions, which can produce an invalid average of two legitimate modes in contact-rich tasks.
+
+Let $H$ be the prediction horizon, $s\le H$ the execution horizon, $\Delta t$ the servo timestep, and $\delta$ the end-to-end latency from observation to available chunk. Measure inference delay in servo steps:
+
+$
+d\approx\left\lceil\frac{\delta}{\Delta t}\right\rceil,\qquad
+A_t=(a_t,\ldots,a_{t+H-1}).
+$
+
+The ceiling is a **conservative engineering approximation**; the original RTC derivation uses $\lfloor\delta/\Delta t\rfloor$ and estimates future delay from a rolling history. Seamless asynchronous handoff requires sufficient remaining actions to cover inference, in particular $d\le H-s$, with additional margin for jitter. At 50 Hz ($\Delta t=20$ ms), a measured 140 ms latency is roughly seven steps. Choosing $H=50$ and $s=20$ can leave enough old-chunk actions to cover inference, but does not replace timeout, packet-loss handling or emergency-stop logic.
+
+~~~mermaid
+flowchart LR
+  A["Capture observation"] --> B["Asynchronous next-chunk inference"]
+  C["Continue old chunk execution"] --> D["Previously committed prefix"]
+  B --> E["Condition prefix and generate suffix"]
+  D --> E
+  E --> F["Switch to compatible future plan"]
+  F --> G["Observe and replan"]
+~~~
+
+### 10.6 Inference-Time RTC: Inpainting With a Frozen Prefix and Soft Overlap
+
+Let $Y$ be the old planned actions **aligned with the new chunk by absolute controller time**, and $A^\tau$ the new generated chunk at generative time $\tau\in[0,1]$. The first $d$ new-chunk actions correspond to time already committed to the old plan, so they must not change. Beyond that, some actions overlap the old plan but may be updated using new observations. The original RTC soft mask uses
+
+$
+W_i=
+\begin{cases}
+1,&0\le i<d,\\
+c_i(e^{c_i}-1)/(e-1),&d\le i<H-s,\\
+0,&H-s\le i<H,
+\end{cases}
+$
+
+$
+c_i=\frac{H-s-i}{H-s-d+1}.
+$
+
+The committed prefix receives weight one; the middle overlap decays; the last $s$ actions are newly planned. **These are guidance weights inside generation, not post-hoc averaging of two action sequences.**
+
+For a noise-to-data flow policy, a local fully-denoised endpoint prediction is
+
+$
+\widehat A^1=A^\tau+(1-\tau)v_\theta(A^\tau,\tau,c).
+$
+
+The following equivalent negative-gradient form captures the intuition of the paper's pseudoinverse guidance (see the original Eq. 2–4 for its exact scaling factor):
+
+$
+\widetilde v_\theta=
+v_\theta-\lambda_\tau\nabla_{A^\tau}
+\left[\frac12\|W^{1/2}\odot(\widehat A^1-Y)\|_2^2\right].
+$
+
+Integrate $A^{\tau+\Delta\tau}=A^\tau+\Delta\tau\,\widetilde v_\theta$. This keeps the generated trajectory compatible with committed actions while still allowing future corrections. The correction involves a vector–Jacobian product during generative integration: **inference-time RTC does not require retraining, but adds inference computation.** The original method assumes a guidable continuous diffusion/flow sampler; an arbitrary deterministic ACT output cannot simply be passed through the same inpainting solver.
+
+### 10.7 Training-Time RTC: Learn the Prefix Constraint From Demonstrations
+
+[Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964) incorporates the committed prefix into the imitation-learning objective. It learns
+
+$
+p_\theta(A_{d:H}\mid c,A_{0:d}),
+$
+
+where $A_{0:d}$ comprises indices $0,\ldots,d-1$ and the postfix $A_{d:H}$ comprises indices $d,\ldots,H-1$ (half-open interval notation). Given an expert chunk $A$, sample deployment-like delay $0\le d<H$, flow time $\tau$, and Gaussian noise $\epsilon$. Use per-action flow times and inputs
+
+$
+\bar\tau_i=
+\begin{cases}
+1,&i<d,\\ \tau,&i\ge d,
+\end{cases}
+\qquad
+\widetilde A_i=\bar\tau_i A_i+(1-\bar\tau_i)\epsilon_i.
+$
+
+The first $d$ tokens are **clean ground-truth prefix actions**, while the remaining tokens learn to denoise. A compatible action transformer must support token-wise flow-time conditioning. Mask the loss so that only the postfix is supervised:
+
+$
+\mathcal L_{\mathrm{RTC-train}}=
+\mathbb E_{A,c,d,\tau,\epsilon}\left[
+\frac{1}{H-d}\sum_{i=d}^{H-1}
+\|v_\theta(\widetilde A,\bar{\boldsymbol\tau},c)_i
+-(A_i-\epsilon_i)\|_2^2
+\right].
+$
+
+At deployment, supply the previously committed actions as a hard prefix and generate **only the editable suffix**. This avoids inference-time gradient guidance, but requires training/fine-tuning for a distribution of delays and does not support the original method's flexible soft overlap in exactly the same way. Training prefixes come from expert demonstrations; deployed prefixes come from previous model predictions, so rollout evaluation must cover this distribution shift.
+
+This method belongs naturally in imitation learning because it changes **sample construction, token conditioning, and loss masking**. The full flow-matching mathematical derivation remains in [Flow Matching](Flow_Matching_Step_by_Step_Derivation_EN.md). Sample $d$ from measured latency statistics rather than assuming an arbitrary universal delay range; the cited $\pi_{0.6}$ experiments evaluate randomly sampled prefix lengths at both training and inference time.
+
+### 10.8 Comparing RTC Against Temporal Ensembling and Naive Async
+
+| Execution mode | Waits at chunk boundaries? | How inter-chunk consistency is handled | Changes training? |
+|---|---|---|---|
+| Synchronous chunking | Usually yes | Replan after a pause | No |
+| Naive asynchronous | Not necessarily | Immediate switch, possible jerk/mode jump | No |
+| Temporal ensembling | Can be asynchronous | Average overlapping predictions; can fail with multimodality | No |
+| Inference-time RTC | No | Frozen committed prefix + soft generative guidance | **No**, but extra inference cost |
+| Training-time RTC | No | Prefix-conditioned denoising; hard prefix at inference | **Yes**, cheaper inference |
+
+**Minimum evaluation:** Fix the same flow policy, task seeds, controller rate, and safety stack. Compare all five execution modes with 0/100/200 ms injected latency. Report task success, completion time, task throughput, inference p50/p95 latency, missed servo deadlines, boundary jump $\|a_t-a_{t-1}\|$, acceleration/jerk, contact failure, and drop recovery. Distinguish model compute time, handoff delay, and physical execution time. Offline FPS is not enough.
+
+**References:** [RTC original paper (NeurIPS 2025)](https://arxiv.org/abs/2506.07339), [training-time RTC (2025)](https://arxiv.org/abs/2512.05964), [Physical Intelligence project/videos](https://www.pi.website/research/real_time_chunking), and [LeRobot RTC documentation](https://huggingface.co/docs/lerobot/main/rtc). Extensions such as [Soft RTC (2026)](https://arxiv.org/abs/2605.25537) and [DiscreteRTC (2026)](https://arxiv.org/abs/2604.25050) explore soft overlap priors and native inpainting for discrete action samplers; their reported benefits are not universal guarantees for the original RTC method.
+
 
 ## 11. Human Video Retargeting, Contact, and Augmentation
 
@@ -470,116 +582,3 @@ This chapter bridges [camera calibration](Robot_Camera_Calibration_Tutorial_EN.m
 
 
 <a id="course-section-42"></a>
-
-## 8. Deeper Foundations: Demonstrations and Supervised Objectives
-
-<a id="course-section-43"></a>
-
-### 8.1 Episodes, Behavior Policies, and Causality
-
-Represent an episode by $\\tau_i=(g_i,\\{o_t,q_t,a_t,r_t,\\delta_t\\}_{t=0}^{T_i-1})$ and a dataset by $D=\\{\\tau_i\\}_{i=1}^N$. Preserve camera and control timestamps separately. The logged label $a_t$ must specify the **actual command** rather than confusing commands with measured joint positions. Separate the expert $\\pi_E$, the collection policy $\\mu$, and the learner $\\pi_\\theta$; a mixed collection policy is not automatically an expert.
-
-For a causal controller, $t_{\\mathrm{obs}}\\le t_{\\mathrm{act}}$. With observation and communication delay $d$, the deployed conditioning resembles $\\pi_\\theta(a_t\\mid o_{t-d},q_{t-d},g)$. Using future frames during offline training leaks information into the policy.
-
-<a id="course-section-44"></a>
-
-### 8.2 Deterministic and Probabilistic BC
-
-Deterministic behavioral cloning minimizes
-
-$$
-\\mathcal L_{\\mathrm{BC}}(\\theta)=\\frac1{|D|}\\sum_{(o,a)\\in D}\\|\\pi_\\theta(o)-a\\|_2^2.
-$$
-
-A multimodal task, such as approaching an object from either side, may make the conditional mean unsafe. Stochastic BC instead minimizes
-
-$$
-\\mathcal L_{\\mathrm{NLL}}=-\\mathbb E_{(o,a)\\sim D}\\log\\pi_\\theta(a\\mid o,g).
-$$
-
-For a Gaussian policy, the objective contains $\\frac12(a-\\mu_\\theta)^\\top\\Sigma_\\theta^{-1}(a-\\mu_\\theta)+\\frac12\\log|\\Sigma_\\theta|$. MSE is an appropriate special case only when covariance assumptions are fixed. Normalize action units across joints, end-effector pose and hands.
-
-<a id="course-section-45"></a>
-
-### 8.3 Compounding Error and DAgger
-
-Offline BC fits the state distribution $d^{\\pi_E}$ of collected demonstrations, whereas deployment visits $d^{\\pi_\\theta}$. Small one-step deviations can compound with horizon. DAgger collects learner-visited states and asks the expert for corresponding actions:
-
-$$
-D_{k+1}=D_k\\cup\\{(o,\\pi_E(o)):o\\sim d^{\\pi_{\\theta_k}}\\},\\qquad
-\\theta_{k+1}=\\arg\\min_\\theta\\mathbb E_{(o,a)\\sim D_{k+1}}\\ell(\\pi_\\theta(o),a).
-$$
-
-Expert relabeling is essential. Retraining on an unchanged offline dataset is not DAgger. Human intervention and physical safety limits are necessary on robots.
-
-<a id="course-section-46"></a>
-
-## 9. Action Chunking, ACT, and Generative Imitation
-
-<a id="course-section-47"></a>
-
-### 9.1 Prediction Versus Execution Horizon
-
-Let $A_t=(a_t,\\ldots,a_{t+H-1})$ be a predicted action chunk. Conditioning $c_t=(o_{t-k:t},q_t,g)$ leads to $\\hat A_t=f_\\theta(c_t)$. Execute only the first $h\\le H$ steps and replan. Distinguish policy inference rate $f_\\pi$, servo rate $f_c$ and execution time $h/f_c$. A controller must be able to interrupt a chunk after slip, tracking loss, or unexpected contact.
-
-<a id="course-section-48"></a>
-
-### 9.2 ACT and the CVAE Objective
-
-In its original formulation, ACT uses a Transformer and a CVAE-like latent variable. A representative training objective is
-
-$$
-\\mathcal L_{\\mathrm{ACT}}=\\mathbb E_{q_\\phi(z\\mid A,c)}\\|A-f_\\theta(c,z)\\|_1+\\beta D_{\\mathrm{KL}}\\left(q_\\phi(z\\mid A,c)\\|p(z)\\right).
-$$
-
-The reconstruction term fits chunked actions; the KL term aligns the training posterior with the inference prior. Temporal ensembling between overlapping predictions should be evaluated particularly around discontinuous contact events.
-
-<a id="course-section-49"></a>
-
-### 9.3 Diffusion Policy
-
-Given a clean chunk $A^0$ and noise $\\epsilon\\sim\\mathcal N(0,I)$, define $A^k=\\sqrt{\\bar\\alpha_k}A^0+\\sqrt{1-\\bar\\alpha_k}\\epsilon$. A common noise prediction objective is
-
-$$
-\\mathcal L_{\\mathrm{diff}}=\\mathbb E_{A^0,c,k,\\epsilon}\\|\\epsilon-\\epsilon_\\theta(A^k,k,c)\\|_2^2.
-$$
-
-Iterative denoising generates a chunk. Denoising steps are **generative compute steps**, not robot servo updates. Compare runtime and episode success under a fixed hardware budget.
-
-<a id="course-section-50"></a>
-
-### 9.4 Flow Matching for Action Chunks
-
-Sample $x_0\\sim\\mathcal N(0,I)$ and take $x_1=A$. For the linear interpolation $x_s=(1-s)x_0+s x_1$, train
-
-$$
-\\mathcal L_{\\mathrm{FM}}=\\mathbb E_{s,x_0,x_1,c}\\|v_\\theta(x_s,s,c)-(x_1-x_0)\\|_2^2.
-$$
-
-Inference solves $\\mathrm dx_s/\\mathrm ds=v_\\theta(x_s,s,c)$. This notation integrates noise to data; implementations with reversed time require corresponding sign changes. **Full conditional/marginal velocity field derivations live in the [Flow Matching chapter](Flow_Matching_Step_by_Step_Derivation_EN.md)**. Here we focus on demonstration supervision and robot action interfaces.
-
-<a id="course-section-51"></a>
-
-## 10. Data Quality and Evaluation
-
-<a id="course-section-52"></a>
-
-### 10.1 Contacts, Failures, and Event-Aware Sampling
-
-Maintain separate labels for successful expert behavior, expert recovery, informative failures, and unsafe failures not suitable for imitation. A contact label $c_t\\in\\{0,1\\}$ should come from a sensor or validated physical event; vision-only inferred contact must be labeled as estimated.
-
-An optional event-biased sampler uses $w_t=1+\\lambda\\sum_j\\exp[-(t-t_j)^2/(2\\sigma^2)]$ around contact transition times $t_j$. This modifies the training distribution and is not necessarily better than uniform sampling. Compare both methods experimentally.
-
-<a id="course-section-53"></a>
-
-### 10.2 Shared Panda Evaluation
-
-Use the shared Panda + table + cube task, with fixed cameras, controls, randomization seeds, and evaluation splits. Compare one-step BC, chunk BC, ACT, Diffusion Policy, and Flow Matching while separately ablating dataset size, execution horizon, recovery examples, perception noise, and inference budget.
-
-Over $N$ test episodes, report $\\hat p=\\frac1N\\sum_i\\mathbf1[\\mathrm{success}_i]$ with uncertainty intervals, object and scene holdout protocols, contact failures, recovery, inference latency and total episode duration. Training action MSE alone is insufficient.
-
-<a id="course-section-54"></a>
-
-### 10.3 Connection to Agentic Robotics
-
-This chapter owns the **demonstration-to-skill training process**. Task-level planning, verification and replanning are described in [Robot Agents](Robot_Agent_Workflow_EN.md); visual model selection and tracking live in [Visual State Estimation](Visual_State_Estimation_EN.md).

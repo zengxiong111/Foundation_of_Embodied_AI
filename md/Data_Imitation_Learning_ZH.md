@@ -292,6 +292,8 @@ $
 \mathcal L_{\rm NLL}(\theta)=-\mathbb E_{(c,a)\sim d_E}\log p_\theta(a\mid c).
 $
 
+对于一般高斯 $p_\theta(a\mid c)=\mathcal N(\mu_\theta(c),\Sigma_\theta(c))$，NLL 包含 $\frac12(a-\mu_\theta)^\top\Sigma_\theta^{-1}(a-\mu_\theta)$ 和 $\frac12\log|\Sigma_\theta|$；因此只有协方差固定时才退化为加权 MSE。
+
 若 $p_\theta$ 为方差固定的各向同性高斯分布，NLL 与带常数系数的 MSE 等价。多峰分布需要混合密度模型或生成式动作策略，**不能只因为动作维度高就认定 BC 必然失败**。
 
 <a id="course-section-25"></a>
@@ -344,6 +346,8 @@ $\beta_i$ 通常逐步降低。真实机器人上必须给专家接管、安全�
 ### 9.2 失败轨迹、恢复示教与标签质量
 
 示教可以分为成功完成、可恢复失败、不可恢复失败、人工中断四类。只对**可安全模仿的动作**建立监督，记录接触开始、滑移、掉落、重新定位、重新抓取等事件。对于不可安全复现的行为，应保留结果标签与日志用于分析，而不是直接做正例 BC。
+
+可选的事件采样权重为 $w_t=1+\lambda\sum_j\exp[-(t-t_j)^2/(2\sigma^2)]$，其中 $t_j$ 表示接触/滑移等事件时刻。
 
 建议在均匀时间采样的 baseline 之后再加入 event-biased sampling。若事件权重为 $w_t$，可以采用 $\mathcal L=\sum_tw_t\ell_t/\sum_tw_t$；必须披露其改变的训练分布，并在无偏的测试集上评估。
 
@@ -406,6 +410,112 @@ $
 先用相同数据、同一观测编码、同一动作表示和相同执行长度比较：单步 BC、chunked BC、ACT、Diffusion Policy、Flow Matching。报告训练数据量、推理频率、生成步数、动作延迟和实际任务成功率。不能把“ACT 的动作块收益”误记成“Transformer 架构收益”，也不能把更多推理计算导致的增益归因于算法本身。
 
 <a id="course-section-35"></a>
+
+
+### 10.5 RTC 为什么重要：从同步动作块到异步执行
+
+**Real-Time Chunking（RTC）不是另一个 BC 损失函数，也不是一种新的机器人动作策略。** 它是使现有的 Diffusion / Flow Matching 动作块策略在高推理延迟下持续闭环工作的执行与条件生成方法。普通同步执行在每个动作块结束后等待下一次推理，机器人会暂停；简单地异步生成下一块虽能消除暂停，却可能在切换时跳到另一条合理但不连续的轨迹。Temporal Ensembling 将多条动作预测取平均，在多模态接触任务中也可能把两条可行轨迹平均成不可行轨迹。
+
+设动作块长度为 $H$，每次实际执行 $s\le H$ 步，低层控制周期为 $\Delta t$，从观测采集到下一动作块可用的总推理延迟为 $\delta$。用控制步数表示延迟：
+
+$
+d\approx\left\lceil\frac{\delta}{\Delta t}\right\rceil,\qquad
+A_t=(a_t,\ldots,a_{t+H-1}).
+$
+
+这里的向上取整是**工程调度中的保守近似**；原始 RTC 论文为便于分析使用 $\lfloor\delta/\Delta t\rfloor$，并通过近期观测延迟估计下一次 $d$。对无停顿的异步切换，要求预测长度留出覆盖推理延迟的动作，即 $d\le H-s$；还应留有延迟抖动余量。例如 50 Hz 控制对应 $\Delta t=20$ ms，实测延迟 140 ms 对应约 $d=7$ 步，若 $H=50$、$s=20$，则可提前启动下一块推理，而旧块继续提供控制命令。这个条件不替代丢包、超时与急停机制。
+
+~~~mermaid
+flowchart LR
+  A["采集当前观测"] --> B["新动作块异步推理"]
+  C["继续执行上一动作块"] --> D["推理时已经承诺的前缀"]
+  B --> E["约束前缀并生成后缀"]
+  D --> E
+  E --> F["切换到平滑一致的新动作块"]
+  F --> G["更新观测并再次重规划"]
+~~~
+
+### 10.6 Inference-time RTC：把两段动作块衔接变成 Inpainting
+
+令 $\mathbf Y$ 表示**上一动作块中与新动作块的绝对时间索引对齐**的动作计划，$A^\tau$ 为新动作块生成过程在生成时间 $\tau\in[0,1]$ 的变量。由于前 $d$ 步已由上一块承诺执行，新块的前缀不能改变；其后仍与旧块重叠的动作可以软约束，以允许新观测修正计划。论文中的 Soft Mask 可以写为
+
+$
+W_i=
+\begin{cases}
+1,& 0\le i<d,\\
+c_i(e^{c_i}-1)/(e-1),&d\le i<H-s,\\
+0,&H-s\le i<H,
+\end{cases}
+$
+
+$
+c_i=\frac{H-s-i}{H-s-d+1}.
+$
+
+$W_i=1$ 的区间是已经决定执行的动作前缀；中间区间权重逐渐下降；最后 $s$ 步没有旧计划约束。这是**生成时的约束权重**，不能理解为对两个完整轨迹做后处理加权平均。
+
+对于噪声到数据方向的 Flow Matching，一个局部的终点预测是
+
+$
+\widehat A^1=A^\tau+(1-\tau)v_\theta(A^\tau,\tau,c).
+$
+
+可以用以下等价的“加权误差负梯度”形式理解论文的 Pseudoinverse Guidance（精确的缩放系数见原论文 Eq. 2–4）：
+
+$
+\widetilde v_\theta=
+v_\theta-\lambda_\tau\nabla_{A^\tau}
+\left[\frac12\|W^{1/2}\odot(\widehat A^1-Y)\|_2^2\right].
+$
+
+更新 $A^{\tau+\Delta\tau}=A^\tau+\Delta\tau\,\widetilde v_\theta$，使生成动作块既兼容已经执行或承诺的前缀，又可更新未承诺的未来部分。梯度项需要在生成步骤计算向量–Jacobian 乘积，因此**Inference-time RTC 不必重新训练模型，但会增加推理计算**。该机制面向可做连续生成/引导的 Flow Matching 或 Diffusion Policy；对普通确定性 ACT 输出，不能直接假定同一 Inpainting 求解器可用。
+
+### 10.7 Training-time RTC：在模仿学习阶段学会遵守已承诺动作
+
+[Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964) 进一步把“固定动作前缀”纳入监督训练。它直接学习：
+
+$
+p_\theta(A_{d:H}\mid c,A_{0:d}),
+$
+
+其中 $A_{0:d}$ 表示索引 $0,\ldots,d-1$ 的已承诺动作，$A_{d:H}$ 表示尚需生成的后缀（区间均采用左闭右开约定）。对一条完整专家动作块 $A$，随机采样部署延迟步数 $0\le d<H$、生成时间 $\tau$ 与噪声 $\epsilon$，构造逐动作的时间与输入：
+
+$
+\bar\tau_i=
+\begin{cases}1,&i<d,\\ \tau,&i\ge d,\end{cases}
+\qquad
+\widetilde A_i=\bar\tau_i A_i+(1-\bar\tau_i)\epsilon_i.
+$
+
+因此前 $d$ 个动作是**未加噪的真值前缀**，后续动作才学习去噪；网络需要支持每个 action token 不同的生成时间条件。只对后缀计算条件 Flow Matching 损失：
+
+$
+\mathcal L_{\mathrm{RTC-train}}=
+\mathbb E_{A,c,d,\tau,\epsilon}\left[
+\frac{1}{H-d}\sum_{i=d}^{H-1}
+\|v_\theta(\widetilde A,\bar{\boldsymbol\tau},c)_i
+-(A_i-\epsilon_i)\|_2^2
+\right].
+$
+
+部署时把上一块中已经确定的动作作为前缀传给生成器，固定其值，**仅生成未来后缀**。这样不需要 Inference-time RTC 每步额外的梯度引导，但需要针对延迟分布重新训练或微调，并可能丧失前述软重叠约束的灵活性。训练用的前缀来自专家示教，部署前缀可能来自模型自身计划；仍需用受控 rollout 测试这种分布偏移。
+
+这一方法特别适合本章，因为它直接改变**模仿学习的训练样本构造、token 条件与损失掩码**；严格的速度场与 ODE 数学推导依旧留在 [Flow Matching 专章](Flow_Matching_详细推导_精简版.md)。训练时应从实测延迟分布采样 $d$，而不是无依据地指定统一延迟；例如论文在 $\pi_{0.6}$ 实验中训练了随机延迟前缀，并比较了模型延迟与任务性能。
+
+### 10.8 RTC 和 Temporal Ensembling、普通异步执行如何比较
+
+| 执行方法 | 是否等待推理 | 如何保证新旧动作块兼容 | 是否要改训练 |
+|---|---|---|---|
+| 同步 Chunking | 需要 | 块间通常停顿，动作从新观测开始 | 否 |
+| Naive Asynchronous | 通常不等待 | 直接切换，可能有轨迹跳跃 | 否 |
+| Temporal Ensembling | 可以异步 | 对重叠预测加权平均，多峰策略不一定有效 | 否 |
+| Inference-time RTC | 异步 | 固定承诺前缀 + Soft Mask / 生成时引导 | **否**，但推理开销更高 |
+| Training-time RTC | 异步 | 训练时以前缀为条件，部署时固定 Hard Prefix | **是**，推理不再额外做梯度引导 |
+
+**最小实验：** 对同一个 Flow Matching 策略、同一动作频率、相同初始状态和相同控制安全层，比较上述五种模式，并注入 0/100/200 ms 的额外延迟。除了任务成功率、完成时间和每分钟吞吐量，还应记录实际端到端推理延迟 p50/p95、控制空档次数、块间动作跳变 $\|a_t-a_{t-1}\|$、加速度/jerk、接触失败率和掉落后的恢复率。要区分“模型推理时间”“动作交接延迟”和“机器人执行时间”，不能只展示离线 FPS。
+
+**进一步阅读：** [RTC 原论文（NeurIPS 2025）](https://arxiv.org/abs/2506.07339)、[训练时前缀条件（2025）](https://arxiv.org/abs/2512.05964)、[Physical Intelligence 视频与解释](https://www.pi.website/research/real_time_chunking)、[LeRobot RTC 文档](https://huggingface.co/docs/lerobot/main/rtc)。2026 年的 [Soft RTC](https://arxiv.org/abs/2605.25537) 与 [DiscreteRTC](https://arxiv.org/abs/2604.25050) 进一步探索软重叠先验与离散动作生成器的原生 Inpainting，属于扩展阅读，**不能把它们的实验结论直接当作基础 RTC 的通用优势**。
+
 
 ## 11. 人类视频重定向、接触与数据增强
 
@@ -473,126 +583,3 @@ $
 
 
 <a id="course-section-42"></a>
-
-## 8. 深入：从示教轨迹到监督学习目标
-
-<a id="course-section-43"></a>
-
-### 8.1 数据集、闭环系统与行为策略
-
-将一个 episode 表示为 $\\tau_i=(g_i,\\{o_t,q_t,a_t,r_t,\\delta_t\\}_{t=0}^{T_i-1})$，其中 $o_t$ 可以包含头部和腕部图像，$q_t$ 是机器人反馈，$a_t$ 是**实际发出的控制命令**，$\\delta_t$ 标记终止或异常事件。目标数据集 $D=\\{\\tau_i\\}_{i=1}^N$ 应保留每个观测与控制信号的独立时间戳，而不是仅保存重采样后的视频帧。
-
-区分三种策略：专家 $\\pi_E$、离线数据收集行为策略 $\\mu$ 和待学习策略 $\\pi_\\theta$。如果混入随机探索、失败恢复和多个操作者的数据，通常 $\\mu\\ne\\pi_E$；不能默认全部动作都是最优监督标签。对训练样本可设置质量权重 $w_i\\ge 0$，但需要在无权重的数据分布上进行独立评估。
-
-时间对齐的因果约束是 $t_{\\mathrm{obs}}\\le t_{\\mathrm{act}}$，考虑感知和通信延迟 $d$ 时，策略真实使用的是 $\\pi_\\theta(a_t\\mid o_{t-d},q_{t-d},g)$。训练时使用未来帧会导致离线指标偏高但部署失败。
-
-<a id="course-section-44"></a>
-
-### 8.2 确定性与概率式 BC
-
-对于确定性动作回归，经典损失为
-
-$$
-\\mathcal L_{\\mathrm{BC}}(\\theta)=\\frac1{|D|}\\sum_{(o,a)\\in D}\\|\\pi_\\theta(o)-a\\|_2^2.
-$$
-
-当示教是多模态分布，例如抓取物体可以从左右两侧接近，单一均值动作可能落在两种模式之间。概率式 BC 优化
-
-$$
-\\mathcal L_{\\mathrm{NLL}}(\\theta)=-\\mathbb E_{(o,a)\\sim D}\\log\\pi_\\theta(a\\mid o,g).
-$$
-
-对高斯策略 $\\pi_\\theta=\\mathcal N(\\mu_\\theta,\\Sigma_\\theta)$，负对数似然包含 $\\frac12(a-\\mu_\\theta)^\\top\\Sigma_\\theta^{-1}(a-\\mu_\\theta)$ 与 $\\frac12\\log|\\Sigma_\\theta|$，因此固定协方差时才近似为加权 MSE。关节角、末端位姿和手指控制量的量纲不同，应先定义动作尺度或明确损失权重。
-
-<a id="course-section-45"></a>
-
-### 8.3 分布偏移与 DAgger
-
-离线训练最小化专家访问分布 $d^{\\pi_E}$ 下的单步误差，闭环部署却访问 $d^{\\pi_\\theta}$。简单情况下误差会随时域 $T$ 复合累积，不能把单步高准确率直接等同于任务成功。
-
-DAgger 通过迭代方式缓解偏移：
-
-$$
-D_{k+1}=D_k\\cup\\{(o,\\pi_E(o)):o\\sim d^{\\pi_{\\theta_k}}\\},\\qquad
-\\theta_{k+1}=\\arg\\min_\\theta\\mathbb E_{(o,a)\\sim D_{k+1}}\\ell(\\pi_\\theta(o),a).
-$$
-
-关键是为学习器真正访问的状态提供专家标签；对机器人应设置接管、紧急停止、速度和力矩上限。仅仅对旧数据重复训练**不是** DAgger。
-
-<a id="course-section-46"></a>
-
-## 9. 深入：动作块、ACT 与生成式模仿学习
-
-<a id="course-section-47"></a>
-
-### 9.1 预测长度和执行长度
-
-令 $A_t=(a_t,\\ldots,a_{t+H-1})$ 为长度为 $H$ 的动作块。策略输入 $c_t=(o_{t-k:t},q_t,g)$，输出 $\\hat A_t=f_\\theta(c_t)$。实际只执行前 $h\\le H$ 步再重新观测，从而平衡计算开销与闭环纠错能力。**区分**策略查询频率 $f_\\pi$、低层控制频率 $f_c$ 和执行时长 $h/f_c$。观测发生遮挡、物体掉落或接触变化时，应优先允许提前中止当前动作块。
-
-<a id="course-section-48"></a>
-
-### 9.2 ACT 的 CVAE 目标
-
-ACT 以 Transformer/CVAE 预测动作块。其典型训练目标为
-
-$$
-\\mathcal L_{\\mathrm{ACT}}=
-\\mathbb E_{q_\\phi(z\\mid A,c)}
-\\|A-f_\\theta(c,z)\\|_1
-+\\beta D_{\\mathrm{KL}}\\!\\left(q_\\phi(z\\mid A,c)\\|p(z)\\right).
-$$
-
-第一项拟合示教动作块，第二项让训练时使用的潜变量分布靠近推理先验。实践中还需明确多时刻预测重叠时如何做 temporal ensembling，以及不同接触阶段是否适合平均动作。
-
-<a id="course-section-49"></a>
-
-### 9.3 Diffusion Policy 的去噪训练
-
-定义干净动作块 $A^0$ 和加噪变量 $A^k=\\sqrt{\\bar\\alpha_k}A^0+\\sqrt{1-\\bar\\alpha_k}\\epsilon$，$\\epsilon\\sim\\mathcal N(0,I)$。常见噪声预测目标是
-
-$$
-\\mathcal L_{\\mathrm{diff}}=
-\\mathbb E_{A^0,c,k,\\epsilon}
-\\left[\\|\\epsilon-\\epsilon_\\theta(A^k,k,c)\\|_2^2\\right].
-$$
-
-生成时从噪声逐步迭代得到动作块；这种去噪步数属于**生成过程**，不等于机器人的控制步数。对不同推理步数，应报告真实硬件延迟和任务成功率。
-
-<a id="course-section-50"></a>
-
-### 9.4 Flow Matching 形式的动作块学习
-
-以 $x_0\\sim\\mathcal N(0,I)$、$x_1=A$，定义 $x_s=(1-s)x_0+s x_1$ 和监督速度 $u=x_1-x_0$。一个常用的条件 Flow Matching 目标是
-
-$$
-\\mathcal L_{\\mathrm{FM}}=
-\\mathbb E_{s,x_0,x_1,c}\\|v_\\theta(x_s,s,c)-(x_1-x_0)\\|_2^2.
-$$
-
-推理可求解 $\\mathrm dx_s/\\mathrm ds=v_\\theta(x_s,s,c)$，从初始噪声生成动作块。该式采用噪声到数据的时间方向；具体模型若使用相反参数化，应相应调整速度符号。**完整推导、边缘速度场与条件期望证明统一放在 [Flow Matching 专章](Flow_Matching_详细推导_精简版.md)，这里聚焦数据接口和训练实施。**
-
-<a id="course-section-51"></a>
-
-## 10. 数据工程与评估的完整清单
-
-<a id="course-section-52"></a>
-
-### 10.1 轨迹质量、标签可靠性与事件分层
-
-建议将数据集划分为成功示教、专家纠错、失败恢复、不可模仿的失败四类。可记录二值接触标签 $c_t\\in\\{0,1\\}$，优先使用接触传感器或经过验证的物理事件作为标签；仅从图像推断的接触必须标明为估计。
-
-对于事件偏置采样，在接触切换时刻 $t_j$ 周围提高采样权重，例如 $w_t=1+\\lambda\\sum_j\\exp[-(t-t_j)^2/(2\\sigma^2)]$。这是一种**人为训练分布选择**，并不保证比均匀采样更优；需要做事件采样与均匀采样消融。
-
-<a id="course-section-53"></a>
-
-### 10.2 Panda 统一实验与最小消融
-
-统一平台使用 Panda + 桌面 + 方块，保持相机标定、动作接口和控制频率固定。比较单步 BC、chunk BC、ACT、Diffusion Policy、Flow Matching。消融实验逐次只改变数据量、执行长度 $h$、示教失败恢复数据比例、视觉噪声或推理预算。
-
-在 $N$ 次独立测试中，成功率估计 $\\hat p=\\frac1N\\sum_i\\mathbf1[\\mathrm{success}_i]$。报告置信区间、训练任务与测试任务的对象/场景拆分、接触失败率、干扰恢复率、每次推理延迟以及完整 episode 时长。训练 MSE 只作诊断，不能替代闭环成功率。
-
-<a id="course-section-54"></a>
-
-### 10.3 从模仿学习到 Robot Agent 的接口
-
-本章输出的是可执行的**策略或技能接口**，例如“拿起物体”“调整工具姿态”“重新抓取”；任务级规划、成功判定与失败后的重规划统一在 [Robot Agent 专章](Robot_Agent_Workflow_ZH.md) 讨论。视觉分割与状态估计的具体模型选型统一在 [视觉感知专章](Visual_State_Estimation_ZH.md) 讨论。
