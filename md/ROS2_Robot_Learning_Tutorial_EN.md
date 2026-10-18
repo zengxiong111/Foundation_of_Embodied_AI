@@ -74,6 +74,14 @@
 - [13. Official Documentation and References](#course-section-57)
 <!-- course-toc:end -->
 
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A["Sensor"] --> B["ROS Topic"] --> C["Policy Node"] --> D["Controller"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. What Is ROS, and Why Use It in Robot Learning?

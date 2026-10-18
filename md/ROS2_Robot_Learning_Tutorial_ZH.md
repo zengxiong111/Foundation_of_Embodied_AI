@@ -74,6 +74,14 @@
 - [十三、官方文档与参考资料](#course-section-57)
 <!-- course-toc:end -->
 
+**章节概念图**
+
+```mermaid
+flowchart LR
+  A["传感器"] --> B["ROS Topic"] --> C["策略节点"] --> D["控制器"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 一、ROS 是什么？为什么机器人学习需要 ROS？
