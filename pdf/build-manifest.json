@@ -1,0 +1,577 @@
+{
+  "schema_version": 1,
+  "documents": {
+    "md/Flow_Matching_详细推导_精简版.md": {
+      "pdf": "pdf/Flow_Matching_详细推导_精简版.pdf",
+      "source_sha256": "ba5dda0a39d050e8854ce3faac7b5d43b795cd2929949d6cd2fa91b71e5a6e7b",
+      "pdf_sha256": "117a64919365bc410b3510b128e9ce821be6c7fd49ad3c95e8d70773f3e21621",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 19,
+      "math_nodes": 239,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Flow_Matching_Step_by_Step_Derivation_EN.md": {
+      "pdf": "pdf/Flow_Matching_Step_by_Step_Derivation_EN.pdf",
+      "source_sha256": "ef3bd0d881c718107883a0b963cba6d01df61937e67148622b4509e2b279de68",
+      "pdf_sha256": "a3aba60e7051e47a733175ae71f2bb4bbfa9c278bc2880a8e316334730f6792b",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 20,
+      "math_nodes": 237,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/System1_System0_GR00T_SONIC_CN.md": {
+      "pdf": "pdf/System1_System0_GR00T_SONIC_CN.pdf",
+      "source_sha256": "bb97386376c28f5f0333b17b0f03158f179b58ee64f78b1eea84fe4a4ba7f61a",
+      "pdf_sha256": "32c5a625f523ef68685cc11b063940babcf577415864a7bf9920d92f96b3ec3b",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 14,
+      "math_nodes": 25,
+      "math_errors": 0,
+      "diagrams_rendered": 4,
+      "equation_overflows": 0
+    },
+    "md/System1_System0_GR00T_SONIC_EN.md": {
+      "pdf": "pdf/System1_System0_GR00T_SONIC_EN.pdf",
+      "source_sha256": "d9bcac4e3994fac38fd554cf9ee6842df6f60473962c7001f60206d0fde56a2a",
+      "pdf_sha256": "7be4d81474eccd29f5275caa08c2461035291f4e653790e665ff88af52f56ffb",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 15,
+      "math_nodes": 26,
+      "math_errors": 0,
+      "diagrams_rendered": 4,
+      "equation_overflows": 0
+    },
+    "md/Git_使用教程_中文版.md": {
+      "pdf": "pdf/Git_使用教程_中文版.pdf",
+      "source_sha256": "567f3d05d0180fef3d651aa85c8032603338ab1a339013251a729a9400f8d4bc",
+      "pdf_sha256": "12f17747a470704fbd1fafcec77aa881bbc8dbd9304fcc46b5502ff91c8c29e5",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 22,
+      "math_nodes": 0,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Git_Tutorial_English.md": {
+      "pdf": "pdf/Git_Tutorial_English-1.pdf",
+      "source_sha256": "a6683cdd5255b65f226af83eb44d6369ad7dfa0f000869e31f7c08f5460b9641",
+      "pdf_sha256": "a6a7325f1118fe22c172ebd9902a64405ce7bd7298f4b80fee9986ea03173b8e",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 24,
+      "math_nodes": 0,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/ROS2_Robot_Learning_Tutorial_ZH.md": {
+      "pdf": "pdf/ROS2_Robot_Learning_Tutorial_ZH.pdf",
+      "source_sha256": "6d50cbafbf0b17bd41bd8790c7c05901074e450abb51993eb9b5dd0b29bfd48b",
+      "pdf_sha256": "5232b1a2ab82114dcfc3b0ab5c5f19946b0cce4dc4c00a225f0508cd3bb23b63",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 22,
+      "math_nodes": 0,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/ROS2_Robot_Learning_Tutorial_EN.md": {
+      "pdf": "pdf/ROS2_Robot_Learning_Tutorial_EN-1.pdf",
+      "source_sha256": "1f93c164ebac9e05484048c801706eb9c7282c384854a41df3428caaab9a1d20",
+      "pdf_sha256": "9d711067c00414c45dc912d07cfd8ba29aa167b621129f290c4a832c64151864",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 24,
+      "math_nodes": 0,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Robot_Camera_Calibration_Tutorial_ZH.md": {
+      "pdf": "pdf/Robot_Camera_Calibration_Tutorial_ZH-1.pdf",
+      "source_sha256": "b445d9d1ed458c5a42120a13f420b276d7d6d509f1d8de9d0cc52366498a6051",
+      "pdf_sha256": "fd7cfdd562e97b83cca0e55711aedb58839fe699f1b6cdd6f0479e5913ba2a6f",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 18,
+      "math_nodes": 121,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Robot_Camera_Calibration_Tutorial_EN.md": {
+      "pdf": "pdf/Robot_Camera_Calibration_Tutorial_EN-1.pdf",
+      "source_sha256": "f1bc8596b02f6e796816201b03e4f055f195af4a938d8f1dd66fd8d9465db9c5",
+      "pdf_sha256": "fda9f232d57198c90f5793f65377e5c53d2fd118036634887ef9ae264474220a",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 19,
+      "math_nodes": 115,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Robot_Dynamics_Embodied_CN.md": {
+      "pdf": "pdf/Robot_Dynamics_Embodied_CN.pdf",
+      "source_sha256": "f072570c2e41359f79764179cd8d1f024a234a7afd3a6c433fec9adf8157f5a4",
+      "pdf_sha256": "5b58e8668bcecb0607fb31bf5af1c0084c9cee3515034f4fa449a53d5256de30",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 17,
+      "math_nodes": 190,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Robot_Dynamics_Embodied_EN.md": {
+      "pdf": "pdf/Robot_Dynamics_Embodied_EN.pdf",
+      "source_sha256": "ca2e334b007afe52d78a26664a1bb5829e4c901174b7f8bc449f1a2e8fc8033b",
+      "pdf_sha256": "ecd2194404bacf3991748b2181201e938d9cb66811368d70ecfcd3b8dc4e70f9",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 19,
+      "math_nodes": 188,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Isaac_MuJoCo_RL_完整教程_中文.md": {
+      "pdf": "pdf/Isaac_MuJoCo_RL_完整教程_中文.pdf",
+      "source_sha256": "b1e0c9cc05dd4127cc08ef531c0b1cf8d796e4da3a5e0de2ba7fdd44f9bfb124",
+      "pdf_sha256": "680eb8dcc1f17720cef7b1b6233d66ce2e0c858070dd95bca59181f08658f5d1",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 17,
+      "math_nodes": 0,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Isaac_MuJoCo_RL_Complete_Guide_EN.md": {
+      "pdf": "pdf/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf",
+      "source_sha256": "3c9f75b1331435a7f71cb6814f6be395fdd8c4b5c99f697ebd700d83abb3bd7e",
+      "pdf_sha256": "5e130f2b19f5861eb2193c30ee7ad48d2855f4f122932a63e736257203898204",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 20,
+      "math_nodes": 0,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Embodied_RL_Tutorial_Full_ZH.md": {
+      "pdf": "pdf/Embodied_RL_Tutorial_Full_ZH-1.pdf",
+      "source_sha256": "faedea9753f9fd10e7f8f693906c3c4a11ff850b0760dcbe9d1a938ee91a702b",
+      "pdf_sha256": "129d12b47f0bc59db907c8b8a9965dfad1380e033022646e67a985249eb3ca65",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 15,
+      "math_nodes": 0,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Embodied_RL_Tutorial_Full_EN.md": {
+      "pdf": "pdf/Embodied_RL_Tutorial_Full_EN-1.pdf",
+      "source_sha256": "ee9720989e045b35c1c46038bb1a292977a4af1d0979d0a0809b366c297ad20a",
+      "pdf_sha256": "b953e782fd9b664e1c042b5d68798c575aadbc376205991b08ae1dc23ccd76f2",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 17,
+      "math_nodes": 0,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Embodied_Motion_Control_RL_Tutorial_ZH.md": {
+      "pdf": "pdf/Embodied_Motion_Control_RL_Tutorial_ZH.pdf",
+      "source_sha256": "c0dbba398d23de82c4dcfecb4ed952917506247803435ee7325d06a13bff88e6",
+      "pdf_sha256": "42e8ca3f1084d2c1e300390e18ca04d8b97a8fd86e753752fd1d69006ee15b53",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 24,
+      "math_nodes": 45,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/Embodied_Motion_Control_RL_Tutorial_EN.md": {
+      "pdf": "pdf/Embodied_Motion_Control_RL_Tutorial_EN.pdf",
+      "source_sha256": "13cd7bfa884b92961e2e17bd93c95700f3b5014a15aa611cdf86a401978d59a7",
+      "pdf_sha256": "e4823445c7057d57e5bd08284fa15cc4dd423d6fbe396c3fe906178220374dfd",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 26,
+      "math_nodes": 45,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/PPO_完整推导与设计动机_中文.md": {
+      "pdf": "pdf/PPO_完整推导与设计动机_中文.pdf",
+      "source_sha256": "76d2e28fb7a73990ee15c524245acc0e73a29c150ed1d60b12605a30c590bdb4",
+      "pdf_sha256": "ae36143c0f565181ba3bd1549b6ded176053d95c89cf3f83f17f5474636fa143",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 18,
+      "math_nodes": 259,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/PPO_Complete_Derivation_and_Design_Motivations_English.md": {
+      "pdf": "pdf/PPO_Complete_Derivation_and_Design_Motivations_English-1.pdf",
+      "source_sha256": "047a94778c51f0870c7aafaa03730bb02c75e686e86dc6a9476bb5019ceaa217",
+      "pdf_sha256": "79049dd397693fea614dafc9508d76559ea4300d96c188c2cd37a648fb84f038",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 20,
+      "math_nodes": 249,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/SAC_Complete_Derivation_CN.md": {
+      "pdf": "pdf/SAC_Complete_Derivation_CN-1.pdf",
+      "source_sha256": "00c35d1a125a30fec6dfb031e89b03af806eda29dd282c250f1a62bb062703be",
+      "pdf_sha256": "17bc07f51a413cacdb1e5ba21cf0ff68cbb2afae082941a110a4450b8366364e",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 17,
+      "math_nodes": 264,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    },
+    "md/SAC_Complete_Derivation_EN.md": {
+      "pdf": "pdf/SAC_Complete_Derivation_EN-1.pdf",
+      "source_sha256": "9eb8d833fca18dd5ca7ca1ad10bde8cab02358a7466fda67916ba661cd98b884",
+      "pdf_sha256": "081bdf1d310a9dc8e3bf0ba55c9ad20971bb421142629d10314f01b1a0f14805",
+      "build_inputs_sha256": "cb0a312c534eecfd21f52cd49ba4fcdabe8caa1bb4a87caefbe564f5e55fa8be",
+      "browser": "146.0.7680.153",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 19,
+      "math_nodes": 247,
+      "math_errors": 0,
+      "diagrams_rendered": 0,
+      "equation_overflows": 0
+    }
+  }
+}

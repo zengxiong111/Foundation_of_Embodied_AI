@@ -6,14 +6,101 @@ date: "2026-10-15"
 lang: zh-CN
 ---
 
-> **阅读定位**　本教程聚焦具身智能中的**运动控制强化学习**（Motion Control RL），强调任务分类、算法用途、环境设计、训练流程、仿真到真实迁移及典型机器人案例。仅给出理解实现所需的公式，不展开 PPO、SAC 的数学推导。
->
-> 
-> **阅读路径**　第 1–3 章建立任务与算法全景；第 4–5 章学习如何训练控制策略；第 6–7 章学习模仿和教师–学生；第 8–10 章给出机器人案例与 Sim-to-Real；第 11–15 章介绍评估、工具、文献和研究路线。
+# 具身智能中的运动控制强化学习：完整教程
 
-# 第一章：什么是运动控制强化学习？
+<!-- course-meta:start -->
+[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Embodied_Motion_Control_RL_Tutorial_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Motion_Control_RL_Tutorial_ZH.pdf)
 
-## 1.1 运动控制 RL 在具身智能系统中的位置
+| 项目 | 说明 |
+|---|---|
+| 适用范围 | Isaac Lab / RSL-RL 工作流为说明性示例；任务、训练器、资产和执行器版本需一起绑定 |
+| 文档核验日期 | 2026-10-18 |
+| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
+
+**核验边界：** 文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。 版本与固定源码引用见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
+<!-- course-meta:end -->
+
+<!-- course-toc:start -->
+## 目录
+
+- [第一章：什么是运动控制强化学习？](#course-section-01)
+  - [1.1 运动控制 RL 在具身智能系统中的位置](#course-section-02)
+  - [1.2 运动控制 RL 与具身基础模型 RL 后训练的区别](#course-section-03)
+- [第二章：运动控制强化学习的任务分类](#course-section-04)
+  - [2.1 按机器人任务分类](#course-section-05)
+  - [2.2 按训练方法分类](#course-section-06)
+- [第三章：运动控制强化学习的算法](#course-section-07)
+  - [3.1 PPO：大规模仿真训练的常见基线](#course-section-08)
+  - [3.2 SAC：强调交互数据复用](#course-section-09)
+  - [3.3 PPO 与 SAC 对比](#course-section-10)
+- [第四章：如何设计一个运动控制强化学习任务？](#course-section-11)
+  - [4.1 Observation：机器人能观察到什么？](#course-section-12)
+  - [4.2 Action：强化学习输出什么？](#course-section-13)
+  - [4.3 Reward：机器人应该优化什么？](#course-section-14)
+  - [4.4 Reset：从什么状态开始训练？](#course-section-15)
+- [第五章：训练完整的运动控制策略](#course-section-16)
+  - [5.1 标准训练流程](#course-section-17)
+  - [5.2 第一步：建立机器人仿真模型](#course-section-18)
+  - [5.3 第二步：设置控制频率](#course-section-19)
+  - [5.4 第三步：并行训练](#course-section-20)
+- [第六章：运动模仿强化学习](#course-section-21)
+  - [6.1 基本流程](#course-section-22)
+  - [6.2 Motion Tracking Reward](#course-section-23)
+  - [6.3 DeepMimic](#course-section-24)
+  - [6.4 AMP：Adversarial Motion Priors](#course-section-25)
+  - [6.5 Motion Tracking 与 AMP 的区别](#course-section-26)
+  - [6.6 从单条轨迹到通用运动控制](#course-section-27)
+- [第七章：教师–学生强化学习](#course-section-28)
+  - [7.1 为什么需要教师–学生？](#course-section-29)
+  - [7.2 标准训练过程](#course-section-30)
+  - [7.3 Asymmetric Actor-Critic 与 Teacher–Student 的区别](#course-section-31)
+  - [7.4 RMA：Rapid Motor Adaptation](#course-section-32)
+- [第八章：案例一——使用 PPO 训练 Unitree G1 行走](#course-section-33)
+  - [8.1 任务定义](#course-section-34)
+  - [8.2 Observation](#course-section-35)
+  - [8.3 Action](#course-section-36)
+  - [8.4 Reward](#course-section-37)
+  - [8.5 Curriculum Learning](#course-section-38)
+  - [8.6 开源实验入口](#course-section-39)
+- [第九章：案例二——机械臂与灵巧手运动控制 RL](#course-section-40)
+  - [9.1 任务定义](#course-section-41)
+  - [9.2 建议的控制架构](#course-section-42)
+  - [9.3 三种训练路线](#course-section-43)
+  - [9.4 Observation 设计](#course-section-44)
+  - [9.5 Reward 设计](#course-section-45)
+  - [9.6 训练路线](#course-section-46)
+- [第十章：Sim-to-Real](#course-section-47)
+  - [10.1 为什么仿真成功不保证真机成功？](#course-section-48)
+  - [10.2 Domain Randomization](#course-section-49)
+  - [10.3 Sim-to-Sim](#course-section-50)
+  - [10.4 真机部署检查清单](#course-section-51)
+- [第十一章：如何评估运动控制 RL？](#course-section-52)
+  - [11.1 腿式机器人指标](#course-section-53)
+  - [11.2 Motion Tracking 指标](#course-section-54)
+  - [11.3 灵巧手操作指标](#course-section-55)
+- [第十二章：开源框架与工具](#course-section-56)
+  - [12.1 Isaac Lab](#course-section-57)
+  - [12.2 RSL-RL](#course-section-58)
+  - [12.3 MuJoCo Playground](#course-section-59)
+  - [12.4 如何选择？](#course-section-60)
+- [第十三章：代表性论文与阅读顺序](#course-section-61)
+- [第十四章：学习与研究路线](#course-section-62)
+  - [阶段一：基础运动控制 RL](#course-section-63)
+  - [阶段二：Motion Tracking RL](#course-section-64)
+  - [阶段三：Teacher–Student 与 Sim-to-Real](#course-section-65)
+  - [阶段四：复杂运动控制](#course-section-66)
+  - [阶段五：通用运动控制器](#course-section-67)
+- [第十五章：总结与关键结论](#course-section-68)
+- [参考资料与开源链接](#course-section-69)
+<!-- course-toc:end -->
+
+<a id="course-section-01"></a>
+
+## 第一章：什么是运动控制强化学习？
+
+<a id="course-section-02"></a>
+
+### 1.1 运动控制 RL 在具身智能系统中的位置
 
 在具身智能中，可以将机器人控制系统粗略分为三个层次：
 
@@ -57,7 +144,9 @@ $$
 
 传统控制通常由工程师显式设计控制律，运动控制 RL 则让策略通过与动力学环境的交互学习控制规律。但它们并不互斥：现代系统经常把 RL 与 PD、IK、MPC、WBC（Whole-Body Control）等技术组合。
 
-## 1.2 运动控制 RL 与具身基础模型 RL 后训练的区别
+<a id="course-section-03"></a>
+
+### 1.2 运动控制 RL 与具身基础模型 RL 后训练的区别
 
 | 维度 | 运动控制 RL | 具身基础模型 RL 后训练 |
 |---|---|---|
@@ -72,9 +161,13 @@ $$
 
 例如，训练 Unitree G1 在速度指令下行走属于运动控制 RL；对已经能抓取的 $\pi_{0.5}$ 通过 RL 提升新环境抓取成功率属于具身基础模型 RL 后训练。两者边界并不绝对：机械臂操作的低层控制 RL 与 VLA 后训练有时优化的是同一机器人动作，只是模型结构、初始化和目标不同。
 
-# 第二章：运动控制强化学习的任务分类
+<a id="course-section-04"></a>
 
-## 2.1 按机器人任务分类
+## 第二章：运动控制强化学习的任务分类
+
+<a id="course-section-05"></a>
+
+### 2.1 按机器人任务分类
 
 | 类别 | 英文 | 典型任务 | 主要挑战 |
 |---|---|---|---|
@@ -87,7 +180,7 @@ $$
 
 这些任务并不互斥。人形机器人搬箱子通常同时涉及行走、全身协调和操作。
 
-### A. Legged Locomotion：腿式运动控制
+#### A. Legged Locomotion：腿式运动控制
 
 目标是根据给定指令稳定运动。常见速度指令为：
 
@@ -97,11 +190,11 @@ $$
 
 分别对应前后、横向与转向速度。RL 输出关节动作，以跟踪指定速度。四足和双足机器人已经有较成熟的大规模仿真训练范式。代表工作 *Learning to Walk in Minutes Using Massively Parallel Deep Reinforcement Learning* 利用并行仿真训练 ANYmal 运动策略并进行实机验证。[1]
 
-### B. Agile Locomotion：高动态运动控制
+#### B. Agile Locomotion：高动态运动控制
 
 高动态任务包括跳跃、爬楼梯、跨越障碍、奔跑、跌倒恢复和空中姿态调整。区别于普通行走，策略必须主动利用动力学与接触，例如在爬楼梯过程中协调足部抬升、落脚时序与重心转移。
 
-### C. Whole-Body Motion Tracking：全身动作跟踪
+#### C. Whole-Body Motion Tracking：全身动作跟踪
 
 给机器人参考动作 $q^{\mathrm{ref}}(t)$，通过 RL 尽量准确地跟踪，同时维持动力学可行性。
 
@@ -120,11 +213,11 @@ $$
 
 代表性路线包括 DeepMimic、AMP、HOVER、BeyondMimic；它们分别涉及参考轨迹模仿、运动先验学习、全身多模式控制和复杂人形动作。[2][3][4]
 
-### D. Manipulation Control：机械臂操作控制
+#### D. Manipulation Control：机械臂操作控制
 
 目标是完成抓取、搬运、插入等物体操作。RL 可以输出关节动作，也可以输出末端位置或姿态增量，随后交给 IK、操作空间控制（OSC）或关节控制器。通常更关注末端精度、接触力、成功率、碰撞安全与扰动恢复。
 
-### E. Dexterous Manipulation：灵巧手运动控制
+#### E. Dexterous Manipulation：灵巧手运动控制
 
 多指灵巧手需要通过多个关节协同控制接触：
 
@@ -134,11 +227,13 @@ $$
 
 任务包括稳定抓取、手内旋转、重抓取、工具使用以及物体打滑后的恢复。核心困难是高维动作空间与复杂的手指–物体接触动力学。
 
-### F. Loco-Manipulation：移动操作
+#### F. Loco-Manipulation：移动操作
 
 这类任务将运动与操作联动，例如边走边搬运、扶墙跨越障碍、行走时双手操作物体和推门。重点从单个技能转向对身体、双臂、腿和接触模式的整体协调。
 
-## 2.2 按训练方法分类
+<a id="course-section-06"></a>
+
+### 2.2 按训练方法分类
 
 | 方法 | 英文 | 核心思想 | 适用场景 |
 |---|---|---|---|
@@ -151,9 +246,13 @@ $$
 
 这些方法可以组合：先通过模仿强化学习训练教师，再将策略蒸馏到真实传感器可观测的学生模型，最后进行部署。
 
-# 第三章：运动控制强化学习的算法
+<a id="course-section-07"></a>
 
-## 3.1 PPO：大规模仿真训练的常见基线
+## 第三章：运动控制强化学习的算法
+
+<a id="course-section-08"></a>
+
+### 3.1 PPO：大规模仿真训练的常见基线
 
 PPO（Proximal Policy Optimization）属于 On-policy 强化学习，在四足、双足、动作跟踪和灵巧操作中使用广泛。典型训练循环：
 
@@ -177,7 +276,9 @@ PPO 特别适合结合 GPU 并行物理仿真：虽然历史交互数据复用�
 
 常见实现是 [RSL-RL](https://github.com/leggedrobotics/rsl_rl)，提供面向机器人控制的 PPO、相关网络与训练组件。[5]
 
-## 3.2 SAC：强调交互数据复用
+<a id="course-section-09"></a>
+
+### 3.2 SAC：强调交互数据复用
 
 SAC（Soft Actor-Critic）是 Off-policy 算法，使用 Replay Buffer 反复利用以往交互数据。
 
@@ -200,7 +301,9 @@ Update      Update
 
 对于真实机器人，交互成本高，SAC 的数据复用能力有吸引力。它可用于连续机械臂操作、有限真机数据在线改进、灵巧手及残差控制。但在高吞吐 GPU 仿真下，PPO 可能更易实现、调试和扩展；不能脱离环境与交互预算直接断言 SAC 总是更好。
 
-## 3.3 PPO 与 SAC 对比
+<a id="course-section-10"></a>
+
+### 3.3 PPO 与 SAC 对比
 
 | 特性 | PPO | SAC |
 |---|---|---|
@@ -217,7 +320,9 @@ Update      Update
 
 **建议：**双足/四足仿真运动控制先复现 PPO；如果关心有限真实数据下的在线策略改进，进一步比较 SAC。算法比较应固定环境、交互次数与评估协议。
 
-# 第四章：如何设计一个运动控制强化学习任务？
+<a id="course-section-11"></a>
+
+## 第四章：如何设计一个运动控制强化学习任务？
 
 完整环境通常包括：
 
@@ -227,7 +332,9 @@ $$
 
 目标条件任务还需要 Command 或 Goal。实际表现往往比单纯更换 PPO 网络结构更依赖环境建模。
 
-## 4.1 Observation：机器人能观察到什么？
+<a id="course-section-12"></a>
+
+### 4.1 Observation：机器人能观察到什么？
 
 | 观测 | 含义 | 典型来源 |
 |---|---|---|
@@ -248,7 +355,7 @@ $$
 
 要区分**仿真可获得的状态**与**真机实际可用的传感器观测**。机身线速度、接触状态和精确物体位姿等在真机上可能需要估计。
 
-### Observation History
+#### Observation History
 
 运动控制往往部分可观测：当前关节角度不能直接确定之前是否滑动、是否受到扰动或执行器是否延迟。可以输入历史窗口：
 
@@ -258,7 +365,9 @@ $$
 
 随后使用 MLP、GRU 或 Transformer 编码，帮助策略隐式估计隐藏动力学与接触状态。
 
-## 4.2 Action：强化学习输出什么？
+<a id="course-section-13"></a>
+
+### 4.2 Action：强化学习输出什么？
 
 | 动作空间 | 输出 | 特点 |
 |---|---|---|
@@ -267,7 +376,7 @@ $$
 | Joint Torque | 关节目标力矩 | 表达更直接，训练与安全挑战更高 |
 | Cartesian Action | 末端位置、姿态或速度 | 适合机械臂 |
 
-### A. Joint Position Control
+#### A. Joint Position Control
 
 最常见的一种形式：
 
@@ -290,11 +399,11 @@ $$
 
 这对应参考运动上的残差动作。优势是减轻 RL 学习底层电机动态的负担。
 
-### B. Joint Torque Control
+#### B. Joint Torque Control
 
 直接输出 $\tau_t=\pi_\theta(o_t)$，控制自由度更高，但必须显式考虑电流、力矩、温度、速度和关节限位约束。
 
-### C. Cartesian Control
+#### C. Cartesian Control
 
 机械臂可输出 $a_t=[\Delta x,\Delta y,\Delta z,\Delta R]$，通过 IK 或 OSC 将末端目标转换为关节指令。
 
@@ -304,7 +413,7 @@ RL Policy -> 末端增量/目标位姿 -> IK / OSC -> 关节命令 -> 机械臂
 
 其中 $\Delta R$ 可由旋转向量等表示，实际应保证旋转参数化与控制频率一致。Isaac Lab 提供多种关节和笛卡尔动作接口。[6]
 
-### 选型建议
+#### 选型建议
 
 | 机器人 | 建议初始动作空间 |
 |---|---|
@@ -316,7 +425,9 @@ RL Policy -> 末端增量/目标位姿 -> IK / OSC -> 关节命令 -> 机械臂
 
 策略输出与驱动器最终执行的接口不必相同，例如策略输出末端位姿增量，底层电机仍执行关节位置控制。
 
-## 4.3 Reward：机器人应该优化什么？
+<a id="course-section-14"></a>
+
+### 4.3 Reward：机器人应该优化什么？
 
 常见拆分：
 
@@ -349,7 +460,9 @@ $$
 
 **原则：**奖励既要反映任务是否完成，也要约束运动是否稳定、自然、可部署。
 
-## 4.4 Reset：从什么状态开始训练？
+<a id="course-section-15"></a>
+
+### 4.4 Reset：从什么状态开始训练？
 
 普通行走可以从站立开始；动作跟踪和多阶段操作不能总从同一状态开始，否则难以学习中途恢复。
 
@@ -361,9 +474,13 @@ $$
 
 **Event-biased RSI** 在起跳、落地、接触切换、开始抓取或释放等关键事件附近增加采样密度。初始化应尽量满足动力学和接触一致性，避免把不合理的跳跃状态强加给策略。
 
-# 第五章：训练完整的运动控制策略
+<a id="course-section-16"></a>
 
-## 5.1 标准训练流程
+## 第五章：训练完整的运动控制策略
+
+<a id="course-section-17"></a>
+
+### 5.1 标准训练流程
 
 ```text
 机器人模型 (URDF / MJCF / USD)
@@ -393,7 +510,9 @@ $$
            真实机器人
 ```
 
-## 5.2 第一步：建立机器人仿真模型
+<a id="course-section-18"></a>
+
+### 5.2 第一步：建立机器人仿真模型
 
 | 模块 | 应建模的内容 |
 |---|---|
@@ -406,7 +525,9 @@ $$
 
 URDF 不仅是可视化模型，也是重要的动力学参数载体；但“文件里有参数”不代表“参数经过真机标定”。
 
-## 5.3 第二步：设置控制频率
+<a id="course-section-19"></a>
+
+### 5.3 第二步：设置控制频率
 
 以下仅为示例，并非某一具体机器人的真实配置：
 
@@ -420,7 +541,9 @@ URDF 不仅是可视化模型，也是重要的动力学参数载体；但“文
 
 若 $f_{\mathrm{sim}}=500\,\mathrm{Hz}$、$f_{\mathrm{RL}}=50\,\mathrm{Hz}$，每次 RL 输出后进行 10 个物理步长，即 Action Decimation。高频控制器负责执行，RL 在较低频率更新目标。
 
-## 5.4 第三步：并行训练
+<a id="course-section-20"></a>
+
+### 5.4 第三步：并行训练
 
 一个**示例性** PPO 训练配置：
 
@@ -448,11 +571,15 @@ Observation
 
 训练期间更新 Actor 与 Critic，典型部署时只运行 Actor。
 
-# 第六章：运动模仿强化学习
+<a id="course-section-21"></a>
+
+## 第六章：运动模仿强化学习
 
 复杂跳跃、跳舞、体操动作和高维灵巧操作，直接从零探索可能非常困难，因此可以引入参考运动。
 
-## 6.1 基本流程
+<a id="course-section-22"></a>
+
+### 6.1 基本流程
 
 ```text
 Human Motion / Teleoperation
@@ -475,7 +602,9 @@ Human Motion / Teleoperation
 
 参考数据可以来自动捕、人体视频重建、遥操作、已有控制器以及运动规划。
 
-## 6.2 Motion Tracking Reward
+<a id="course-section-23"></a>
+
+### 6.2 Motion Tracking Reward
 
 给定参考关节位置 $q_t^{\mathrm{ref}}$，可以定义：
 
@@ -485,7 +614,9 @@ $$
 
 全身任务还可能跟踪 Root Position、Root Orientation、Joint Velocity、End-effector Position、Contact Schedule。仅关节角接近并不保证机器人不会摔倒；需要同时考虑动作相似性、动力学可行性与稳定性。
 
-## 6.3 DeepMimic
+<a id="course-section-24"></a>
+
+### 6.3 DeepMimic
 
 DeepMimic 使用参考运动奖励与任务奖励，帮助物理角色学习复杂动作，是 Motion Tracking RL 的经典工作。[2]
 
@@ -497,11 +628,15 @@ Task Specification -> Task Reward ----+
 
 项目主页：https://xbpeng.github.io/projects/DeepMimic/
 
-## 6.4 AMP：Adversarial Motion Priors
+<a id="course-section-25"></a>
+
+### 6.4 AMP：Adversarial Motion Priors
 
 传统 Motion Tracking 要求在给定时刻跟踪指定轨迹；AMP 使用判别器从参考动作数据中学习运动风格奖励，使策略在完成任务目标的同时产生符合先验的动作。例如，学习自然的行走风格，而不严格逐帧复制某一条轨迹。[3]
 
-## 6.5 Motion Tracking 与 AMP 的区别
+<a id="course-section-26"></a>
+
+### 6.5 Motion Tracking 与 AMP 的区别
 
 | 特性 | Motion Tracking RL | AMP |
 |---|---|---|
@@ -511,15 +646,21 @@ Task Specification -> Task Reward ----+
 | 主要目标 | 准确复现参考运动 | 产生符合参考分布的运动 |
 | 典型难点 | 时间同步、跟踪稳定性 | 判别器训练、奖励平衡 |
 
-## 6.6 从单条轨迹到通用运动控制
+<a id="course-section-27"></a>
+
+### 6.6 从单条轨迹到通用运动控制
 
 HOVER 等工作探索将不同控制命令和动作模式集成到统一的全身控制策略中，使策略不再局限于固定轨迹的逐帧跟踪。[4]
 
 **趋势：**Single Motion Tracking Policy → Multi-Mode / Universal Motion Controller。
 
-# 第七章：教师–学生强化学习
+<a id="course-section-28"></a>
 
-## 7.1 为什么需要教师–学生？
+## 第七章：教师–学生强化学习
+
+<a id="course-section-29"></a>
+
+### 7.1 为什么需要教师–学生？
 
 在仿真中可以访问精确物体位置/速度、真实摩擦系数、接触力以及隐藏动力学参数，但这些信息在真机中未必可测。如果 Actor 直接依赖它们，就难以部署。
 
@@ -538,7 +679,9 @@ HOVER 等工作探索将不同控制命令和动作模式集成到统一的全�
 真机观测: Camera / Encoder / IMU -> Student Policy
 ```
 
-## 7.2 标准训练过程
+<a id="course-section-30"></a>
+
+### 7.2 标准训练过程
 
 先训练使用特权状态的教师：
 
@@ -560,7 +703,9 @@ $$
 
 学生可借助观测历史和状态估计模块推断隐藏信息。实际蒸馏还需处理教师/学生访问状态分布不同的问题。
 
-## 7.3 Asymmetric Actor-Critic 与 Teacher–Student 的区别
+<a id="course-section-31"></a>
+
+### 7.3 Asymmetric Actor-Critic 与 Teacher–Student 的区别
 
 **Asymmetric Actor-Critic：** Actor 训练时就只使用可部署观测，而 Critic 可使用 Privileged Information。
 
@@ -568,23 +713,33 @@ $$
 
 所以前者是**训练结构**，后者是**策略迁移方法**。两者可以组合。Isaac Lab 与 RSL-RL 支持相应的观测分组和训练机制。[5][6]
 
-## 7.4 RMA：Rapid Motor Adaptation
+<a id="course-section-32"></a>
+
+### 7.4 RMA：Rapid Motor Adaptation
 
 RMA 将动力学适应问题与机器人运动策略结合，利用近期观测历史构建隐式自适应信息，使机器人应对地形、摩擦、负载及未知动力学变化。[7]
 
 论文：https://arxiv.org/abs/2107.04034
 
-# 第八章：案例一——使用 PPO 训练 Unitree G1 行走
+<a id="course-section-33"></a>
 
-## 8.1 任务定义
+## 第八章：案例一——使用 PPO 训练 Unitree G1 行走
+
+<a id="course-section-34"></a>
+
+### 8.1 任务定义
 
 让 G1 根据目标速度 $c_t=[v_x^{\mathrm{cmd}},v_y^{\mathrm{cmd}},\omega_z^{\mathrm{cmd}}]$ 稳定运动，包括前后、横向移动与转向。
 
-## 8.2 Observation
+<a id="course-section-35"></a>
+
+### 8.2 Observation
 
 建议先使用本体感知：Joint Position、Joint Velocity、Base Angular Velocity、Projected Gravity、Previous Action、Velocity Command。训练楼梯或复杂地形后，再逐步添加 Height Scan、接触估计、观测历史与视觉特征。
 
-## 8.3 Action
+<a id="course-section-36"></a>
+
+### 8.3 Action
 
 推荐位置目标：
 
@@ -594,7 +749,9 @@ $$
 
 底层由 PD 执行，利于复用现有控制接口。
 
-## 8.4 Reward
+<a id="course-section-37"></a>
+
+### 8.4 Reward
 
 | 奖励项 | 目标 |
 |---|---|
@@ -606,7 +763,9 @@ $$
 | Foot Slip Penalty | 降低足底滑动 |
 | Termination Penalty | 惩罚摔倒或失败 |
 
-## 8.5 Curriculum Learning
+<a id="course-section-38"></a>
+
+### 8.5 Curriculum Learning
 
 | 阶段 | 任务 | 目的 |
 |---|---|---|
@@ -620,7 +779,9 @@ $$
 
 可以连续扩展命令/地形分布，并不一定每阶段重训单独策略。
 
-## 8.6 开源实验入口
+<a id="course-section-39"></a>
+
+### 8.6 开源实验入口
 
 [Unitree RL Lab](https://github.com/unitreerobotics/unitree_rl_lab) 基于 Isaac Lab，提供 Unitree 机器人的训练及部署相关代码。[8] 以下命令为该仓库接口的**示例**，执行前应核对当前版本的环境与任务名称：
 
@@ -637,11 +798,15 @@ $$
 
 **第一个研究实验：**先复现平地行走，再分别修改 Action Smoothness、Domain Randomization、Observation History 和 Foot Slip Penalty，观察训练收敛、速度误差和扰动恢复是否变化。
 
-# 第九章：案例二——机械臂与灵巧手运动控制 RL
+<a id="course-section-40"></a>
+
+## 第九章：案例二——机械臂与灵巧手运动控制 RL
 
 以 **Tron2 机械臂 + Revo3 灵巧手 + 螺丝刀操作** 为例，说明如何把腿式运动控制的环境设计方法迁移到复杂接触操作。
 
-## 9.1 任务定义
+<a id="course-section-41"></a>
+
+### 9.1 任务定义
 
 1. 从桌面不同位置拾取螺丝刀。
 2. 协调机械臂姿态和手指接触。
@@ -649,7 +814,9 @@ $$
 4. 完成指定角度旋转。
 5. 在扰动后保持或恢复抓取。
 
-## 9.2 建议的控制架构
+<a id="course-section-42"></a>
+
+### 9.2 建议的控制架构
 
 ```text
 Object Pose / Goal Pose
@@ -674,7 +841,9 @@ Object Pose / Goal Pose
 
 可以先训练机械臂与手分离的控制器，再逐步扩展到联合策略。
 
-## 9.3 三种训练路线
+<a id="course-section-43"></a>
+
+### 9.3 三种训练路线
 
 **路线 A：从零开始训练。**直接使用抓取、抬起、旋转和成功奖励：
 
@@ -694,7 +863,9 @@ $$
 
 例如由基线控制机械臂末端跟踪，RL 修正手指接触，或对臂手都施加有限残差。实际必须约束残差幅值、动作变化率和接触力。
 
-## 9.4 Observation 设计
+<a id="course-section-44"></a>
+
+### 9.4 Observation 设计
 
 $$
 o_t=[q_{\mathrm{arm}},q_{\mathrm{hand}},\dot q,
@@ -703,7 +874,9 @@ $$
 
 其中 $\hat T_{\mathrm{object}}$ 由头部/腕部相机的位姿估计器提供。如果真机无法准确测量物体速度，可用历史观测/状态估计器推断。**Actor 不应无意中使用只在仿真中有的真实物体状态**；Critic 可以采用特权状态。
 
-## 9.5 Reward 设计
+<a id="course-section-45"></a>
+
+### 9.5 Reward 设计
 
 | 奖励 | 作用 |
 |---|---|
@@ -718,7 +891,9 @@ $$
 
 如果只有最终旋转成功奖励，从随机探索中发现合理抓取可能非常困难。建议使用课程学习与适度分阶段奖励。
 
-## 9.6 训练路线
+<a id="course-section-46"></a>
+
+### 9.6 训练路线
 
 | 阶段 | 任务 | 目标 |
 |---|---|---|
@@ -733,9 +908,13 @@ $$
 
 对于有参考轨迹的任务，可将 Uniform RSI 与 Event-biased RSI 结合，使训练更多覆盖接触建立、释放和物体转动等关键片段。
 
-# 第十章：Sim-to-Real
+<a id="course-section-47"></a>
 
-## 10.1 为什么仿真成功不保证真机成功？
+## 第十章：Sim-to-Real
+
+<a id="course-section-48"></a>
+
+### 10.1 为什么仿真成功不保证真机成功？
 
 | 差异类型 | 典型来源 |
 |---|---|
@@ -750,7 +929,9 @@ $$
 
 例如，仿真中电机对目标动作快速响应，而真实硬件有延迟，就可能导致振荡。
 
-## 10.2 Domain Randomization
+<a id="course-section-49"></a>
+
+### 10.2 Domain Randomization
 
 训练时随机化环境/动力学参数：
 
@@ -772,7 +953,9 @@ $$
 
 随机化范围要依据标定数据、硬件规格和物理常识设置，并不是越大越好。
 
-## 10.3 Sim-to-Sim
+<a id="course-section-50"></a>
+
+### 10.3 Sim-to-Sim
 
 可在 Isaac Lab 中训练，再在 MuJoCo 中测试（或反过来），验证策略是否利用了某个仿真器特有的数值行为。
 
@@ -785,7 +968,9 @@ Isaac Lab Training -> Export Policy -> MuJoCo Evaluation
 
 如果同一控制策略在不同仿真器表现差异很大，应优先检查动力学、接触与动作接口。通过 Sim-to-Sim 并不等于实机安全。
 
-## 10.4 真机部署检查清单
+<a id="course-section-51"></a>
+
+### 10.4 真机部署检查清单
 
 - 观测维度、顺序和标准化参数与训练一致。
 - 关节映射、正负方向、单位、坐标系与零位一致。
@@ -795,15 +980,19 @@ Isaac Lab Training -> Export Policy -> MuJoCo Evaluation
 - 双足机器人配置防跌倒措施；灵巧手注意异常接触力、卡死和物体掉落。
 - 初次部署从低风险、低幅值动作开始，逐步扩展任务范围。
 
-### 进阶：学习真实与仿真之间的动力学差异
+#### 进阶：学习真实与仿真之间的动力学差异
 
 ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，改善敏捷全身动作的 Sim-to-Real。[9]
 
-# 第十一章：如何评估运动控制 RL？
+<a id="course-section-52"></a>
+
+## 第十一章：如何评估运动控制 RL？
 
 训练 Reward 上升不代表真实任务表现一定改善。必须构建独立测试集和性能指标。
 
-## 11.1 腿式机器人指标
+<a id="course-section-53"></a>
+
+### 11.1 腿式机器人指标
 
 | 指标 | 含义 |
 |---|---|
@@ -816,7 +1005,9 @@ ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，
 | Recovery Rate | 扰动恢复率 |
 | Generalization | 新地形/新参数下的表现 |
 
-## 11.2 Motion Tracking 指标
+<a id="course-section-54"></a>
+
+### 11.2 Motion Tracking 指标
 
 | 指标 | 含义 |
 |---|---|
@@ -828,7 +1019,9 @@ ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，
 | Motion Completion Rate | 动作完成率 |
 | Recovery Rate | 扰动后的恢复率 |
 
-## 11.3 灵巧手操作指标
+<a id="course-section-55"></a>
+
+### 11.3 灵巧手操作指标
 
 | 指标 | 含义 |
 |---|---|
@@ -843,7 +1036,9 @@ ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，
 
 **公平对比原则：**相同环境与任务、相同交互预算、多个随机种子、未见过的测试状态，以及与训练奖励独立的性能指标。尤其要区分训练表现、仿真泛化和真机表现。
 
-# 第十二章：开源框架与工具
+<a id="course-section-56"></a>
+
+## 第十二章：开源框架与工具
 
 | 框架 | 主要用途 | 建议 |
 |---|---|---|
@@ -854,7 +1049,9 @@ ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，
 | legged_gym | 经典腿式机器人 PPO 代码 | 理解经典实现 |
 | skrl | 多种 RL 算法实现 | 算法对比可用 |
 
-## 12.1 Isaac Lab
+<a id="course-section-57"></a>
+
+### 12.1 Isaac Lab
 
 项目：https://github.com/isaac-sim/IsaacLab
 
@@ -871,19 +1068,25 @@ ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，
 
 任务名称可能随软件版本变化，以本地 task registry 为准。
 
-## 12.2 RSL-RL
+<a id="course-section-58"></a>
+
+### 12.2 RSL-RL
 
 项目：https://github.com/leggedrobotics/rsl_rl
 
 建议按 Runner → PPO → Actor/Critic → Rollout Storage → Distillation 的顺序读代码。若研究 PPO 运动控制的算法改进，可以直接从这套实现构建基线。[5]
 
-## 12.3 MuJoCo Playground
+<a id="course-section-59"></a>
+
+### 12.3 MuJoCo Playground
 
 项目：https://github.com/google-deepmind/mujoco_playground
 
 提供面向四足、人形、灵巧手、机械臂的 GPU 加速强化学习环境与任务。某些批量动力学任务比完整渲染系统更轻量；实际速度取决于 GPU、接触数量、视觉与仿真后端。[10]
 
-## 12.4 如何选择？
+<a id="course-section-60"></a>
+
+### 12.4 如何选择？
 
 | 研究目标 | 推荐起点 |
 |---|---|
@@ -896,7 +1099,9 @@ ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，
 | 比较 SAC 与 PPO | 支持二者的通用 RL 实现 |
 | 轻量级控制实验 | MuJoCo Playground |
 
-# 第十三章：代表性论文与阅读顺序
+<a id="course-section-61"></a>
+
+## 第十三章：代表性论文与阅读顺序
 
 | 论文 | 年份 | 核心主题 | 重点学习 |
 |---|---|---|---|
@@ -917,27 +1122,37 @@ ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，
 3. **RMA**：特权状态、历史观测、自适应以及部署。[7]
 4. **HOVER**：全身控制、多命令模式、动作跟踪与蒸馏。[4]
 
-# 第十四章：学习与研究路线
+<a id="course-section-62"></a>
 
-## 阶段一：基础运动控制 RL
+## 第十四章：学习与研究路线
+
+<a id="course-section-63"></a>
+
+### 阶段一：基础运动控制 RL
 
 **目标：**训练一个能够稳定行走的双足/四足机器人。
 
 学习 Isaac Lab、RSL-RL、PPO、Observation/Action/Reward、Domain Randomization。先复现 G1 等平台的速度跟踪，再做奖励和观测消融。
 
-## 阶段二：Motion Tracking RL
+<a id="course-section-64"></a>
+
+### 阶段二：Motion Tracking RL
 
 **目标：**跟踪参考动作，同时具备物理可行性与恢复能力。
 
 学习 Motion Retargeting、Tracking Reward、RSI、Motion Curriculum、Residual RL。从单条参考动作开始，再逐步增加初始状态扰动和外部扰动。
 
-## 阶段三：Teacher–Student 与 Sim-to-Real
+<a id="course-section-65"></a>
+
+### 阶段三：Teacher–Student 与 Sim-to-Real
 
 **目标：**策略不依赖仿真中特有的完整状态。
 
 学习 Asymmetric Actor-Critic、Privileged Information、蒸馏、Observation History 与 Domain Randomization。训练特权教师，将其迁移给可部署学生，并开展跨仿真器测试。
 
-## 阶段四：复杂运动控制
+<a id="course-section-66"></a>
+
+### 阶段四：复杂运动控制
 
 | 路线 | 典型任务 |
 |---|---|
@@ -946,7 +1161,9 @@ ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，
 
 深入研究接触动力学、任务课程、强鲁棒性和真机闭环策略。
 
-## 阶段五：通用运动控制器
+<a id="course-section-67"></a>
+
+### 阶段五：通用运动控制器
 
 探索一个支持多种命令的条件策略：
 
@@ -956,7 +1173,9 @@ $$
 
 其中 $c_t$ 可编码目标速度、目标位姿、参考运动片段、目标物体运动或技能条件。对应方向包括 Goal-conditioned Motion Control、Universal Motion Tracking、Hierarchical Motion Policies、Residual Motion Adaptation 和 Learning-based Whole-Body Control。
 
-# 第十五章：总结与关键结论
+<a id="course-section-68"></a>
+
+## 第十五章：总结与关键结论
 
 运动控制强化学习可以从**任务、训练方法和工程流程**三个维度理解。
 
@@ -997,7 +1216,9 @@ $$
 
 ---
 
-# 参考资料与开源链接
+<a id="course-section-69"></a>
+
+## 参考资料与开源链接
 
 以下资料主要为教程中提及的论文主页、论文页面和官方开源仓库。论文年份与任务名称应以其最终发表版本/仓库当前版本为准。
 

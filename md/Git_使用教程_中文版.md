@@ -7,37 +7,104 @@ updated: 2026-10-15
 
 # Git 使用教程：从零基础到科研项目协作
 
-**Ubuntu · GitHub · VS Code · Python / PyTorch / 机器人强化学习**  
-**版本日期：2026 年 10 月 15 日**
+<!-- course-meta:start -->
+[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Git_Tutorial_English.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Git_Tutorial_CN.pdf)
 
-本教程面向希望用 Git 管理科研代码、复现实验，以及在工作站、GPU 服务器和 GitHub 之间协作的开发者。内容以 Ubuntu 终端为主线，完整覆盖 Git 基础、安装配置、提交、远程仓库、分支、团队协作、差异查看、回滚、冲突、忽略规则、进阶命令、科研工作流、常见错误和 VS Code 操作。
+| 项目 | 说明 |
+|---|---|
+| 适用范围 | Git 2.x；Ubuntu 终端；GitHub 协作示例 |
+| 文档核验日期 | 2026-10-18 |
+| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-> **阅读建议**：初学者先完成第 1–5 节和第 12 节的实操，再按需要查阅其余章节。所有包含 `YOUR_USERNAME`、`<repo_url>` 或 `<commit-id>` 的命令，执行前都需要替换占位符。文中的仓库、提交号和命令输出用于演示。
+**核验边界：** 文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。 版本与固定源码引用见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
+<!-- course-meta:end -->
 
+<!-- course-toc:start -->
 ## 目录
 
-1. Git 是什么：概念与工作区模型
-2. Ubuntu 安装与初始配置
-3. 创建第一个本地 Git 项目
-4. 连接 GitHub：SSH、上传、克隆和同步
-5. Git 分支管理
-6. 多人协作与 Pull Request
-7. 查看状态、差异和历史
-8. 撤销操作与恢复旧版本
-9. 合并冲突与处理步骤
-10. `.gitignore`：忽略科研产物
-11. 常用进阶命令：Stash、Rebase、Show、Blame
-12. 完整科研开发工作流
-13. Git 命令速查表
-14. 常见错误及排查
-15. 在 VS Code 中使用 Git
-16. 科研项目最佳实践与实验复现
+- [1. Git 是什么：概念与工作区模型](#course-section-01)
+  - [1.1 Git 能解决哪些问题？](#course-section-02)
+  - [1.2 Git、GitHub、GitLab 和 VS Code](#course-section-03)
+  - [1.3 理解工作区、暂存区、本地仓库、远程仓库](#course-section-04)
+  - [1.4 最先记住的 10 个命令](#course-section-05)
+- [2. Ubuntu 安装与初始配置](#course-section-06)
+  - [2.1 安装 Git](#course-section-07)
+  - [2.2 设置提交者身份](#course-section-08)
+  - [2.3 统一新仓库默认分支名](#course-section-09)
+  - [2.4 VS Code](#course-section-10)
+- [3. 创建第一个本地 Git 项目](#course-section-11)
+  - [第 1 步：创建目录和文件](#course-section-12)
+  - [第 2 步：初始化仓库](#course-section-13)
+  - [第 3 步：查看文件状态](#course-section-14)
+  - [第 4 步：加入暂存区](#course-section-15)
+  - [第 5 步：提交](#course-section-16)
+  - [第 6 步：查看历史](#course-section-17)
+- [4. 连接 GitHub：SSH、上传、克隆和同步](#course-section-18)
+  - [4.1 配置 SSH 密钥](#course-section-19)
+  - [4.2 将本地项目上传到 GitHub](#course-section-20)
+  - [4.3 从 GitHub 下载开源项目](#course-section-21)
+  - [4.4 更新本地仓库：Fetch 与 Pull](#course-section-22)
+- [5. Git 分支管理](#course-section-23)
+  - [5.1 查看、创建与切换分支](#course-section-24)
+  - [5.2 在功能分支开发并提交](#course-section-25)
+  - [5.3 合并到主分支](#course-section-26)
+  - [5.4 删除已完成的分支](#course-section-27)
+- [6. 多人协作与 Pull Request](#course-section-28)
+  - [6.1 从最新主分支开始](#course-section-29)
+  - [6.2 开发、检查并提交](#course-section-30)
+  - [6.3 上传分支并创建 PR](#course-section-31)
+- [7. 查看状态、差异和历史](#course-section-32)
+  - [7.1 查看工作区状态](#course-section-33)
+  - [7.2 比较代码](#course-section-34)
+  - [7.3 查看提交图](#course-section-35)
+- [8. 撤销操作与恢复旧版本](#course-section-36)
+  - [8.1 尚未暂存：放弃某个文件的修改](#course-section-37)
+  - [8.2 已 `git add`，尚未 commit：取消暂存](#course-section-38)
+  - [8.3 已 commit，尚未共享：撤销提交并保留改动](#course-section-39)
+  - [8.4 已 push / 其他人可能已拉取：用 Revert](#course-section-40)
+- [9. 合并冲突与处理步骤](#course-section-41)
+  - [9.1 解决冲突](#course-section-42)
+  - [9.2 VS Code 解决冲突](#course-section-43)
+- [10. `.gitignore`：忽略科研产物](#course-section-44)
+  - [10.1 推荐模板](#course-section-45)
+  - [10.2 `.gitignore` 的作用范围](#course-section-46)
+  - [10.3 模型、数据与代码分离](#course-section-47)
+- [11. 常用进阶命令：Stash、Rebase、Show、Blame](#course-section-48)
+  - [11.1 `git stash`：临时收起未提交改动](#course-section-49)
+  - [11.2 `git rebase`：把实验分支移到新基线](#course-section-50)
+  - [11.3 查看某个提交、追踪某行代码](#course-section-51)
+  - [11.4 查看所有分支](#course-section-52)
+- [12. 完整科研开发工作流](#course-section-53)
+  - [阶段 1：克隆自己的仓库](#course-section-54)
+  - [阶段 2：从最新 `main` 创建实验分支](#course-section-55)
+  - [阶段 3：开发并检查变化](#course-section-56)
+  - [阶段 4：提交第一个独立功能](#course-section-57)
+  - [阶段 5：继续增加算法功能](#course-section-58)
+  - [阶段 6：将分支上传 GitHub](#course-section-59)
+  - [阶段 7：测试并合并](#course-section-60)
+- [13. Git 命令速查表](#course-section-61)
+- [14. 常见错误及排查](#course-section-62)
+  - [14.1 `fatal: not a git repository`](#course-section-63)
+  - [14.2 `Permission denied (publickey)`](#course-section-64)
+  - [14.3 `Updates were rejected`](#course-section-65)
+  - [14.4 `Your local changes would be overwritten`](#course-section-66)
+  - [14.5 常见错误处理原则](#course-section-67)
+- [15. 在 VS Code 中使用 Git](#course-section-68)
+- [16. 科研项目最佳实践与实验复现](#course-section-69)
+  - [16.1 按任务创建分支](#course-section-70)
+  - [16.2 每次训练记录 Commit ID](#course-section-71)
+  - [16.3 把代码、配置和大文件管理分开](#course-section-72)
+  - [16.4 新手先熟练掌握的一条完整路线](#course-section-73)
+  - [16.5 官方参考资料](#course-section-74)
+<!-- course-toc:end -->
 
----
+<a id="course-section-01"></a>
 
 ## 1. Git 是什么：概念与工作区模型
 
 **Git 是分布式版本控制系统（Version Control System, VCS）**。它记录代码的修改历史，使你能够比较版本、恢复旧版本、在独立分支上尝试新算法，并与团队成员合并工作。
+
+<a id="course-section-02"></a>
 
 ### 1.1 Git 能解决哪些问题？
 
@@ -47,6 +114,8 @@ updated: 2026-10-15
 - **团队协作**：独立开发 PPO、SAC、视觉感知和 Sim2Real 模块，再合并。
 - **跨机器同步**：借助 GitHub/GitLab 在本地电脑与 GPU 服务器同步源码。
 - **实验复现**：记录某次训练对应的 Commit ID，与配置、随机种子、数据版本关联。
+
+<a id="course-section-03"></a>
 
 ### 1.2 Git、GitHub、GitLab 和 VS Code
 
@@ -58,6 +127,8 @@ updated: 2026-10-15
 | **VS Code** | 编辑器；内置 Source Control 界面，可操作 Git。 |
 
 Git 不是 GitHub。即使没有 GitHub 账号，你仍能运行 `git init`、`git add`、`git commit`、`git branch` 等命令。
+
+<a id="course-section-04"></a>
 
 ### 1.3 理解工作区、暂存区、本地仓库、远程仓库
 
@@ -97,6 +168,8 @@ git push
 
 一个 Commit 可以理解为项目在某个时刻的一份版本快照；其哈希 ID 用于唯一标识该提交。工作区修改若未提交，**不会因为执行 `git push` 就自动上传**。
 
+<a id="course-section-05"></a>
+
 ### 1.4 最先记住的 10 个命令
 
 | 命令 | 用途 |
@@ -114,7 +187,11 @@ git push
 
 ---
 
+<a id="course-section-06"></a>
+
 ## 2. Ubuntu 安装与初始配置
+
+<a id="course-section-07"></a>
 
 ### 2.1 安装 Git
 
@@ -127,6 +204,8 @@ git --version
 ```
 
 安装成功后会输出类似 `git version 2.x.y` 的版本信息；具体版本取决于 Ubuntu 发行版和软件源。
+
+<a id="course-section-08"></a>
 
 ### 2.2 设置提交者身份
 
@@ -148,6 +227,8 @@ git config user.name "Lab Account"
 git config user.email "lab@example.com"
 ```
 
+<a id="course-section-09"></a>
+
 ### 2.3 统一新仓库默认分支名
 
 ```bash
@@ -155,6 +236,8 @@ git config --global init.defaultBranch main
 ```
 
 它影响之后通过 `git init` 创建的新仓库，不会自动重命名已有仓库。
+
+<a id="course-section-10"></a>
 
 ### 2.4 VS Code
 
@@ -167,6 +250,8 @@ code .
 打开当前项目。Ubuntu 下日常操作建议使用“**终端执行命令 + VS Code 比较代码与解决冲突**”的组合。
 
 ---
+
+<a id="course-section-11"></a>
 
 ## 3. 创建第一个本地 Git 项目
 
@@ -184,6 +269,8 @@ robot-policy/
 └── README.md
 ```
 
+<a id="course-section-12"></a>
+
 ### 第 1 步：创建目录和文件
 
 ```bash
@@ -192,6 +279,8 @@ cd robot-policy
 echo 'print("Hello Git")' > train.py
 ```
 
+<a id="course-section-13"></a>
+
 ### 第 2 步：初始化仓库
 
 ```bash
@@ -199,6 +288,8 @@ git init
 ```
 
 此时会出现隐藏目录 `.git/`，其中存放仓库对象、历史和配置。不要随意删除或手动编辑它。
+
+<a id="course-section-14"></a>
 
 ### 第 3 步：查看文件状态
 
@@ -216,6 +307,8 @@ Untracked files:
 
 `Untracked` 表示文件尚未被 Git 跟踪。
 
+<a id="course-section-15"></a>
+
 ### 第 4 步：加入暂存区
 
 ```bash
@@ -226,6 +319,8 @@ git status
 ```
 
 状态中的 `Changes to be committed` 表示文件已经暂存。`git add .` 很方便，但实验目录中应先确认 `.gitignore`，避免误加大型模型或数据。
+
+<a id="course-section-16"></a>
 
 ### 第 5 步：提交
 
@@ -242,6 +337,8 @@ git commit -m "Fix observation normalization"
 ```
 
 **提交信息应说明“本次改动做了什么”**，而不是只写 `update` 或 `fix`。
+
+<a id="course-section-17"></a>
 
 ### 第 6 步：查看历史
 
@@ -262,7 +359,11 @@ a81c32f Initial commit
 
 ---
 
+<a id="course-section-18"></a>
+
 ## 4. 连接 GitHub：SSH、上传、克隆和同步
+
+<a id="course-section-19"></a>
 
 ### 4.1 配置 SSH 密钥
 
@@ -307,6 +408,8 @@ ssh -T git@github.com
 
 参考：[GitHub 官方 SSH 配置文档](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)。
 
+<a id="course-section-20"></a>
+
 ### 4.2 将本地项目上传到 GitHub
 
 在 GitHub 网站创建一个名为 `robot-policy` 的**空仓库**；如果本地已经提交过代码，先不要在网页上添加 README、`.gitignore` 或 License，避免产生两份独立初始历史。
@@ -325,6 +428,8 @@ git push -u origin main
 - `git remote -v` 显示读取与推送地址。
 - `git branch -M main` 将当前分支命名为 `main`。
 - `-u` 为本地分支建立上游跟踪关系，以后通常可以直接运行 `git push`。
+
+<a id="course-section-21"></a>
 
 ### 4.3 从 GitHub 下载开源项目
 
@@ -348,6 +453,8 @@ git clone git@github.com:ajwagen/dsrl.git
 | 公共仓库一般可匿名克隆 | 通常需要配置 SSH 身份验证 |
 | 使用 `https://...` URL | 使用 `git@github.com:...` URL |
 | 推送时需要适当的账号认证 | 配置密钥后推送较方便 |
+
+<a id="course-section-22"></a>
 
 ### 4.4 更新本地仓库：Fetch 与 Pull
 
@@ -382,6 +489,8 @@ git pull --ff-only
 
 ---
 
+<a id="course-section-23"></a>
+
 ## 5. Git 分支管理
 
 分支允许你同时维护稳定版本和实验性代码。例如 `main` 保存稳定 PPO，`feature/sac` 用于新的 SAC 实现：
@@ -393,6 +502,8 @@ A --- B ---------------- M       main
 ```
 
 其中 `M` 代表一次可能的合并提交；如果满足快进条件，Git 也可能不创建 `M`。
+
+<a id="course-section-24"></a>
 
 ### 5.1 查看、创建与切换分支
 
@@ -408,6 +519,8 @@ git switch feature/sac             # 切回实验分支
 
 Git 在切换分支时会更新工作区文件；如果未提交的修改与目标分支冲突，切换会被阻止。应先提交或使用 `git stash`。
 
+<a id="course-section-25"></a>
+
 ### 5.2 在功能分支开发并提交
 
 ```bash
@@ -419,6 +532,8 @@ git commit -m "Implement SAC policy"
 
 这时新的 Commit 只会推进 `feature/sac`，不会直接改变 `main`。
 
+<a id="course-section-26"></a>
+
 ### 5.3 合并到主分支
 
 ```bash
@@ -427,6 +542,8 @@ git merge feature/sac
 ```
 
 若没有冲突即可完成；若有冲突，参见第 9 节。
+
+<a id="course-section-27"></a>
 
 ### 5.4 删除已完成的分支
 
@@ -444,6 +561,8 @@ git push origin --delete feature/sac
 
 ---
 
+<a id="course-section-28"></a>
+
 ## 6. 多人协作与 Pull Request
 
 科研团队可按模块建立分支：
@@ -458,6 +577,8 @@ main
 
 推荐采用 **Feature Branch → Push → Pull Request → Review → Merge** 流程。
 
+<a id="course-section-29"></a>
+
 ### 6.1 从最新主分支开始
 
 ```bash
@@ -465,6 +586,8 @@ git switch main
 git pull --ff-only
 git switch -c feature/pose-estimation
 ```
+
+<a id="course-section-30"></a>
 
 ### 6.2 开发、检查并提交
 
@@ -475,6 +598,8 @@ git diff
 git add .
 git commit -m "Implement visual pose estimation"
 ```
+
+<a id="course-section-31"></a>
 
 ### 6.3 上传分支并创建 PR
 
@@ -488,9 +613,13 @@ git push -u origin feature/pose-estimation
 
 ---
 
+<a id="course-section-32"></a>
+
 ## 7. 查看状态、差异和历史
 
 调试模型训练问题时，知道代码**实际改了什么**往往比记住“我应该改了什么”更重要。
+
+<a id="course-section-33"></a>
 
 ### 7.1 查看工作区状态
 
@@ -499,6 +628,8 @@ git status
 ```
 
 可以看到当前分支、已暂存修改、未暂存修改和未跟踪文件。
+
+<a id="course-section-34"></a>
 
 ### 7.2 比较代码
 
@@ -516,6 +647,8 @@ git diff -- train.py         # 只看某个文件
 ```
 
 `-` 是旧内容，`+` 是新内容。
+
+<a id="course-section-35"></a>
 
 ### 7.3 查看提交图
 
@@ -540,9 +673,13 @@ git log --oneline --graph --all
 
 ---
 
+<a id="course-section-36"></a>
+
 ## 8. 撤销操作与恢复旧版本
 
 恢复操作必须区分：修改**是否已暂存、是否已提交、是否已共享**。下面的命令不等价。
+
+<a id="course-section-37"></a>
 
 ### 8.1 尚未暂存：放弃某个文件的修改
 
@@ -552,6 +689,8 @@ git restore train.py
 
 把工作区的 `train.py` 恢复到暂存区对应的内容。**未另行保存的工作区修改可能丢失**。
 
+<a id="course-section-38"></a>
+
 ### 8.2 已 `git add`，尚未 commit：取消暂存
 
 ```bash
@@ -559,6 +698,8 @@ git restore --staged train.py
 ```
 
 修改仍保留在工作区，只是不再参与下一次提交。
+
+<a id="course-section-39"></a>
 
 ### 8.3 已 commit，尚未共享：撤销提交并保留改动
 
@@ -589,6 +730,8 @@ git reset --hard HEAD~1
 
 **`reset --hard` 是破坏性操作。** 执行前务必确认代码、实验结果和未提交内容不需要保留。
 
+<a id="course-section-40"></a>
+
 ### 8.4 已 push / 其他人可能已拉取：用 Revert
 
 ```bash
@@ -610,6 +753,8 @@ git revert a82bc31
 
 ---
 
+<a id="course-section-41"></a>
+
 ## 9. 合并冲突与处理步骤
 
 两个分支修改了同一处内容时，Git 可能无法自动判断保留哪个版本。
@@ -628,6 +773,8 @@ learning_rate = 0.0003
 
 - `<<<<<<< HEAD` 到 `=======`：当前分支中的版本；
 - `=======` 到 `>>>>>>> feature/sac`：传入分支中的版本。
+
+<a id="course-section-42"></a>
 
 ### 9.1 解决冲突
 
@@ -659,15 +806,21 @@ git merge --abort
 
 如果冲突发生在 `rebase` 中，使用的是 `git rebase --continue`、`git rebase --abort` 等命令，而不是 `merge --abort`。
 
+<a id="course-section-43"></a>
+
 ### 9.2 VS Code 解决冲突
 
 VS Code 的 Merge Editor 可以比较当前版本、传入版本和合并后的结果。无论通过图形界面还是终端解决，最终都应运行测试，尤其是奖励函数、动作尺度、机器人坐标系等难以仅凭文本差异判断的代码。
 
 ---
 
+<a id="course-section-44"></a>
+
 ## 10. `.gitignore`：忽略科研产物
 
 机器学习项目常见数 GB 的数据集、模型权重、录像和训练日志，它们通常**不适合直接提交到普通 Git 仓库**。
+
+<a id="course-section-45"></a>
 
 ### 10.1 推荐模板
 
@@ -718,6 +871,8 @@ datasets/
 
 **根据项目调整规则**：例如某些项目确实需要跟踪小型测试权重，或者共享部分 `.vscode/` 配置，不应机械地全部忽略。
 
+<a id="course-section-46"></a>
+
 ### 10.2 `.gitignore` 的作用范围
 
 规则主要影响**尚未跟踪**的文件。若 `checkpoint.pt` 以前已经被 Git 跟踪，即使现在写了 `*.pt`，它也不会自动退出版本控制。
@@ -731,6 +886,8 @@ git commit -m "Stop tracking checkpoint"
 
 这不会清除历史提交中的旧副本。若意外上传 API Key、口令或其他机密，应该立即撤销/轮换凭据，并评估是否需要清理公开历史。
 
+<a id="course-section-47"></a>
+
 ### 10.3 模型、数据与代码分离
 
 建议：
@@ -743,7 +900,11 @@ git commit -m "Stop tracking checkpoint"
 
 ---
 
+<a id="course-section-48"></a>
+
 ## 11. 常用进阶命令：Stash、Rebase、Show、Blame
+
+<a id="course-section-49"></a>
 
 ### 11.1 `git stash`：临时收起未提交改动
 
@@ -777,6 +938,8 @@ git stash pop
 
 Stash 恢复也可能出现冲突，不能把它当作长期可靠备份。
 
+<a id="course-section-50"></a>
+
 ### 11.2 `git rebase`：把实验分支移到新基线
 
 原始历史：
@@ -802,6 +965,8 @@ feature: A -- B -- C -- D' -- E'
 
 `rebase` 会重放提交并生成新的提交 ID；适合整理**自己的私有分支**，不要随意重写其他人正在使用的共享历史。
 
+<a id="course-section-51"></a>
+
 ### 11.3 查看某个提交、追踪某行代码
 
 ```bash
@@ -810,6 +975,8 @@ git blame train.py         # 查看每行最近由哪次提交修改
 ```
 
 `git blame` 在追踪“奖励缩放何时被修改”“哪个提交改变了控制频率”时很实用，但它是定位历史的工具，不等于判断责任。
+
+<a id="course-section-52"></a>
 
 ### 11.4 查看所有分支
 
@@ -830,9 +997,13 @@ git branch -a
 
 ---
 
+<a id="course-section-53"></a>
+
 ## 12. 完整科研开发工作流
 
 目标：在强化学习项目中开发 `residual_velocity.py`，新增 Advantage-Guided Velocity Loss，测试后合并。
+
+<a id="course-section-54"></a>
 
 ### 阶段 1：克隆自己的仓库
 
@@ -843,6 +1014,8 @@ cd robot-policy
 
 如果仓库来自别人的开源项目，需要先 Fork，或按照项目允许的贡献流程操作。
 
+<a id="course-section-55"></a>
+
 ### 阶段 2：从最新 `main` 创建实验分支
 
 ```bash
@@ -850,6 +1023,8 @@ git switch main
 git pull --ff-only
 git switch -c experiment/residual-velocity
 ```
+
+<a id="course-section-56"></a>
 
 ### 阶段 3：开发并检查变化
 
@@ -873,6 +1048,8 @@ git status
 git diff
 ```
 
+<a id="course-section-57"></a>
+
 ### 阶段 4：提交第一个独立功能
 
 ```bash
@@ -881,6 +1058,8 @@ git add configs/residual_velocity.yaml
 git add train.py
 git commit -m "Implement residual velocity adaptation"
 ```
+
+<a id="course-section-58"></a>
 
 ### 阶段 5：继续增加算法功能
 
@@ -899,6 +1078,8 @@ A --- B --- C            experiment/residual-velocity
       └─────── Implement residual velocity adaptation
 ```
 
+<a id="course-section-59"></a>
+
 ### 阶段 6：将分支上传 GitHub
 
 ```bash
@@ -910,6 +1091,8 @@ git push -u origin experiment/residual-velocity
 ```bash
 git push
 ```
+
+<a id="course-section-60"></a>
 
 ### 阶段 7：测试并合并
 
@@ -925,6 +1108,8 @@ git push origin main
 团队仓库建议在 GitHub 创建 Pull Request，经审核、测试和权限检查后合并。**合并成功不代表实验可复现**，还需要记录依赖版本、数据集版本、种子和检查点对应的 Commit ID。
 
 ---
+
+<a id="course-section-61"></a>
 
 ## 13. Git 命令速查表
 
@@ -954,7 +1139,11 @@ git push origin main
 
 ---
 
+<a id="course-section-62"></a>
+
 ## 14. 常见错误及排查
+
+<a id="course-section-63"></a>
 
 ### 14.1 `fatal: not a git repository`
 
@@ -967,6 +1156,8 @@ ls -a
 
 确认是否进入了项目目录；只有确实要创建**新仓库**时才运行 `git init`。
 
+<a id="course-section-64"></a>
+
 ### 14.2 `Permission denied (publickey)`
 
 SSH 身份验证失败。检查：
@@ -976,6 +1167,8 @@ ssh -T git@github.com
 ```
 
 确认本地 SSH Agent 已加载正确密钥，并且公钥已添加到 GitHub 对应账号。
+
+<a id="course-section-65"></a>
 
 ### 14.3 `Updates were rejected`
 
@@ -996,6 +1189,8 @@ git push
 
 **不要为了消除报错直接 `git push --force`**；这可能覆盖别人的提交。
 
+<a id="course-section-66"></a>
+
 ### 14.4 `Your local changes would be overwritten`
 
 当前未提交修改可能被切换/同步操作覆盖。先二选一：
@@ -1013,11 +1208,15 @@ git stash push -u
 
 然后再重复原操作。
 
+<a id="course-section-67"></a>
+
 ### 14.5 常见错误处理原则
 
 遇到不熟悉的 Git 报错时，先运行 `git status`，阅读 Git 给出的后续操作提示，再判断是处于 merge、rebase 还是普通状态。不要在不清楚仓库状态时连续执行 `reset --hard`、`clean -fd` 或强制推送。
 
 ---
+
+<a id="course-section-68"></a>
 
 ## 15. 在 VS Code 中使用 Git
 
@@ -1057,7 +1256,11 @@ VS Code 的 Diff Editor 会直观显示删除和新增的行。对于涉及多�
 
 ---
 
+<a id="course-section-69"></a>
+
 ## 16. 科研项目最佳实践与实验复现
+
+<a id="course-section-70"></a>
 
 ### 16.1 按任务创建分支
 
@@ -1069,6 +1272,8 @@ VS Code 的 Diff Editor 会直观显示删除和新增的行。对于涉及多�
 | 修改位姿估计或相机标定 | `feature/pose-estimation` |
 | 修复线上机器人控制 Bug | `fix/control-latency` |
 | 论文复现实验 | 用 Commit ID 或 Tag 固定发布代码 |
+
+<a id="course-section-71"></a>
 
 ### 16.2 每次训练记录 Commit ID
 
@@ -1092,6 +1297,8 @@ training:
 
 > 重要：Commit ID 只标记已经提交的代码状态。如果实验启动时存在未提交修改，仅保存哈希并不能完整复现。正式运行前请检查 `git status`，必要时记录补丁或先建立实验提交。
 
+<a id="course-section-72"></a>
+
 ### 16.3 把代码、配置和大文件管理分开
 
 - **Git 仓库**：源码、配置、训练入口、评测脚本、README、环境说明。
@@ -1105,6 +1312,8 @@ training:
 git tag -a v1.0-deploy -m "Validated robot deployment"
 git push origin v1.0-deploy
 ```
+
+<a id="course-section-73"></a>
 
 ### 16.4 新手先熟练掌握的一条完整路线
 
@@ -1136,6 +1345,8 @@ git push
 ```
 
 掌握这条路线，就足以支持大多数个人科研项目的日常代码管理；再逐步学习冲突解决、Rebase、Pull Request 和团队约定。
+
+<a id="course-section-74"></a>
 
 ### 16.5 官方参考资料
 

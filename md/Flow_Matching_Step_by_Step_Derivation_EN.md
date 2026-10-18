@@ -8,24 +8,76 @@ toc: true
 toc-depth: 2
 ---
 
-> **Central question.** Why is it possible to train a model that generates samples from a complicated data distribution simply by interpolating between Gaussian noise and real data and asking a neural network to predict the difference between their endpoints?
+# Flow Matching: A Step-by-Step Mathematical Derivation
 
-**Flow Matching (FM)** is an important approach to modern generative modeling. It is also a key technique for generating robot actions in vision-language-action (VLA) models such as π0 and π0.5. These notes start with probability transport and ordinary differential equations (ODEs), derive the training objective of **Conditional Flow Matching (CFM)**, and conclude with action-chunk generation and online reinforcement-learning (RL) fine-tuning.
+<!-- course-meta:start -->
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Flow_Matching_%E8%AF%A6%E7%BB%86%E6%8E%A8%E5%AF%BC_%E7%B2%BE%E7%AE%80%E7%89%88.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.pdf)
 
-**Roadmap:** Distribution transformation → ODEs → Continuity equation → Ideal Flow Matching → Conditional Flow Matching → Conditional-expectation proof → MSE equivalence → General Gaussian paths → Training and sampling → Multimodal action generation → π0.5 → Residual velocity adaptation → Synthesis.
+| Item | Details |
+|---|---|
+| Applicability | CFM theory; OpenPI pi0.py code reference pinned below; examples are not a tested fine-tuning run |
+| Documentation review date | 2026-10-18 |
+| License | CC BY 4.0 · Xiong Zeng and contributors |
 
-**Key references:**
+**Verification scope:** Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation. See [version notes](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.md) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
+<!-- course-meta:end -->
 
-- [Lipman et al., *Flow Matching for Generative Modeling* (2022)](https://arxiv.org/abs/2210.02747)
-- [Liu et al., *Flow Straight and Fast: Learning to Generate and Transfer Data with Rectified Flow* (2022)](https://arxiv.org/abs/2209.03003)
-- [Physical Intelligence, *π0: A Vision-Language-Action Flow Model for General Robot Control*](https://arxiv.org/abs/2410.24164)
-- [Physical Intelligence, official OpenPI repository](https://github.com/Physical-Intelligence/openpi)
+<!-- course-toc:start -->
+## Contents
 
----
+- [Step 1 — Why do we need Flow Matching?](#course-section-01)
+  - [1.1 What problem does a generative model solve?](#course-section-02)
+  - [1.2 Start from an easily sampled Gaussian distribution](#course-section-03)
+- [Step 2 — Why introduce an ODE?](#course-section-04)
+  - [2.1 Decompose a complicated transformation into small continuous steps](#course-section-05)
+  - [2.2 A control-theoretic interpretation](#course-section-06)
+- [Step 3 — Why do we need the continuity equation?](#course-section-07)
+  - [3.1 Begin with moving particles](#course-section-08)
+  - [3.2 Derivation of the continuity equation](#course-section-09)
+  - [3.3 Physical meaning of the continuity equation](#course-section-10)
+- [Step 4 — What is the ideal Flow Matching objective?](#course-section-11)
+  - [4.1 Suppose the correct velocity field were known](#course-section-12)
+  - [4.2 Why cannot we train with this ideal objective directly?](#course-section-13)
+- [Step 5 — How is Conditional Flow Matching constructed?](#course-section-14)
+  - [5.1 Construct two endpoints](#course-section-15)
+  - [5.2 Obtain a directly trainable loss](#course-section-16)
+- [Step 6 — Why does conditional velocity regression recover the global field?](#course-section-17)
+  - [6.1 Individual-path velocity versus marginal velocity](#course-section-18)
+  - [6.2 A rigorous derivation of the marginal velocity field](#course-section-19)
+  - [6.3 Equivalent expression using probability densities](#course-section-20)
+- [Step 7 — Why does MSE regression learn the conditional expectation?](#course-section-21)
+  - [7.1 Orthogonal decomposition of least squares](#course-section-22)
+  - [7.2 Why is this such an important result?](#course-section-23)
+  - [7.3 Why can generated trajectories curve if training paths are straight?](#course-section-24)
+- [Step 8 — Why introduce more general Gaussian conditional paths?](#course-section-25)
+  - [8.1 A general Gaussian conditional path](#course-section-26)
+  - [8.2 The simplest linear Gaussian path](#course-section-27)
+  - [8.3 Derive the velocity field](#course-section-28)
+- [Step 9 — How are Flow Matching models trained and sampled?](#course-section-29)
+  - [9.1 Training procedure](#course-section-30)
+  - [9.2 Sampling (inference) procedure](#course-section-31)
+- [Step 10 — Why can Flow Matching generate multimodal distributions?](#course-section-32)
+- [Step 11 — How does π0.5 use Flow Matching?](#course-section-33)
+  - [11.1 The generated object is an action chunk](#course-section-34)
+  - [11.2 Conditional Flow Matching for action chunks](#course-section-35)
+  - [11.3 Important implementation detail: OpenPI reverses the time direction](#course-section-36)
+- [Step 12 — How can Flow Matching be fine-tuned with reinforcement learning?](#course-section-37)
+  - [12.1 What does pretrained Flow Matching learn?](#course-section-38)
+  - [12.2 Why learn a residual velocity?](#course-section-39)
+  - [12.3 Why cannot reward be used directly as a velocity label?](#course-section-40)
+  - [12.4 A natural design: Advantage-Weighted Flow Matching](#course-section-41)
+- [Step 13 — Synthesis: the complete mathematical logic of Flow Matching](#course-section-42)
+  - [13.1 Eight essential steps](#course-section-43)
+  - [13.2 Three ideas to remember](#course-section-44)
+<!-- course-toc:end -->
 
-# Step 1 — Why do we need Flow Matching?
+<a id="course-section-01"></a>
 
-## 1.1 What problem does a generative model solve?
+## Step 1 — Why do we need Flow Matching?
+
+<a id="course-section-02"></a>
+
+### 1.1 What problem does a generative model solve?
 
 Assume the training data follow an unknown distribution:
 
@@ -65,7 +117,9 @@ That mean may correspond to neither a valid left grasp nor a valid right grasp.
 
 **Motivation.** We want to learn the **full data distribution**, rather than output only its mean.
 
-## 1.2 Start from an easily sampled Gaussian distribution
+<a id="course-section-03"></a>
+
+### 1.2 Start from an easily sampled Gaussian distribution
 
 Sampling from a standard Gaussian is easy:
 
@@ -96,9 +150,13 @@ $$
 
 The question now becomes: **How can we learn this distribution transformation?**
 
-# Step 2 — Why introduce an ODE?
+<a id="course-section-04"></a>
 
-## 2.1 Decompose a complicated transformation into small continuous steps
+## Step 2 — Why introduce an ODE?
+
+<a id="course-section-05"></a>
+
+### 2.1 Decompose a complicated transformation into small continuous steps
 
 Learning $x_1=F_\theta(x_0)$ in a single step may be difficult. Instead, introduce a continuous **generative time** variable:
 
@@ -143,7 +201,9 @@ $$
 
 This construction is an instance of a **Continuous Normalizing Flow (CNF)**.
 
-## 2.2 A control-theoretic interpretation
+<a id="course-section-06"></a>
+
+### 2.2 A control-theoretic interpretation
 
 From a dynamical-systems perspective, Flow Matching learns the nonautonomous system
 
@@ -165,9 +225,13 @@ $$
 
 We do not have to specify in advance which particular noise sample should correspond to which particular training example. Matching the generated **distribution** is the central requirement.
 
-# Step 3 — Why do we need the continuity equation?
+<a id="course-section-07"></a>
 
-## 3.1 Begin with moving particles
+## Step 3 — Why do we need the continuity equation?
+
+<a id="course-section-08"></a>
+
+### 3.1 Begin with moving particles
 
 Consider many particles $x_t^{(1)},\dots,x_t^{(N)}$, each satisfying
 
@@ -179,7 +243,9 @@ Together, they induce a probability density $p_t(x)$. When particles flow into a
 
 Thus, we need a precise connection between the **velocity field** and the **time evolution of probability density**.
 
-## 3.2 Derivation of the continuity equation
+<a id="course-section-09"></a>
+
+### 3.2 Derivation of the continuity equation
 
 Take an arbitrary smooth test function $\phi:\mathbb R^d\rightarrow\mathbb R$. Consider
 
@@ -237,7 +303,9 @@ $$
 
 This is the **continuity equation**.
 
-## 3.3 Physical meaning of the continuity equation
+<a id="course-section-10"></a>
+
+### 3.3 Physical meaning of the continuity equation
 
 Expand the divergence term:
 
@@ -265,9 +333,13 @@ This identity is the basis for evaluating sample log-densities in CNFs.
 
 **Motivation.** An ODE describes the motion of an individual particle, whereas the continuity equation describes how the **distribution of particles** changes. Together they link generative dynamics to the target probability distribution.
 
-# Step 4 — What is the ideal Flow Matching objective?
+<a id="course-section-11"></a>
 
-## 4.1 Suppose the correct velocity field were known
+## Step 4 — What is the ideal Flow Matching objective?
+
+<a id="course-section-12"></a>
+
+### 4.1 Suppose the correct velocity field were known
 
 Assume we choose a probability path $p_t(x)$ in advance, satisfying
 
@@ -295,7 +367,9 @@ $$
 
 If $v_\theta=u_t$ is learned exactly, the induced ODE realizes the selected distribution evolution.
 
-## 4.2 Why cannot we train with this ideal objective directly?
+<a id="course-section-13"></a>
+
+### 4.2 Why cannot we train with this ideal objective directly?
 
 In practice, we generally observe only
 
@@ -309,9 +383,13 @@ We do not observe the intermediate process by which Gaussian samples evolve into
 
 That question leads to **Conditional Flow Matching (CFM)**.
 
-# Step 5 — How is Conditional Flow Matching constructed?
+<a id="course-section-14"></a>
 
-## 5.1 Construct two endpoints
+## Step 5 — How is Conditional Flow Matching constructed?
+
+<a id="course-section-15"></a>
+
+### 5.1 Construct two endpoints
 
 Sample independently from the Gaussian source and the data distribution:
 
@@ -353,7 +431,9 @@ The target velocity in this example is $[4,2]^\top$. It is independent of $t$ be
 
 **Why a straight line?** For fixed endpoints, it is extremely easy to compute, has an explicit velocity label, and requires neither an auxiliary model nor simulation of an intermediate trajectory.
 
-## 5.2 Obtain a directly trainable loss
+<a id="course-section-16"></a>
+
+### 5.2 Obtain a directly trainable loss
 
 During training, sample
 
@@ -398,9 +478,13 @@ One training update requires just a data sample, Gaussian noise, a randomly chos
 
 A deeper question remains: the network receives only $(x_t,t)$, not the original endpoints $(x_0,x_1)$. Why does regressing onto $x_1-x_0$ recover an appropriate global velocity field?
 
-# Step 6 — Why does conditional velocity regression recover the global field?
+<a id="course-section-17"></a>
 
-## 6.1 Individual-path velocity versus marginal velocity
+## Step 6 — Why does conditional velocity regression recover the global field?
+
+<a id="course-section-18"></a>
+
+### 6.1 Individual-path velocity versus marginal velocity
 
 For fixed endpoints $(x_0,x_1)$, the velocity of that individual path is
 
@@ -418,7 +502,9 @@ $$
 
 Many different straight paths can pass through the same $(x,t)$, potentially with different velocities. What should the network output? The answer is the **conditional expectation** of those path velocities.
 
-## 6.2 A rigorous derivation of the marginal velocity field
+<a id="course-section-19"></a>
+
+### 6.2 A rigorous derivation of the marginal velocity field
 
 Use capital letters for random variables. Define
 
@@ -499,7 +585,9 @@ $$
 
 This is one of the central mathematical statements behind CFM.
 
-## 6.3 Equivalent expression using probability densities
+<a id="course-section-20"></a>
+
+### 6.3 Equivalent expression using probability densities
 
 More generally, let $z$ denote a conditioning variable, $p_t(x\mid z)$ a conditional probability path, and $u_t(x\mid z)$ its conditional velocity. The marginal distribution is
 
@@ -527,9 +615,13 @@ For deterministic interpolation between fixed endpoints, the conditional path is
 
 **Important subtlety.** The continuity equation can admit more than one valid velocity field. Flow Matching does not discover a unique, path-independent “true velocity field.” We choose a probability path and learn a field that realizes it.
 
-# Step 7 — Why does MSE regression learn the conditional expectation?
+<a id="course-section-21"></a>
 
-## 7.1 Orthogonal decomposition of least squares
+## Step 7 — Why does MSE regression learn the conditional expectation?
+
+<a id="course-section-22"></a>
+
+### 7.1 Orthogonal decomposition of least squares
 
 For a fixed $t$, define
 
@@ -606,7 +698,9 @@ $$
 \tag{14}
 $$
 
-## 7.2 Why is this such an important result?
+<a id="course-section-23"></a>
+
+### 7.2 Why is this such an important result?
 
 What we want to learn is
 
@@ -626,7 +720,9 @@ $$
 
 This is the fundamental reason Conditional Flow Matching can be trained efficiently.
 
-## 7.3 Why can generated trajectories curve if training paths are straight?
+<a id="course-section-24"></a>
+
+### 7.3 Why can generated trajectories curve if training paths are straight?
 
 For each endpoint pair, the training path is indeed a straight line:
 
@@ -658,11 +754,15 @@ This velocity equals neither individual path velocity. Therefore, the trajectory
 
 **Key insight.** Straight-line **training interpolations** do not imply straight-line **generative ODE trajectories**.
 
-# Step 8 — Why introduce more general Gaussian conditional paths?
+<a id="course-section-25"></a>
+
+## Step 8 — Why introduce more general Gaussian conditional paths?
 
 Straight-line interpolation is only one special case of Flow Matching. The broader framework allows more general conditional probability paths.
 
-## 8.1 A general Gaussian conditional path
+<a id="course-section-26"></a>
+
+### 8.1 A general Gaussian conditional path
 
 For a given data sample $x_1$, define
 
@@ -711,7 +811,9 @@ This derivation assumes $\sigma_t>0$ at the relevant time. If the endpoint varia
 
 **Motivation.** Once we choose $\mu_t$ and $\sigma_t$, we can compute the conditional velocity explicitly and train with the same MSE framework. Straight-line interpolation is not the only available path.
 
-## 8.2 The simplest linear Gaussian path
+<a id="course-section-27"></a>
+
+### 8.2 The simplest linear Gaussian path
 
 Choose
 
@@ -740,7 +842,9 @@ $$
 
 When $\sigma_{\min}=0$, the endpoint is exactly the data sample. When $\sigma_{\min}>0$, the final marginal distribution is the data distribution convolved with a small Gaussian, not exactly the original data distribution.
 
-## 8.3 Derive the velocity field
+<a id="course-section-28"></a>
+
+### 8.3 Derive the velocity field
 
 Differentiate (18):
 
@@ -774,9 +878,13 @@ This recovers the earlier straight-line Flow Matching objective.
 
 **Takeaway.** The familiar target $x_1-\epsilon$ is a special case of Gaussian Conditional Flow Matching. Different probability paths change the supervised target, the learning problem, and the behavior of numerical integration.
 
-# Step 9 — How are Flow Matching models trained and sampled?
+<a id="course-section-29"></a>
 
-## 9.1 Training procedure
+## Step 9 — How are Flow Matching models trained and sampled?
+
+<a id="course-section-30"></a>
+
+### 9.1 Training procedure
 
 Given a data sample
 
@@ -826,7 +934,9 @@ def flow_matching_loss(model, x1, cond=None):
     return loss
 ```
 
-## 9.2 Sampling (inference) procedure
+<a id="course-section-31"></a>
+
+### 9.2 Sampling (inference) procedure
 
 At inference time, a real sample $x_1$ is no longer needed. Start by sampling
 
@@ -869,7 +979,9 @@ def sample_flow(model, shape, cond=None, K=10, device="cuda"):
 
 Other options include Heun, midpoint, Runge–Kutta, and adaptive ODE solvers. Higher-order methods can reduce numerical error, but they often require more neural-network evaluations per step. The design trade-off is between accuracy and the **number of function evaluations (NFE)**.
 
-# Step 10 — Why can Flow Matching generate multimodal distributions?
+<a id="course-section-32"></a>
+
+## Step 10 — Why can Flow Matching generate multimodal distributions?
 
 Suppose an observation $o$ permits two different grasps:
 
@@ -913,9 +1025,13 @@ $$
 
 **Key distinction.** Flow Matching also uses MSE, but it regresses onto a **transport velocity field**, not onto a single final-action mean. This permits modeling multimodal action distributions.
 
-# Step 11 — How does π0.5 use Flow Matching?
+<a id="course-section-33"></a>
 
-## 11.1 The generated object is an action chunk
+## Step 11 — How does π0.5 use Flow Matching?
+
+<a id="course-section-34"></a>
+
+### 11.1 The generated object is an action chunk
 
 A robot action model aims to learn
 
@@ -939,7 +1055,9 @@ $$
 
 For example, $H=50$ and $d_a=18$ give an action chunk with $900$ continuous variables. Flow Matching generates this entire high-dimensional action chunk jointly rather than autoregressively sampling every action component.
 
-## 11.2 Conditional Flow Matching for action chunks
+<a id="course-section-35"></a>
+
+### 11.2 Conditional Flow Matching for action chunks
 
 First use the time convention adopted throughout these notes: $t=0$ means noise and $t=1$ means data. Let
 
@@ -985,11 +1103,13 @@ $$
 
 The network therefore learns how to convert Gaussian noise into plausible robot action chunks **given the current observation and task**.
 
-## 11.3 Important implementation detail: OpenPI reverses the time direction
+<a id="course-section-36"></a>
+
+### 11.3 Important implementation detail: OpenPI reverses the time direction
 
 When reproducing π0.5, be careful to distinguish the explanatory time convention above from the convention used in actual code.
 
-In the relevant Flow Matching implementation of [OpenPI's official `pi0.py`](https://github.com/Physical-Intelligence/openpi/blob/main/src/openpi/models/pi0.py), the convention is
+In the relevant Flow Matching implementation of [OpenPI's official `pi0.py`](https://github.com/Physical-Intelligence/openpi/blob/215abfb217dbac7d5f1273282331b9b1866c0479/src/openpi/models/pi0.py), the convention is
 
 $$
 t=1:\text{noise},
@@ -1038,7 +1158,7 @@ $$
 
 The terminal state $A_0$ is the generated action chunk. Relevant OpenPI configurations commonly use 10 integration steps and can cache the visual-language backbone's prefix key/value tensors, avoiding repeated full-prefix computation at every flow step. Exact settings depend on the software version and configuration.
 
-### Flow Matching velocity is not robot joint velocity
+#### Flow Matching velocity is not robot joint velocity
 
 It is essential to distinguish two different notions of time:
 
@@ -1053,11 +1173,15 @@ $$
 
 This velocity describes how the entire **noisy action chunk** changes with generative time; it is not the physical joint velocity of the robot arm or dexterous hand.
 
-# Step 12 — How can Flow Matching be fine-tuned with reinforcement learning?
+<a id="course-section-37"></a>
+
+## Step 12 — How can Flow Matching be fine-tuned with reinforcement learning?
 
 This section connects the derivation to research on **π0.5, DSRL, and residual velocity adaptation**.
 
-## 12.1 What does pretrained Flow Matching learn?
+<a id="course-section-38"></a>
+
+### 12.1 What does pretrained Flow Matching learn?
 
 Imitation learning produces a velocity field
 
@@ -1077,7 +1201,9 @@ produces actions resembling those in the demonstrations, but these actions need 
 
 For example, several grasps may all be valid, but differ in success rate, stability, or execution time. The goal of RL post-training is to shift the generated action distribution toward **higher-return behavior**.
 
-## 12.2 Why learn a residual velocity?
+<a id="course-section-39"></a>
+
+### 12.2 Why learn a residual velocity?
 
 One natural approach freezes the pretrained velocity field and trains a smaller residual correction:
 
@@ -1103,7 +1229,9 @@ $$
 
 This is a proposed post-training algorithmic choice—not a structural requirement of Flow Matching itself.
 
-## 12.3 Why cannot reward be used directly as a velocity label?
+<a id="course-section-40"></a>
+
+### 12.3 Why cannot reward be used directly as a velocity label?
 
 During pretraining, the conditional target
 
@@ -1129,7 +1257,9 @@ We therefore cannot simply interpret an advantage estimate as a velocity label i
 
 **Reward → Target action distribution → Velocity-field update.**
 
-## 12.4 A natural design: Advantage-Weighted Flow Matching
+<a id="course-section-41"></a>
+
+### 12.4 A natural design: Advantage-Weighted Flow Matching
 
 Suppose online exploration yields a dataset
 
@@ -1174,7 +1304,7 @@ $$
 
 to penalize deviations from the pretrained velocity field.
 
-### What is the mathematical motivation?
+#### What is the mathematical motivation?
 
 Recall that the optimal MSE regressor is the conditional expectation of velocities under the chosen joint distribution.
 
@@ -1209,9 +1339,13 @@ $$
 
 **Important limitation.** Weighted Flow Matching is not automatically equivalent to an online policy-gradient method, and it does not guarantee monotonic policy improvement. Practical performance still depends on data coverage, advantage estimation, distribution shift, numerical integration, and the design of update constraints.
 
-# Step 13 — Synthesis: the complete mathematical logic of Flow Matching
+<a id="course-section-42"></a>
 
-## 13.1 Eight essential steps
+## Step 13 — Synthesis: the complete mathematical logic of Flow Matching
+
+<a id="course-section-43"></a>
+
+### 13.1 Eight essential steps
 
 **1. Define the generative goal.** Transport a Gaussian distribution into the data distribution:
 
@@ -1290,7 +1424,9 @@ $$
 
 The last line means that the **distribution of generated samples** approximates the data distribution; it does not imply that every generated sample must equal an existing training example.
 
-## 13.2 Three ideas to remember
+<a id="course-section-44"></a>
+
+### 13.2 Three ideas to remember
 
 **First, Flow Matching learns a dynamical system for probability distributions.**
 

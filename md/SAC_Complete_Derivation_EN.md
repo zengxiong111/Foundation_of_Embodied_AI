@@ -10,31 +10,72 @@ toc-depth: 2
 
 # Soft Actor-Critic (SAC): Complete Derivation and Design Motivations
 
-> **Reading guide.** This tutorial focuses on the modern continuous-action SAC formulation: two Q-critics, no separately trained V-network, and optional automatic temperature tuning. It retains the full motivation, mathematical derivations, implementation details, and connections to PPO. Section 14 explicitly compares the original SAC v1 with the modern formulation. Notation is consistent throughout.
+<!-- course-meta:start -->
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/SAC_Complete_Derivation_CN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_EN.pdf)
 
+| Item | Details |
+|---|---|
+| Applicability | Modern continuous-action SAC; twin critics and automatic temperature tuning; pseudocode only |
+| Documentation review date | 2026-10-18 |
+| License | CC BY 4.0 · Xiong Zeng and contributors |
 
+**Verification scope:** Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation. See [version notes](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.md) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
+<!-- course-meta:end -->
+
+<!-- course-toc:start -->
 ## Contents
 
-- [1. Starting from Standard Reinforcement Learning](#section-1)
-- [2. Step One: Maximum-Entropy Reinforcement Learning](#section-2)
-- [3. Step Two: Deriving the Soft Bellman Equation](#section-3)
-- [4. Step Three: Soft Policy Improvement](#section-4)
-- [5. Step Four: Turning Policy Improvement into KL Minimization](#section-5)
-- [6. Step Five: From Soft Policy Iteration to Actor-Critic](#section-6)
-- [7. Step Six: Why SAC Can Learn Off-Policy](#section-7)
-- [8. Step Seven: Deriving the Complete Critic Loss](#section-8)
-- [9. Step Eight: Deriving the Actor Loss](#section-9)
-- [10. Step Nine: The Reparameterization Trick](#section-10)
-- [11. Step Ten: Correcting the Tanh-Gaussian Log Probability](#section-11)
-- [12. Step Eleven: Automatic Entropy Tuning](#section-12)
-- [13. Step Twelve: Putting Together the Complete Modern SAC Algorithm](#section-13)
-- [14. Original SAC v1 Versus Modern SAC](#section-14)
-- [15. Fundamental Differences Between SAC and PPO](#section-15)
-- [16. Final Summary: Five Essential Formula Groups](#section-16)
+- [1. Starting from Standard Reinforcement Learning](#course-section-01)
+- [2. Step One: Maximum-Entropy Reinforcement Learning](#course-section-02)
+  - [2.1 Policy entropy and the temperature parameter](#course-section-03)
+  - [2.2 Rewriting entropy as a sample-based expectation](#course-section-04)
+- [3. Step Two: Deriving the Soft Bellman Equation](#course-section-05)
+  - [3.1 Comparison with ordinary Bellman equations](#course-section-06)
+  - [3.2 Defining soft V and soft Q consistently](#course-section-07)
+  - [3.3 Soft Bellman expectation equation](#course-section-08)
+- [4. Step Three: Soft Policy Improvement](#course-section-09)
+  - [4.1 Why ordinary greedy improvement is insufficient](#course-section-10)
+  - [4.2 Calculus of variations yields the Boltzmann policy](#course-section-11)
+- [5. Step Four: Turning Policy Improvement into KL Minimization](#course-section-12)
+  - [5.1 Why directly computing the Boltzmann policy is difficult](#course-section-13)
+  - [5.2 Why exact soft policy iteration improves value](#course-section-14)
+- [6. Step Five: From Soft Policy Iteration to Actor-Critic](#course-section-15)
+- [7. Step Six: Why SAC Can Learn Off-Policy](#course-section-16)
+  - [7.1 PPO and policy-dependent data](#course-section-17)
+  - [7.2 Why an old transition can support a new Bellman update](#course-section-18)
+- [8. Step Seven: Deriving the Complete Critic Loss](#course-section-19)
+  - [8.1 From the soft Bellman target to TD regression](#course-section-20)
+  - [8.2 Target networks reduce target drift](#course-section-21)
+  - [8.3 Clipped double Q mitigates overestimation](#course-section-22)
+  - [8.4 Final critic target and losses](#course-section-23)
+- [9. Step Eight: Deriving the Actor Loss](#course-section-24)
+- [10. Step Nine: The Reparameterization Trick](#course-section-25)
+  - [10.1 Turning parameter-dependent sampling into a differentiable function](#course-section-26)
+  - [10.2 A tanh-squashed Gaussian policy](#course-section-27)
+  - [10.3 Rewriting the actor loss as a pathwise objective](#course-section-28)
+- [11. Step Ten: Correcting the Tanh-Gaussian Log Probability](#course-section-29)
+- [12. Step Eleven: Automatic Entropy Tuning](#course-section-30)
+  - [12.1 From fixed temperature to an entropy constraint](#course-section-31)
+  - [12.2 The temperature loss and its direction of change](#course-section-32)
+  - [12.3 Why optimize log-alpha?](#course-section-33)
+  - [12.4 Choosing target entropy](#course-section-34)
+- [13. Step Twelve: Putting Together the Complete Modern SAC Algorithm](#course-section-35)
+  - [13.1 Components and three optimization problems](#course-section-36)
+  - [13.2 Complete sequence for one update](#course-section-37)
+  - [13.3 Instructional pseudocode](#course-section-38)
+- [14. Original SAC v1 Versus Modern SAC](#course-section-39)
+  - [14.1 Original SAC v1: explicitly learning a V-network](#course-section-40)
+  - [14.2 Modern SAC: remove the explicit V-network](#course-section-41)
+- [15. Fundamental Differences Between SAC and PPO](#course-section-42)
+  - [15.1 Comparing policy-update equations](#course-section-43)
+  - [15.2 Comparison table](#course-section-44)
+  - [15.3 Why PPO remains popular in robot simulation](#course-section-45)
+- [16. Final Summary: Five Essential Formula Groups](#course-section-46)
+  - [The single most important PPO/SAC distinction](#course-section-47)
+- [References](#course-section-48)
+<!-- course-toc:end -->
 
-- [References](#references)
-
-<a id="section-1"></a>
+<a id="course-section-01"></a>
 
 ## 1. Starting from Standard Reinforcement Learning
 
@@ -66,7 +107,11 @@ We therefore want the policy to prefer high-value actions without eliminating ra
 
 <a id="section-2"></a>
 
+<a id="course-section-02"></a>
+
 ## 2. Step One: Maximum-Entropy Reinforcement Learning
+
+<a id="course-section-03"></a>
 
 ### 2.1 Policy entropy and the temperature parameter
 
@@ -93,6 +138,8 @@ $$
 
 The coefficient $\alpha$ controls the trade-off between reward and randomness. The ordinary RL objective is approached as $\alpha\to0$. Larger values encourage more stochastic policies. The coefficient is also important because reward magnitude and entropy magnitude can differ substantially. For example, if $r\approx100$ while $\mathcal H(\pi)\approx5$, adding the two unweighted may give entropy little influence; $\alpha$ adjusts the relative scale.
 
+<a id="course-section-04"></a>
+
 ### 2.2 Rewriting entropy as a sample-based expectation
 
 Because $\mathcal H(\pi(\cdot\mid s))=\mathbb E_{a\sim\pi}[-\log\pi(a\mid s)]$, we can write:
@@ -105,7 +152,11 @@ One may interpret $\tilde r_t=r_t-\alpha\log\pi(a_t\mid s_t)$ as an entropy-regu
 
 <a id="section-3"></a>
 
+<a id="course-section-05"></a>
+
 ## 3. Step Two: Deriving the Soft Bellman Equation
+
+<a id="course-section-06"></a>
 
 ### 3.1 Comparison with ordinary Bellman equations
 
@@ -123,6 +174,8 @@ Q^\pi(s,a)=\mathbb E_{s',a'}[r(s,a)+\gamma Q^\pi(s',a')].
 $$
 
 For maximum-entropy RL, future policy entropy must also appear in the recursive value calculation.
+
+<a id="course-section-07"></a>
 
 ### 3.2 Defining soft V and soft Q consistently
 
@@ -150,6 +203,8 @@ $$
 
 An ordinary state value measures expected future reward under a policy. A soft state value measures expected reward **together with** the randomness retained by that policy.
 
+<a id="course-section-08"></a>
+
 ### 3.3 Soft Bellman expectation equation
 
 The definitions and the Markov property imply:
@@ -168,7 +223,11 @@ Compared with ordinary Bellman evaluation, we have one additional term: $-\alpha
 
 <a id="section-4"></a>
 
+<a id="course-section-09"></a>
+
 ## 4. Step Three: Soft Policy Improvement
+
+<a id="course-section-10"></a>
 
 ### 4.1 Why ordinary greedy improvement is insufficient
 
@@ -187,6 +246,8 @@ F(\pi)=\int\pi(a\mid s)Q_{\mathrm{old}}(s,a)\,da-\alpha\int\pi(a\mid s)\log\pi(a
 $$
 
 subject to the density-normalization constraint $\int\pi(a\mid s)\,da=1$.
+
+<a id="course-section-11"></a>
 
 ### 4.2 Calculus of variations yields the Boltzmann policy
 
@@ -224,7 +285,11 @@ This is a **Boltzmann policy**. Higher Q-value means higher action probability. 
 
 <a id="section-5"></a>
 
+<a id="course-section-12"></a>
+
 ## 5. Step Four: Turning Policy Improvement into KL Minimization
+
+<a id="course-section-13"></a>
 
 ### 5.1 Why directly computing the Boltzmann policy is difficult
 
@@ -261,6 +326,8 @@ $$
 $$
 
 Thus, maximizing soft value and approaching the Boltzmann policy are two views of the same optimization problem.
+
+<a id="course-section-14"></a>
 
 ### 5.2 Why exact soft policy iteration improves value
 
@@ -310,6 +377,8 @@ This is the essential soft policy-improvement theorem. **Scope of the result:** 
 
 <a id="section-6"></a>
 
+<a id="course-section-15"></a>
+
 ## 6. Step Five: From Soft Policy Iteration to Actor-Critic
 
 We now have two alternating operations:
@@ -335,7 +404,11 @@ A practical issue remains: if a constantly changing $Q_\phi$ is used both as the
 
 <a id="section-7"></a>
 
+<a id="course-section-16"></a>
+
 ## 7. Step Six: Why SAC Can Learn Off-Policy
+
+<a id="course-section-17"></a>
 
 ### 7.1 PPO and policy-dependent data
 
@@ -346,6 +419,8 @@ $$
 $$
 
 As a result, standard PPO predominantly uses recent on-policy rollouts. Very old data can cause substantial distribution mismatch.
+
+<a id="course-section-18"></a>
 
 ### 7.2 Why an old transition can support a new Bellman update
 
@@ -373,7 +448,11 @@ Gradient steps sample mini-batches from $\mathcal D$ rather than always requirin
 
 <a id="section-8"></a>
 
+<a id="course-section-19"></a>
+
 ## 8. Step Seven: Deriving the Complete Critic Loss
+
+<a id="course-section-20"></a>
 
 ### 8.1 From the soft Bellman target to TD regression
 
@@ -391,6 +470,8 @@ $$
 
 This is not yet practical SAC: the target depends on the same network being updated, and the actor may exploit positive errors in the critic's estimates.
 
+<a id="course-section-21"></a>
+
 ### 8.2 Target networks reduce target drift
 
 Maintain a slowly changing target parameter vector $\bar\phi$ and a target critic $Q_{\bar\phi}$. Update them using Polyak averaging:
@@ -400,6 +481,8 @@ $$
 $$
 
 A typical value is $\tau=0.005$. The target network slows changes in the bootstrap target; it does not, by itself, eliminate value-estimation bias.
+
+<a id="course-section-22"></a>
 
 ### 8.3 Clipped double Q mitigates overestimation
 
@@ -425,6 +508,8 @@ $$
 
 Taking the minimum reduces certain overestimation effects but can introduce underestimation; it does **not** make the estimator unbiased by construction.
 
+<a id="course-section-23"></a>
+
 ### 8.4 Final critic target and losses
 
 Let $d=1$ denote a true terminal transition, not merely a time-limit truncation. The full target is:
@@ -446,6 +531,8 @@ $$
 Update $\phi_i\leftarrow\phi_i-\eta_Q\nabla_{\phi_i}J_{Q_i}$. The target branch must have its gradients stopped: $y\gets\operatorname{stopgrad}(y)$. For a **true terminal** transition, $d=1$ and $y=r$. If an episode is truncated only because of an external time limit and the state is not terminal, bootstrapping should generally be retained.
 
 <a id="section-9"></a>
+
+<a id="course-section-24"></a>
 
 ## 9. Step Eight: Deriving the Actor Loss
 
@@ -473,7 +560,11 @@ Some implementations instead use only the first critic for the actor update. Equ
 
 <a id="section-10"></a>
 
+<a id="course-section-25"></a>
+
 ## 10. Step Nine: The Reparameterization Trick
+
+<a id="course-section-26"></a>
 
 ### 10.1 Turning parameter-dependent sampling into a differentiable function
 
@@ -497,6 +588,8 @@ $$
 
 Now the noise $\epsilon$ is independent of the parameters, and $u_\theta$ is differentiable with respect to $\theta$. For example, $\partial u/\partial\mu=I$ and $\partial u/\partial\sigma=\operatorname{diag}(\epsilon)$.
 
+<a id="course-section-27"></a>
+
 ### 10.2 A tanh-squashed Gaussian policy
 
 Robot actions are generally bounded (for example, to $[-1,1]^d$), whereas a Gaussian has unbounded support. SAC applies an elementwise hyperbolic tangent:
@@ -506,6 +599,8 @@ $$
 $$
 
 For a physical action interval $[a_{\min,i},a_{\max,i}]$, one may further use $a_i^{\mathrm{env}}=c_i+b_i\tanh(u_i)$, where $c_i=(a_{\max,i}+a_{\min,i})/2$ and $b_i=(a_{\max,i}-a_{\min,i})/2$.
+
+<a id="course-section-28"></a>
 
 ### 10.3 Rewriting the actor loss as a pathwise objective
 
@@ -543,6 +638,8 @@ This gives SAC a direct connection to deterministic policy gradients such as DDP
 
 <a id="section-11"></a>
 
+<a id="course-section-29"></a>
+
 ## 11. Step Ten: Correcting the Tanh-Gaussian Log Probability
 
 The Gaussian variable $u$ and the transformed action $a=\tanh(u)$ do not have the same distribution. Therefore, $\log\mathcal N(a;\mu,\Sigma)$ is not the correct log-density for the squashed action. For an invertible change of variables $a=g(u)$:
@@ -573,7 +670,11 @@ Near saturation at $\pm1$, the direct $\log(1-\tanh^2u)$ expression can be numer
 
 <a id="section-12"></a>
 
+<a id="course-section-30"></a>
+
 ## 12. Step Eleven: Automatic Entropy Tuning
+
+<a id="course-section-31"></a>
 
 ### 12.1 From fixed temperature to an entropy constraint
 
@@ -599,6 +700,8 @@ $$
 
 For fixed $\alpha$, optimizing the policy recovers the maximum-entropy objective. For fixed policy, optimizing $\alpha$ yields the dual update that aims to enforce the entropy target.
 
+<a id="course-section-32"></a>
+
 ### 12.2 The temperature loss and its direction of change
 
 Since $\mathcal H(\pi)=-\mathbb E\log\pi$, the dual-temperature loss is:
@@ -621,6 +724,8 @@ $$
 
 If policy entropy falls below the target, gradient descent increases $\alpha$ and encourages exploration. If entropy exceeds the target, $\alpha$ decreases and lets the actor concentrate more strongly on high-Q actions.
 
+<a id="course-section-33"></a>
+
 ### 12.3 Why optimize log-alpha?
 
 Directly updating $\alpha$ may produce negative values, which are inadmissible. Set $\eta=\log\alpha$ and $\alpha=e^\eta>0$. Substituting exactly into the dual loss gives:
@@ -637,13 +742,19 @@ $$
 
 During temperature optimization, detach the log-probability tensor so that the temperature loss does not unintentionally update actor parameters.
 
+<a id="course-section-34"></a>
+
 ### 12.4 Choosing target entropy
 
 For a normalized $d$-dimensional continuous action, a popular heuristic is $\mathcal H_{\mathrm{target}}=-d$. For $d=12$, one might initially try $-12$. This is not a theorem or universally optimal choice. Differential entropy can be negative and depends on the coordinate system used for action density. High-dimensional hands, robot arms, and action-chunk policies may require a task-specific target-entropy search.
 
 <a id="section-13"></a>
 
+<a id="course-section-35"></a>
+
 ## 13. Step Twelve: Putting Together the Complete Modern SAC Algorithm
+
+<a id="course-section-36"></a>
 
 ### 13.1 Components and three optimization problems
 
@@ -662,6 +773,8 @@ The three optimization problems are:
 $$
 \boxed{\min_{\phi_1,\phi_2}J_Q,\qquad\min_\theta J_\pi,\qquad\min_{\alpha\ge0}J_\alpha.}
 $$
+
+<a id="course-section-37"></a>
 
 ### 13.2 Complete sequence for one update
 
@@ -692,6 +805,8 @@ The critic **weights** should be frozen during the actor step, but gradients thr
 **Step 6: update temperature.** Adjust $\alpha$ using the difference between $-\log\pi_\theta$ and the target entropy. Detach the log-probability during the temperature update.
 
 **Step 7: update target critics.** For each critic, apply $\bar\phi_j\leftarrow(1-\tau)\bar\phi_j+\tau\phi_j$. Repeat the cycle.
+
+<a id="course-section-38"></a>
 
 ### 13.3 Instructional pseudocode
 
@@ -743,7 +858,11 @@ for each environment interaction:
 
 <a id="section-14"></a>
 
+<a id="course-section-39"></a>
+
 ## 14. Original SAC v1 Versus Modern SAC
+
+<a id="course-section-40"></a>
 
 ### 14.1 Original SAC v1: explicitly learning a V-network
 
@@ -765,6 +884,8 @@ $$
 \boxed{y_Q=r+\gamma(1-d)V_{\bar\psi}(s').}
 $$
 
+<a id="course-section-41"></a>
+
 ### 14.2 Modern SAC: remove the explicit V-network
 
 The identity:
@@ -783,7 +904,11 @@ Substitution gives the target in Equation (12) without requiring an additional V
 
 <a id="section-15"></a>
 
+<a id="course-section-42"></a>
+
 ## 15. Fundamental Differences Between SAC and PPO
+
+<a id="course-section-43"></a>
 
 ### 15.1 Comparing policy-update equations
 
@@ -803,6 +928,8 @@ $$
 
 Its gradient includes $\nabla_aQ_\phi(s,a_\theta)\,\partial a_\theta/\partial\theta$. PPO generally does not require $\nabla_aQ$; standard continuous-action SAC does.
 
+<a id="course-section-44"></a>
+
 ### 15.2 Comparison table
 
 | Dimension | PPO | SAC |
@@ -821,6 +948,8 @@ Its gradient includes $\nabla_aQ_\phi(s,a_\theta)\,\partial a_\theta/\partial\th
 
 PPO clipping and SAC double Q are **different stabilization mechanisms**: the former primarily restricts policy probability changes, while the latter addresses Q overestimation. Standard SAC does not impose the same explicit probability-ratio clipping as PPO.
 
+<a id="course-section-45"></a>
+
 ### 15.3 Why PPO remains popular in robot simulation
 
 On platforms such as Isaac Lab, thousands of parallel simulated environments may generate substantial experience at low marginal cost. PPO can exploit high-throughput rollouts and achieve excellent training speed. SAC reuses samples, but frequent critic updates, bootstrapped learning, and replay-buffer access also incur computational costs. Hence:
@@ -832,6 +961,8 @@ $$
 Contact nonlinearity, sparse rewards, and major state-distribution shifts can also make SAC critics difficult to train. Conversely, when every physical robot interaction is expensive, SAC's off-policy reuse is often attractive, subject to safe exploration and coverage constraints.
 
 <a id="section-16"></a>
+
+<a id="course-section-46"></a>
 
 ## 16. Final Summary: Five Essential Formula Groups
 
@@ -879,6 +1010,8 @@ $$
 
 *Motivation:* automatically adapt exploration pressure to a desired entropy level.
 
+<a id="course-section-47"></a>
+
 ### The single most important PPO/SAC distinction
 
 PPO mainly uses $\nabla_\theta\log\pi_\theta(a\mid s)A^\pi(s,a)$ to change the **probabilities of sampled actions**. Continuous SAC uses $\nabla_aQ_\phi(s,a)\,\partial a_\theta/\partial\theta$, together with the entropy gradient, to change the **differentiable action generator** toward higher-value actions.
@@ -892,6 +1025,8 @@ $$
 Double Q, target critics, and automatic temperature tuning make this theory useful for challenging practical continuous-control problems.
 
 <a id="references"></a>
+
+<a id="course-section-48"></a>
 
 ## References
 

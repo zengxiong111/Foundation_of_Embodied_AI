@@ -1,37 +1,92 @@
 # 机器人学习中的 ROS 2 完整教程
 
-**Robot Operating System for Robot Learning**  
-**适用平台：Ubuntu 24.04 + ROS 2 Jazzy + Python**  
-**应用案例：Tron2 机械臂、BrainCo Revo3 灵巧手、RGB-D 相机、PPO/SAC、Sim2Real**  
-**整理日期：2026 年 10 月 15 日**
+<!-- course-meta:start -->
+[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/ROS2_Robot_Learning_Tutorial_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/ROS2_Robot_Learning_Tutorial_ZH.pdf)
 
-> **阅读定位**：本教程面向具备 Python、控制或机器人学习基础的研究者，重点解释 ROS 的分类、用途和工程实操，而非 ROS 中间件底层实现。文中的节点名、Topic 名、机械臂/灵巧手接口和频率如未特别说明，均为说明性示例，须与真实设备 SDK 和驱动核对。
+| 项目 | 说明 |
+|---|---|
+| 适用范围 | Ubuntu 24.04；ROS 2 Jazzy；Python 示例 |
+| 文档核验日期 | 2026-10-18 |
+| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
+**核验边界：** 文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。 版本与固定源码引用见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
+<!-- course-meta:end -->
+
+<!-- course-toc:start -->
 ## 目录
 
-1. ROS 是什么？为什么机器人学习需要 ROS？
-2. ROS 1 与 ROS 2，以及发行版选择
-3. ROS 2 的核心概念
-4. Ubuntu 24.04 安装 ROS 2 Jazzy
-5. 实操：用 Python 编写机器人学习策略节点
-6. ROS 2 如何用于机器人数据采集？
-7. URDF、TF2、RViz 和 ros2_control
-8. ROS 如何连接 Isaac Lab / MuJoCo 强化学习？
-9. Tron2 + Revo3 灵巧操作项目架构
-10. 机器人学习中的 ROS 常见问题
-11. 推荐学习路线
-12. 总结与实践建议
-13. 官方文档与参考资料
+- [一、ROS 是什么？为什么机器人学习需要 ROS？](#course-section-01)
+  - [1.1 ROS 的定义](#course-section-02)
+  - [1.2 一个典型的机器人学习系统](#course-section-03)
+  - [1.3 机器人学习一定需要 ROS 吗？](#course-section-04)
+- [二、ROS 1 与 ROS 2，以及发行版选择](#course-section-05)
+  - [2.1 ROS 1 与 ROS 2 的主要区别](#course-section-06)
+  - [2.2 2026 年该选哪个 ROS 版本？](#course-section-07)
+- [三、ROS 2 的核心概念](#course-section-08)
+  - [3.1 Node：节点](#course-section-09)
+  - [3.2 Topic：发布 / 订阅](#course-section-10)
+  - [3.3 Message：消息格式](#course-section-11)
+  - [3.4 Service：请求 / 响应](#course-section-12)
+  - [3.5 Action：需要进度反馈的长任务](#course-section-13)
+  - [3.6 Parameter：节点配置](#course-section-14)
+  - [3.7 TF2：机器人坐标系管理](#course-section-15)
+  - [3.8 QoS：通信质量配置](#course-section-16)
+- [四、Ubuntu 24.04 安装 ROS 2 Jazzy](#course-section-17)
+  - [4.1 检查系统、添加软件源](#course-section-18)
+  - [4.2 安装 ROS 2 和开发工具](#course-section-19)
+  - [4.3 配置环境并验证](#course-section-20)
+  - [4.4 第一个 ROS 通信测试](#course-section-21)
+  - [4.5 必须掌握的 ROS 命令](#course-section-22)
+- [五、实操：用 Python 编写机器人学习策略节点](#course-section-23)
+  - [5.1 创建 Workspace](#course-section-24)
+  - [5.2 创建 Python Package](#course-section-25)
+  - [5.3 编写策略节点](#course-section-26)
+  - [5.4 声明依赖和命令入口](#course-section-27)
+  - [5.5 编译并运行](#course-section-28)
+  - [5.6 模拟状态输入并验证输出](#course-section-29)
+  - [5.7 替换成 PPO / SAC 网络推理](#course-section-30)
+- [六、ROS 2 如何用于机器人数据采集？](#course-section-31)
+  - [6.1 遥操作数据采集架构](#course-section-32)
+  - [6.2 什么是 rosbag2？](#course-section-33)
+  - [6.3 记录与回放数据](#course-section-34)
+  - [6.4 对机器人学习有用的数据字段](#course-section-35)
+  - [6.5 多频率同步与数据集转换](#course-section-36)
+- [七、URDF、TF2、RViz 和 ros2_control](#course-section-37)
+  - [7.1 URDF：机器人结构描述](#course-section-38)
+  - [7.2 URDF 与 TF2 的关系](#course-section-39)
+  - [7.3 RViz 2：可视化工具](#course-section-40)
+  - [7.4 ros2_control：连接高层命令与硬件](#course-section-41)
+- [八、ROS 如何连接 Isaac Lab / MuJoCo 强化学习？](#course-section-42)
+  - [8.1 仿真训练通常不需要 ROS](#course-section-43)
+  - [8.2 真机部署需要连接各个模块](#course-section-44)
+  - [8.3 Sim2Real 最关键的是接口语义一致](#course-section-45)
+  - [8.4 控制频率与延迟](#course-section-46)
+- [九、Tron2 + Revo3 灵巧操作项目架构](#course-section-47)
+  - [9.1 推荐节点与信息流](#course-section-48)
+  - [9.2 推荐 Workspace 组织](#course-section-49)
+  - [9.3 机械臂与灵巧手的动作分发](#course-section-50)
+  - [9.4 FoundationPose 的 ROS 接入](#course-section-51)
+- [十、机器人学习中的 ROS 常见问题](#course-section-52)
+  - [10.1 ROS 2 与 Conda 的关系](#course-section-53)
+  - [10.2 与真实机器人相关的安全边界](#course-section-54)
+- [十一、推荐学习路线](#course-section-55)
+- [十二、总结与实践建议](#course-section-56)
+- [十三、官方文档与参考资料](#course-section-57)
+<!-- course-toc:end -->
 
----
+<a id="course-section-01"></a>
 
 ## 一、ROS 是什么？为什么机器人学习需要 ROS？
+
+<a id="course-section-02"></a>
 
 ### 1.1 ROS 的定义
 
 ROS（Robot Operating System）虽然叫“机器人操作系统”，但并不是 Ubuntu、Windows 这样的传统操作系统。它是机器人软件开发框架及其生态系统，核心作用是让机器人中的不同软件模块通信、共享数据并协作运行。
 
 一套机器人通常包含相机、机械臂、灵巧手、物体位姿估计器、神经网络策略和底层控制器。它们可能用不同语言开发、运行在不同进程中，甚至分布在不同计算机上。ROS 通过统一的消息、通信和工具链连接这些组件。
+
+<a id="course-section-03"></a>
 
 ### 1.2 一个典型的机器人学习系统
 
@@ -80,6 +135,8 @@ ROS（Robot Operating System）虽然叫“机器人操作系统”，但并不�
 
 **结论：ROS 负责“集成与通信”，学习框架负责“训练与推理”，控制器负责“执行”。** 三者互补，而非相互替代。
 
+<a id="course-section-04"></a>
+
 ### 1.3 机器人学习一定需要 ROS 吗？
 
 不一定。训练任务如果只需要 Python 和物理仿真器，ROS 并非必需。
@@ -99,7 +156,11 @@ ROS（Robot Operating System）虽然叫“机器人操作系统”，但并不�
 
 ---
 
+<a id="course-section-05"></a>
+
 ## 二、ROS 1 与 ROS 2，以及发行版选择
+
+<a id="course-section-06"></a>
 
 ### 2.1 ROS 1 与 ROS 2 的主要区别
 
@@ -118,6 +179,8 @@ ROS 1 是早期生态，ROS 2 面向现代机器人系统重新设计，在分�
 
 需要澄清：ROS 2 并非所有情况下都“自动实时”；它提供有利于实时系统集成的机制，真正的确定性仍取决于操作系统、控制线程、驱动和部署设计。
 
+<a id="course-section-07"></a>
+
 ### 2.2 2026 年该选哪个 ROS 版本？
 
 截至 **2026 年 10 月**，ROS 2 **Lyrical Luth** 已于 2026 年 5 月 22 日发布；但应当按当前 Ubuntu 系统和机器人驱动的兼容性选型。
@@ -132,7 +195,11 @@ ROS 1 是早期生态，ROS 2 面向现代机器人系统重新设计，在分�
 
 ---
 
+<a id="course-section-08"></a>
+
 ## 三、ROS 2 的核心概念
+
+<a id="course-section-09"></a>
 
 ### 3.1 Node：节点
 
@@ -148,6 +215,8 @@ ROS 2 System
 ```
 
 Node 分工清晰，可以独立测试与替换，例如只更新 FoundationPose 而不修改机械臂驱动。
+
+<a id="course-section-10"></a>
 
 ### 3.2 Topic：发布 / 订阅
 
@@ -169,6 +238,8 @@ camera_node --Publish--> /camera/image_raw --Subscribe--> perception_node
 | `/tf`、`/tf_static` | 动态、静态坐标变换 |
 
 **Topic 的核心用途就是在感知、Observation 构建、Policy 和控制器之间传输数据。** 实际 Topic 名取决于驱动及命名空间。
+
+<a id="course-section-11"></a>
 
 ### 3.3 Message：消息格式
 
@@ -198,6 +269,8 @@ effort       # 关节力矩或作用力
 
 Revo3 是否直接发布 `JointState`、各关节的名字与顺序是什么，需要由实际驱动或包装层确定。**不要只凭数组下标假定不同设备的关节顺序一致。**
 
+<a id="course-section-12"></a>
+
 ### 3.4 Service：请求 / 响应
 
 Service 适合短时间的、需要响应的一次性操作：
@@ -208,6 +281,8 @@ policy_node <--Reset Result----- reset_server
 ```
 
 典型操作有机器人 Reset、查询设备信息、切换控制模式、开始标定。Service 类似远程函数调用，但网络与服务端执行仍可能失败或超时。
+
+<a id="course-section-13"></a>
 
 ### 3.5 Action：需要进度反馈的长任务
 
@@ -220,6 +295,8 @@ Action 适合“提交任务 → 反馈进度 → 返回最终结果”的过程
 | Action | 长任务、反馈、结果 | 执行一个抓取动作或轨迹 |
 
 对于 50 Hz 之类的周期性闭环动作指令，通常采用 Topic 或直接进程内接口，而不是每个周期都新建一个 Action。
+
+<a id="course-section-14"></a>
 
 ### 3.6 Parameter：节点配置
 
@@ -235,6 +312,8 @@ policy_node:
 ```
 
 常见参数包括控制频率、相机名称、策略权重路径、目标坐标系、动作缩放与关节限位。
+
+<a id="course-section-15"></a>
 
 ### 3.7 TF2：机器人坐标系管理
 
@@ -259,6 +338,8 @@ world
 
 **关键注意：TF2 本身不负责相机标定。** 必须通过 URDF、手眼标定、外参测量等获得正确的 `T(B,C)`，然后 TF2 才能维护与使用这一关系。Tron2 头部相机、腕部相机、yaw/pitch 关节中心都涉及这一问题。
 
+<a id="course-section-16"></a>
+
 ### 3.8 QoS：通信质量配置
 
 QoS（Quality of Service）控制消息交付行为：
@@ -274,9 +355,13 @@ QoS（Quality of Service）控制消息交付行为：
 
 ---
 
+<a id="course-section-17"></a>
+
 ## 四、Ubuntu 24.04 安装 ROS 2 Jazzy
 
 下面是基于官方 **Jazzy Ubuntu deb 包安装文档**的示例。安装命令需要联网、管理员权限，建议先确认机器尚未安装冲突的 ROS 发行版。
+
+<a id="course-section-18"></a>
 
 ### 4.1 检查系统、添加软件源
 
@@ -306,6 +391,8 @@ sudo locale-gen en_US en_US.UTF-8
 sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 ```
 
+<a id="course-section-19"></a>
+
 ### 4.2 安装 ROS 2 和开发工具
 
 ```bash
@@ -314,6 +401,8 @@ sudo apt install ros-jazzy-desktop ros-dev-tools
 ```
 
 `ros-jazzy-desktop` 包含 RViz、示例程序和常用工具。如果不需要 GUI，也可使用更精简的 `ros-jazzy-ros-base`。
+
+<a id="course-section-20"></a>
 
 ### 4.3 配置环境并验证
 
@@ -329,6 +418,8 @@ echo 'source /opt/ros/jazzy/setup.bash' >> ~/.bashrc
 ```
 
 不要在同一终端误加载多个 ROS 发行版。新开终端仍需要确认环境已正确 source。
+
+<a id="course-section-21"></a>
 
 ### 4.4 第一个 ROS 通信测试
 
@@ -347,6 +438,8 @@ ros2 run demo_nodes_py listener
 ```
 
 预期可以看到 `Publishing: Hello World` 与 `I heard: Hello World` 等输出，说明 Python 和 C++ 节点能够互相通信。
+
+<a id="course-section-22"></a>
 
 ### 4.5 必须掌握的 ROS 命令
 
@@ -369,6 +462,8 @@ ros2 run tf2_ros tf2_echo base_link camera_link
 
 ---
 
+<a id="course-section-23"></a>
+
 ## 五、实操：用 Python 编写机器人学习策略节点
 
 目标是构建一条不连接真实电机的、可复现的最小链路：
@@ -382,6 +477,8 @@ ros2 run tf2_ros tf2_echo base_link camera_link
        ▼
 /demo/policy_target
 ```
+
+<a id="course-section-24"></a>
 
 ### 5.1 创建 Workspace
 
@@ -399,6 +496,8 @@ ros2_ws/
 ├── install/  # 安装后的程序（编译时生成）
 └── log/      # 构建日志（编译时生成）
 ```
+
+<a id="course-section-25"></a>
 
 ### 5.2 创建 Python Package
 
@@ -425,6 +524,8 @@ robot_learning_demo/
 ```
 
 `package.xml` 定义依赖；`setup.py` 定义 Python 包安装与可执行命令入口；`demo_policy.py` 实现策略节点。
+
+<a id="course-section-26"></a>
 
 ### 5.3 编写策略节点
 
@@ -485,6 +586,8 @@ if __name__ == "__main__":
 
 这个演示策略为 `a_t = 0.5 q_t`，展示如何从 Observation 到 Action，不是安全的机器人控制策略。`Float64MultiArray` 也只用于快速演示；真实设备必须定义关节顺序、动作模式、单位、限位及命令超时处理。
 
+<a id="course-section-27"></a>
+
 ### 5.4 声明依赖和命令入口
 
 在 `package.xml` 内添加以下依赖（已有则不要重复）：
@@ -501,6 +604,8 @@ if __name__ == "__main__":
 'demo_policy = robot_learning_demo.demo_policy:main'
 ```
 
+<a id="course-section-28"></a>
+
 ### 5.5 编译并运行
 
 ```bash
@@ -511,6 +616,8 @@ ros2 run robot_learning_demo demo_policy
 ```
 
 节点启动后会等待状态消息。注意 `colcon` 构建前的终端应已加载 Jazzy 环境。
+
+<a id="course-section-29"></a>
 
 ### 5.6 模拟状态输入并验证输出
 
@@ -545,6 +652,8 @@ data:
 ```
 
 这样就完成了“发布状态 → 订阅状态 → 执行策略 → 发布动作”的最小闭环通信验证。
+
+<a id="course-section-30"></a>
 
 ### 5.7 替换成 PPO / SAC 网络推理
 
@@ -583,7 +692,11 @@ Sensor Callback → Observation Buffer
 
 ---
 
+<a id="course-section-31"></a>
+
 ## 六、ROS 2 如何用于机器人数据采集？
+
+<a id="course-section-32"></a>
 
 ### 6.1 遥操作数据采集架构
 
@@ -616,9 +729,13 @@ RGB-D / RGB        Joint States
 BC / Diffusion Policy / VLA
 ```
 
+<a id="course-section-33"></a>
+
 ### 6.2 什么是 rosbag2？
 
 rosbag2 是 ROS 2 的消息记录与回放工具。它可以保存 Topic 消息及相关元数据，常见后端包括 SQLite3 和 MCAP。rosbag2 尤其适合重现数据采集过程，排查传感器和算法问题。
+
+<a id="course-section-34"></a>
 
 ### 6.3 记录与回放数据
 
@@ -652,6 +769,8 @@ ros2 bag play demo_001
 
 **安全提示**：回放 rosbag 可能重新发布原有控制命令。带有真实机械臂的系统应隔离控制 Topic 或断开执行通道，避免无意运动。
 
+<a id="course-section-35"></a>
+
 ### 6.4 对机器人学习有用的数据字段
 
 模仿学习常用轨迹可以写作：
@@ -676,6 +795,8 @@ ros2 bag play demo_001
 - **Executed State**：机器人真实传感器测量到的执行状态。
 
 二者可能因延迟、控制器限制、饱和或碰撞而不同，不能直接混同。
+
+<a id="course-section-36"></a>
 
 ### 6.5 多频率同步与数据集转换
 
@@ -710,7 +831,11 @@ Policy Training
 
 ---
 
+<a id="course-section-37"></a>
+
 ## 七、URDF、TF2、RViz 和 ros2_control
+
+<a id="course-section-38"></a>
 
 ### 7.1 URDF：机器人结构描述
 
@@ -739,6 +864,8 @@ Tron2
 
 URDF 可为 ROS 可视化、运动学和仿真模型构建提供基础，但导入仿真器时可能还需要格式转换和补充参数。
 
+<a id="course-section-39"></a>
+
 ### 7.2 URDF 与 TF2 的关系
 
 **URDF 是结构描述；TF2 是带时间关系的坐标变换系统。**
@@ -758,6 +885,8 @@ robot_state_publisher ← /joint_states
 
 在 Tron2 项目中，这一流程适合检查机械臂末端、Revo3 手基座、头部相机及腕部相机的位置关系。URDF 外参错误不会被 TF2 自动修复。
 
+<a id="course-section-40"></a>
+
 ### 7.3 RViz 2：可视化工具
 
 启动：
@@ -767,6 +896,8 @@ rviz2
 ```
 
 RViz 能显示 Robot Model、TF、相机图像、点云、关节状态、姿态标记和运动轨迹。对于 FoundationPose 结果，可以同时检查物体 Pose 与机器人基座的相对关系。
+
+<a id="course-section-41"></a>
 
 ### 7.4 ros2_control：连接高层命令与硬件
 
@@ -809,7 +940,11 @@ ros2 control list_controllers
 
 ---
 
+<a id="course-section-42"></a>
+
 ## 八、ROS 如何连接 Isaac Lab / MuJoCo 强化学习？
+
+<a id="course-section-43"></a>
 
 ### 8.1 仿真训练通常不需要 ROS
 
@@ -823,6 +958,8 @@ for step in range(num_steps):
 ```
 
 上面是概念示意，不对应所有 Gymnasium / Isaac Lab 版本的真实返回签名。大量并行环境需要高吞吐量，因此通常不把每个仿真步都转换为 ROS Topic。
+
+<a id="course-section-44"></a>
 
 ### 8.2 真机部署需要连接各个模块
 
@@ -854,6 +991,8 @@ Object Pose ───┘                             │
                                         Real Robot
 ```
 
+<a id="course-section-45"></a>
+
 ### 8.3 Sim2Real 最关键的是接口语义一致
 
 | 项目 | 训练端 | 真机端应做的事 |
@@ -866,6 +1005,8 @@ Object Pose ───┘                             │
 | Coordinate Frames | Sim World、Base 等 | 明确真实基座与世界系关系 |
 
 ROS 能统一通信接口，却不会自动解决关节顺序、相机外参、归一化、动力学误差或延迟问题。
+
+<a id="course-section-46"></a>
 
 ### 8.4 控制频率与延迟
 
@@ -881,9 +1022,13 @@ Python 的 ROS 2 节点不是天然硬实时系统。为减少延迟与提高稳
 
 ---
 
+<a id="course-section-47"></a>
+
 ## 九、Tron2 + Revo3 灵巧操作项目架构
 
 任务：**机器人从桌面拿起螺丝刀，移动到指定位置，完成旋转。** 系统包含 Tron2、BrainCo Revo3、头部 RGB-D、腕部 RGB、FoundationPose 和 PPO/SAC 策略。
+
+<a id="course-section-48"></a>
 
 ### 9.1 推荐节点与信息流
 
@@ -916,6 +1061,8 @@ Python 的 ROS 2 节点不是天然硬实时系统。为减少延迟与提高稳
                          Tron2 + Revo3
 ```
 
+<a id="course-section-49"></a>
+
 ### 9.2 推荐 Workspace 组织
 
 ```text
@@ -934,6 +1081,8 @@ robot_learning_ws/
 ```
 
 这是建议的工程目录，不代表厂商提供同名官方 Package。如果厂商只提供 Python/C++ SDK，可以编写 ROS Wrapper 转换为统一的消息接口。
+
+<a id="course-section-50"></a>
 
 ### 9.3 机械臂与灵巧手的动作分发
 
@@ -956,6 +1105,8 @@ robot_learning_ws/
 
 可用两个独立命令 Topic，也可以定义统一 Robot Action 消息由一个控制节点分发。无论哪种方案，都需要明确两个设备的控制时钟、关节顺序、目标模式和异常处置。
 
+<a id="course-section-51"></a>
+
 ### 9.4 FoundationPose 的 ROS 接入
 
 ```text
@@ -976,6 +1127,8 @@ Object Pose in Robot Base
 
 ---
 
+<a id="course-section-52"></a>
+
 ## 十、机器人学习中的 ROS 常见问题
 
 | 现象 | 可能原因 | 排查方向 |
@@ -989,6 +1142,8 @@ Object Pose in Robot Base
 | ROS 与 Conda 冲突 | 系统 Python 与 Conda 的 ABI/依赖不匹配 | 分离进程或使用兼容环境 |
 | rosbag 文件过大 | 多路 RGB-D 带宽较高 | 压缩、MCAP/存储设置、拆分 |
 | RViz 模型不对 | URDF、JointState、TF 不一致 | 逐级核对 Robot Model / TF |
+
+<a id="course-section-53"></a>
 
 ### 10.1 ROS 2 与 Conda 的关系
 
@@ -1011,11 +1166,15 @@ PyTorch Inference Process
 
 可以通过 ROS 2 Topic、独立通信接口或共享内存传递数据，而非强行把全部依赖安装在同一个 Python 环境。
 
+<a id="course-section-54"></a>
+
 ### 10.2 与真实机器人相关的安全边界
 
 学习策略的输出不是可直接信任的底层电机命令。真实系统至少需要：关节限位、速度与加速度约束、命令超时、停止与急停、通信失联回退，以及在初始调试时从低速、无负载、无接触场景开始。ROS 本身不会替代这些安全机制。
 
 ---
+
+<a id="course-section-55"></a>
 
 ## 十一、推荐学习路线
 
@@ -1032,6 +1191,8 @@ PyTorch Inference Process
 对于已经有机器人学习、控制和 Python 基础的研究者，不必从 ROS 的每个组件入手，应围绕 **数据采集 → 策略部署 → 可复现实验** 逐步学习。
 
 ---
+
+<a id="course-section-56"></a>
 
 ## 十二、总结与实践建议
 
@@ -1054,6 +1215,8 @@ ROS 2 在机器人学习中的价值可以归为三类：
 **最终目标不是“在训练中使用更多 ROS”，而是建立可观测、可复现、便于维护的“传感器 → 策略 → 控制器 → 机器人”系统。**
 
 ---
+
+<a id="course-section-57"></a>
 
 ## 十三、官方文档与参考资料
 

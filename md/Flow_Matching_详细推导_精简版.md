@@ -6,24 +6,76 @@ date: "2026年10月"
 lang: zh-CN
 ---
 
-> **核心问题：** 为什么只需要在高斯噪声与真实数据之间随机插值，让神经网络预测两者的差值，就能够训练出生成复杂数据分布的模型？
+# Flow Matching：从数学原理到完整推导
 
-Flow Matching（流匹配）是现代生成模型的一种重要方法，也是机器人视觉-语言-动作模型（VLA），包括 π0、π0.5，所使用的关键动作生成技术之一。本讲义从概率传输和常微分方程出发，逐步推导 Conditional Flow Matching 的训练目标，最后将其应用到 Action Chunk 生成和在线强化学习微调。
+<!-- course-meta:start -->
+[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Flow_Matching_Step_by_Step_Derivation_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.pdf)
 
-**阅读路线：** 概率分布变换 → ODE → 连续性方程 → 理想 Flow Matching → Conditional Flow Matching → 条件期望证明 → MSE 等价性 → 一般高斯路径 → 训练与推理 → 多模态动作生成 → π0.5 → Residual Velocity Adaptation → 总结。
+| 项目 | 说明 |
+|---|---|
+| 适用范围 | CFM 理论；OpenPI pi0.py 代码引用固定如下；示例不代表已完成微调实验 |
+| 文档核验日期 | 2026-10-18 |
+| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-**主要参考：**
+**核验边界：** 文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。 版本与固定源码引用见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
+<!-- course-meta:end -->
 
-- [Lipman et al., *Flow Matching for Generative Modeling* (2022)](https://arxiv.org/abs/2210.02747)
-- [Liu et al., *Flow Straight and Fast: Learning to Generate and Transfer Data with Rectified Flow* (2022)](https://arxiv.org/abs/2209.03003)
-- [Physical Intelligence, *π0: A Vision-Language-Action Flow Model for General Robot Control*](https://arxiv.org/abs/2410.24164)
-- [Physical Intelligence, OpenPI 官方代码](https://github.com/Physical-Intelligence/openpi)
+<!-- course-toc:start -->
+## 目录
 
----
+- [一、第一步：为什么需要 Flow Matching？](#course-section-01)
+  - [1.1 生成模型究竟要解决什么问题？](#course-section-02)
+  - [1.2 从容易采样的高斯分布开始](#course-section-03)
+- [二、第二步：为什么引入 ODE？](#course-section-04)
+  - [2.1 将复杂变换拆成连续的小变换](#course-section-05)
+  - [2.2 从控制理论角度理解](#course-section-06)
+- [三、第三步：为什么需要连续性方程？](#course-section-07)
+  - [3.1 从粒子的运动出发](#course-section-08)
+  - [3.2 连续性方程的推导](#course-section-09)
+  - [3.3 连续性方程的物理含义](#course-section-10)
+- [四、第四步：Flow Matching 的理想目标是什么？](#course-section-11)
+  - [4.1 如果已知正确的速度场](#course-section-12)
+  - [4.2 为什么理想目标不能直接训练？](#course-section-13)
+- [五、第五步：Conditional Flow Matching 的构造](#course-section-14)
+  - [5.1 构造两个端点](#course-section-15)
+  - [5.2 直接得到可训练的损失函数](#course-section-16)
+- [六、第六步：为什么条件速度回归能够得到全局速度场？](#course-section-17)
+  - [6.1 区分单条路径速度与边缘速度](#course-section-18)
+  - [6.2 严格推导边缘速度场](#course-section-19)
+  - [6.3 用概率密度重新表达](#course-section-20)
+- [七、第七步：为什么 MSE 能学到条件期望？](#course-section-21)
+  - [7.1 最小二乘回归的正交分解](#course-section-22)
+  - [7.2 为什么这是关键突破？](#course-section-23)
+  - [7.3 为什么训练路径是直线，生成轨迹却不一定是直线？](#course-section-24)
+- [八、第八步：为什么还要引入 Gaussian Conditional Path？](#course-section-25)
+  - [8.1 一般高斯条件路径](#course-section-26)
+  - [8.2 最简单的线性高斯路径](#course-section-27)
+  - [8.3 推导速度场](#course-section-28)
+- [九、第九步：Flow Matching 实际如何训练和生成？](#course-section-29)
+  - [9.1 训练过程](#course-section-30)
+  - [9.2 推理过程](#course-section-31)
+- [十、第十步：为什么 Flow Matching 能生成多模态分布？](#course-section-32)
+- [十一、第十一步：π0.5 如何使用 Flow Matching？](#course-section-33)
+  - [11.1 生成对象是 Action Chunk](#course-section-34)
+  - [11.2 条件 Flow Matching 如何生成动作块？](#course-section-35)
+  - [11.3 重要实现细节：OpenPI 使用相反的时间方向](#course-section-36)
+- [十二、第十二步：Flow Matching 如何用于强化学习微调？](#course-section-37)
+  - [12.1 预训练 Flow Matching 学到了什么？](#course-section-38)
+  - [12.2 为什么可以学习 Residual Velocity？](#course-section-39)
+  - [12.3 为什么不能把 Reward 直接当作 Velocity Label？](#course-section-40)
+  - [12.4 Advantage-Weighted Flow Matching 的一个自然设计](#course-section-41)
+- [十三、总结：Flow Matching 的完整数学逻辑](#course-section-42)
+  - [13.1 八个关键环节](#course-section-43)
+  - [13.2 三个最重要的理解](#course-section-44)
+<!-- course-toc:end -->
 
-# 一、第一步：为什么需要 Flow Matching？
+<a id="course-section-01"></a>
 
-## 1.1 生成模型究竟要解决什么问题？
+## 一、第一步：为什么需要 Flow Matching？
+
+<a id="course-section-02"></a>
+
+### 1.1 生成模型究竟要解决什么问题？
 
 假设训练数据来自未知分布：
 
@@ -63,7 +115,9 @@ $$
 
 **动机：** 我们希望学习整个数据分布，而不只是预测其均值。
 
-## 1.2 从容易采样的高斯分布开始
+<a id="course-section-03"></a>
+
+### 1.2 从容易采样的高斯分布开始
 
 从标准高斯分布采样非常简单：
 
@@ -94,9 +148,13 @@ $$
 
 关键问题变成：**怎样学习这个分布变换？**
 
-# 二、第二步：为什么引入 ODE？
+<a id="course-section-04"></a>
 
-## 2.1 将复杂变换拆成连续的小变换
+## 二、第二步：为什么引入 ODE？
+
+<a id="course-section-05"></a>
+
+### 2.1 将复杂变换拆成连续的小变换
 
 直接学习 $x_1=F_\theta(x_0)$ 可能很困难。为此，引入连续的**虚拟生成时间**：
 
@@ -141,7 +199,9 @@ $$
 
 这种模型属于 **Continuous Normalizing Flow（CNF，连续归一化流）**。
 
-## 2.2 从控制理论角度理解
+<a id="course-section-06"></a>
+
+### 2.2 从控制理论角度理解
 
 从动力系统角度，Flow Matching 学习非自治系统：
 
@@ -163,9 +223,13 @@ $$
 
 无需预先规定每个噪声样本必须对应哪个真实数据点；最终生成分布正确才是核心要求。
 
-# 三、第三步：为什么需要连续性方程？
+<a id="course-section-07"></a>
 
-## 3.1 从粒子的运动出发
+## 三、第三步：为什么需要连续性方程？
+
+<a id="course-section-08"></a>
+
+### 3.1 从粒子的运动出发
 
 设大量粒子 $x_t^{(1)},\dots,x_t^{(N)}$ 均满足：
 
@@ -177,7 +241,9 @@ $$
 
 因此，必须建立速度场与概率密度变化之间的关系。
 
-## 3.2 连续性方程的推导
+<a id="course-section-09"></a>
+
+### 3.2 连续性方程的推导
 
 取任意光滑测试函数 $\phi:\mathbb R^d\rightarrow\mathbb R$，考虑：
 
@@ -235,7 +301,9 @@ $$
 
 这就是 **Continuity Equation（连续性方程）**。
 
-## 3.3 连续性方程的物理含义
+<a id="course-section-10"></a>
+
+### 3.3 连续性方程的物理含义
 
 将散度项展开：
 
@@ -263,9 +331,13 @@ $$
 
 **动机：** ODE 描述单个粒子的运动，连续性方程描述由这些粒子组成的概率分布如何变化。两者建立了生成动力学与目标分布之间的联系。
 
-# 四、第四步：Flow Matching 的理想目标是什么？
+<a id="course-section-11"></a>
 
-## 4.1 如果已知正确的速度场
+## 四、第四步：Flow Matching 的理想目标是什么？
+
+<a id="course-section-12"></a>
+
+### 4.1 如果已知正确的速度场
 
 假设我们事先选定了一条概率分布路径 $p_t(x)$，满足：
 
@@ -293,7 +365,9 @@ $$
 
 如果能够精确学到 $v_\theta=u_t$，由该速度场诱导的 ODE 就可实现选定的分布演化。
 
-## 4.2 为什么理想目标不能直接训练？
+<a id="course-section-13"></a>
+
+### 4.2 为什么理想目标不能直接训练？
 
 真实情况下，我们通常只拥有：
 
@@ -307,9 +381,13 @@ $$
 
 这就引出了 Conditional Flow Matching（CFM）。
 
-# 五、第五步：Conditional Flow Matching 的构造
+<a id="course-section-14"></a>
 
-## 5.1 构造两个端点
+## 五、第五步：Conditional Flow Matching 的构造
+
+<a id="course-section-15"></a>
+
+### 5.1 构造两个端点
 
 从高斯分布与真实数据分布中分别采样：
 
@@ -351,7 +429,9 @@ $$
 
 **为什么用直线？** 对固定端点而言它计算最简单，速度标签能够显式写出，且不需要训练额外模型或模拟中间轨迹。
 
-## 5.2 直接得到可训练的损失函数
+<a id="course-section-16"></a>
+
+### 5.2 直接得到可训练的损失函数
 
 训练时随机采样：
 
@@ -396,9 +476,13 @@ $$
 
 但是还有一个深层疑问：网络输入只有 $(x_t,t)$，并不知道真实端点 $(x_0,x_1)$。为什么回归 $x_1-x_0$ 就能得到正确的全局速度场？
 
-# 六、第六步：为什么条件速度回归能够得到全局速度场？
+<a id="course-section-17"></a>
 
-## 6.1 区分单条路径速度与边缘速度
+## 六、第六步：为什么条件速度回归能够得到全局速度场？
+
+<a id="course-section-18"></a>
+
+### 6.1 区分单条路径速度与边缘速度
 
 给定端点 $(x_0,x_1)$，单条路径的速度是：
 
@@ -416,7 +500,9 @@ $$
 
 同一个 $(x,t)$ 可能被许多不同的直线路径经过；它们的速度可能并不相同。网络应该预测什么？答案是：**这些条件速度的条件期望**。
 
-## 6.2 严格推导边缘速度场
+<a id="course-section-19"></a>
+
+### 6.2 严格推导边缘速度场
 
 用大写字母表示随机变量。定义：
 
@@ -497,7 +583,9 @@ $$
 
 这是 CFM 的核心数学结论之一。
 
-## 6.3 用概率密度重新表达
+<a id="course-section-20"></a>
+
+### 6.3 用概率密度重新表达
 
 更一般地，令 $z$ 为条件变量，$p_t(x\mid z)$ 为条件概率路径，$u_t(x\mid z)$ 为其条件速度。边缘分布为：
 
@@ -525,9 +613,13 @@ $$
 
 **注意：** 连续性方程可能允许不止一个满足要求的速度场。Flow Matching 并不是寻找一个与路径选择无关、唯一存在的“真实速度场”，而是在指定概率路径后，学习能够实现这条路径的速度场。
 
-# 七、第七步：为什么 MSE 能学到条件期望？
+<a id="course-section-21"></a>
 
-## 7.1 最小二乘回归的正交分解
+## 七、第七步：为什么 MSE 能学到条件期望？
+
+<a id="course-section-22"></a>
+
+### 7.1 最小二乘回归的正交分解
 
 固定时间 $t$，定义：
 
@@ -604,7 +696,9 @@ $$
 \tag{14}
 $$
 
-## 7.2 为什么这是关键突破？
+<a id="course-section-23"></a>
+
+### 7.2 为什么这是关键突破？
 
 我们想学的是：
 
@@ -624,7 +718,9 @@ $$
 
 这是 Conditional Flow Matching 能被高效训练的根本原因。
 
-## 7.3 为什么训练路径是直线，生成轨迹却不一定是直线？
+<a id="course-section-24"></a>
+
+### 7.3 为什么训练路径是直线，生成轨迹却不一定是直线？
 
 训练时每对端点的路径确实是直线：
 
@@ -656,11 +752,15 @@ $$
 
 **重要结论：** 训练样本使用直线插值，不代表最终 ODE 生成轨迹必然是直线。
 
-# 八、第八步：为什么还要引入 Gaussian Conditional Path？
+<a id="course-section-25"></a>
+
+## 八、第八步：为什么还要引入 Gaussian Conditional Path？
 
 前面的直线插值只是 Flow Matching 的一个特例。原始框架允许使用更一般的条件概率路径。
 
-## 8.1 一般高斯条件路径
+<a id="course-section-26"></a>
+
+### 8.1 一般高斯条件路径
 
 给定一个数据样本 $x_1$，定义：
 
@@ -709,7 +809,9 @@ $$
 
 **动机：** 只要人为指定 $\mu_t$ 和 $\sigma_t$，就能直接计算条件速度，使用同样的 MSE 框架训练模型。直线插值不是唯一可选路径。
 
-## 8.2 最简单的线性高斯路径
+<a id="course-section-27"></a>
+
+### 8.2 最简单的线性高斯路径
 
 选择：
 
@@ -738,7 +840,9 @@ $$
 
 当 $\sigma_{\min}=0$ 时，终点恰好为真实样本；若 $\sigma_{\min}>0$，终点边缘分布是数据分布与一个小高斯的卷积，并非严格等于原始数据分布。
 
-## 8.3 推导速度场
+<a id="course-section-28"></a>
+
+### 8.3 推导速度场
 
 对 (18) 求导：
 
@@ -772,9 +876,13 @@ $$
 
 **总结：** 常见的 $x_1-\epsilon$ 速度回归目标可以看作一般 Gaussian Conditional Flow Matching 的一个特例。不同的概率路径会影响监督目标、学习难度与数值积分表现。
 
-# 九、第九步：Flow Matching 实际如何训练和生成？
+<a id="course-section-29"></a>
 
-## 9.1 训练过程
+## 九、第九步：Flow Matching 实际如何训练和生成？
+
+<a id="course-section-30"></a>
+
+### 9.1 训练过程
 
 给定真实数据样本：
 
@@ -824,7 +932,9 @@ def flow_matching_loss(model, x1, cond=None):
     return loss
 ```
 
-## 9.2 推理过程
+<a id="course-section-31"></a>
+
+### 9.2 推理过程
 
 生成时不再需要真实样本 $x_1$。首先采样：
 
@@ -865,7 +975,9 @@ def sample_flow(model, shape, cond=None, K=10, device="cuda"):
 
 除了 Euler，还可以使用 Heun、Midpoint、Runge–Kutta 和自适应 ODE 求解器。高阶求解器可能降低数值误差，但单个步长往往需要更多次网络评估，因此需要在精度和 NFE（函数评估次数）之间权衡。
 
-# 十、第十步：为什么 Flow Matching 能生成多模态分布？
+<a id="course-section-32"></a>
+
+## 十、第十步：为什么 Flow Matching 能生成多模态分布？
 
 假设相同观察 $o$ 对应左右两种抓取方式：
 
@@ -909,9 +1021,13 @@ $$
 
 **关键区别：** Flow Matching 虽然也使用 MSE，但它回归的是传输速度场而非最终动作的单一均值，所以可以对多模态动作分布建模。
 
-# 十一、第十一步：π0.5 如何使用 Flow Matching？
+<a id="course-section-33"></a>
 
-## 11.1 生成对象是 Action Chunk
+## 十一、第十一步：π0.5 如何使用 Flow Matching？
+
+<a id="course-section-34"></a>
+
+### 11.1 生成对象是 Action Chunk
 
 机器人动作模型希望学习：
 
@@ -935,7 +1051,9 @@ $$
 
 例如 $H=50$、$d_a=18$，则整个 Action Chunk 有 $900$ 个连续变量。Flow Matching 把整个动作块作为高维变量进行生成，而不是将每一维动作逐个自回归采样。
 
-## 11.2 条件 Flow Matching 如何生成动作块？
+<a id="course-section-35"></a>
+
+### 11.2 条件 Flow Matching 如何生成动作块？
 
 先沿用本讲义的时间约定：$t=0$ 是噪声，$t=1$ 是真实动作。令：
 
@@ -981,11 +1099,13 @@ $$
 
 这表示网络学习：在给定观察和任务要求时，如何将高斯噪声变成合理的动作块。
 
-## 11.3 重要实现细节：OpenPI 使用相反的时间方向
+<a id="course-section-36"></a>
+
+### 11.3 重要实现细节：OpenPI 使用相反的时间方向
 
 为了复现 π0.5，必须区分论文讲解中的时间约定和实际代码实现。
 
-在 [OpenPI 官方 `pi0.py`](https://github.com/Physical-Intelligence/openpi/blob/main/src/openpi/models/pi0.py) 的相关 Flow Matching 实现中，时间约定是：
+在 [OpenPI 官方 `pi0.py`](https://github.com/Physical-Intelligence/openpi/blob/215abfb217dbac7d5f1273282331b9b1866c0479/src/openpi/models/pi0.py) 的相关 Flow Matching 实现中，时间约定是：
 
 $$
 t=1:\text{噪声},
@@ -1034,7 +1154,7 @@ $$
 
 积分终点 $A_0$ 就是生成的动作块。OpenPI 的相关默认配置常采用 10 个积分步，并可缓存视觉语言主干前缀的 KV，以降低每步重复计算的成本；具体参数应以使用的代码版本和配置为准。
 
-### Flow Matching Velocity 不等于机器人关节速度
+#### Flow Matching Velocity 不等于机器人关节速度
 
 必须区分两种时间：
 
@@ -1049,11 +1169,15 @@ $$
 
 该速度描述的是整个 noisy action chunk 沿生成时间的变化，并非机械臂或灵巧手的物理关节速度。
 
-# 十二、第十二步：Flow Matching 如何用于强化学习微调？
+<a id="course-section-37"></a>
+
+## 十二、第十二步：Flow Matching 如何用于强化学习微调？
 
 这一节把前面的推导联系到 π0.5、DSRL 和 **Residual Velocity Adaptation** 的研究问题。
 
-## 12.1 预训练 Flow Matching 学到了什么？
+<a id="course-section-38"></a>
+
+### 12.1 预训练 Flow Matching 学到了什么？
 
 模仿学习得到一个速度场：
 
@@ -1073,7 +1197,9 @@ $$
 
 例如，相同物体有多种有效抓取方式，但成功率、稳定性和完成时间可能不同。强化学习后训练的目标是让生成分布更偏向高回报动作。
 
-## 12.2 为什么可以学习 Residual Velocity？
+<a id="course-section-39"></a>
+
+### 12.2 为什么可以学习 Residual Velocity？
 
 一种自然的设计是冻结预训练速度场，只训练一个较小的残差：
 
@@ -1099,7 +1225,9 @@ $$
 
 但要注意，这是一种后训练算法设计，并不是原始 Flow Matching 理论必然要求的结构。
 
-## 12.3 为什么不能把 Reward 直接当作 Velocity Label？
+<a id="course-section-40"></a>
+
+### 12.3 为什么不能把 Reward 直接当作 Velocity Label？
 
 预训练中，条件速度目标是：
 
@@ -1123,7 +1251,9 @@ $$
 
 所以不能简单把 Advantage 解释成生成空间中的速度标签。需要建立 **Reward → 目标动作分布 → 速度场更新** 的合理联系。
 
-## 12.4 Advantage-Weighted Flow Matching 的一个自然设计
+<a id="course-section-41"></a>
+
+### 12.4 Advantage-Weighted Flow Matching 的一个自然设计
 
 假设在线探索得到数据：
 
@@ -1168,7 +1298,7 @@ $$
 
 来限制与预训练速度场的偏离。
 
-### 为什么这个方案有数学动机？
+#### 为什么这个方案有数学动机？
 
 回顾：MSE 回归的最优解是相应联合分布下条件速度的条件期望。
 
@@ -1203,9 +1333,13 @@ $$
 
 **重要限制：** 加权 Flow Matching 不自动等价于在线 Policy Gradient，也不保证策略性能单调改善。实际表现仍受到数据覆盖、Advantage 估计、分布偏移、数值积分以及约束设计的影响。
 
-# 十三、总结：Flow Matching 的完整数学逻辑
+<a id="course-section-42"></a>
 
-## 13.1 八个关键环节
+## 十三、总结：Flow Matching 的完整数学逻辑
+
+<a id="course-section-43"></a>
+
+### 13.1 八个关键环节
 
 **1. 确定生成目标。** 从高斯分布生成真实数据：
 
@@ -1284,7 +1418,9 @@ $$
 
 最后一行表示生成样本的总体分布近似真实数据分布，并不意味着每个生成样本必须等于训练集中某个已有样本。
 
-## 13.2 三个最重要的理解
+<a id="course-section-44"></a>
+
+### 13.2 三个最重要的理解
 
 **第一，Flow Matching 是学习概率分布的动力系统。**
 

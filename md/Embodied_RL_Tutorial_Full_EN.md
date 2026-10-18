@@ -1,34 +1,54 @@
 # Reinforcement Learning for Embodied AI: Algorithms, Tasks, and Use Cases
 
-**A Guide to Classification, Applications, and Research Directions**
+<!-- course-meta:start -->
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Embodied_RL_Tutorial_Full_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_RL_Tutorial_Full_EN.pdf)
 
-*October 15, 2026*
+| Item | Details |
+|---|---|
+| Applicability | Algorithm and task taxonomy; no single framework environment is prescribed |
+| Documentation review date | 2026-10-18 |
+| License | CC BY 4.0 · Xiong Zeng and contributors |
 
+**Verification scope:** Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation. See [version notes](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.md) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
+<!-- course-meta:end -->
+
+<!-- course-toc:start -->
 ## Contents
 
-1. [Overall Classification of Embodied Reinforcement Learning](#1-overall-classification-of-embodied-reinforcement-learning)
-2. [Classification by Algorithm: PPO and SAC](#2-classification-by-algorithm-ppo-and-sac)
-3. [Classification by Task: Robot Motion-Control Reinforcement Learning](#3-classification-by-task-robot-motion-control-reinforcement-learning)
-4. [Classification by Task: Embodied Foundation-Model RL Post-Training](#4-classification-by-task-embodied-foundation-model-rl-post-training)
-5. [How PPO and SAC Are Used Across the Two Task Categories](#5-how-ppo-and-sac-are-used-across-the-two-task-categories)
-6. [How to Choose an RL Method for Your Task](#6-how-to-choose-an-rl-method-for-your-task)
-7. [Typical Experimental Paths for the Two Research Directions](#7-typical-experimental-paths-for-the-two-research-directions)
-8. [Final Summary](#8-final-summary)
+- [1. Overall Classification of Embodied Reinforcement Learning](#course-section-01)
+  - [1.1 Classification Framework](#course-section-02)
+  - [1.2 Core Classification Table](#course-section-03)
+- [2. Classification by Algorithm: PPO and SAC](#course-section-04)
+  - [2.1 On-policy RL: PPO](#course-section-05)
+  - [2.2 Off-policy RL: SAC](#course-section-06)
+  - [2.3 Comparing PPO and SAC](#course-section-07)
+- [3. Classification by Task: Robot Motion-Control Reinforcement Learning](#course-section-08)
+  - [3.1 Locomotion RL: Robot Motion Control](#course-section-09)
+  - [3.2 Manipulation RL: Robot Manipulation Reinforcement Learning](#course-section-10)
+- [4. Classification by Task: Embodied Foundation-Model RL Post-Training](#course-section-11)
+  - [4.1 What Is Foundation-Model RL Post-Training?](#course-section-12)
+  - [4.2 What Problems Does RL Post-Training Solve?](#course-section-13)
+  - [4.3 Five Types of Foundation-Model RL Post-Training](#course-section-14)
+  - [4.4 Summary of the Five Types](#course-section-15)
+- [5. How PPO and SAC Are Used Across the Two Task Categories](#course-section-16)
+  - [5.1 PPO + Locomotion](#course-section-17)
+  - [5.2 SAC + Manipulation](#course-section-18)
+  - [5.3 PPO-Style Methods + VLA](#course-section-19)
+  - [5.4 SAC / Off-policy Critic-Style Methods + VLA](#course-section-20)
+- [6. How to Choose an RL Method for Your Task](#course-section-21)
+- [7. Typical Experimental Paths for the Two Research Directions](#course-section-22)
+  - [7.1 Robot Motion-Control RL](#course-section-23)
+  - [7.2 Embodied Foundation-Model RL Post-Training](#course-section-24)
+- [8. Final Summary](#course-section-25)
+<!-- course-toc:end -->
 
-This tutorial focuses on the **classification, uses, representative methods, applicable scenarios, and research directions** of reinforcement learning in embodied AI. It does not cover the mathematical foundations of reinforcement learning or algorithmic derivations.
+<a id="course-section-01"></a>
 
-Embodied reinforcement learning can be categorized along two main dimensions:
+## 1. Overall Classification of Embodied Reinforcement Learning
 
-- **By algorithm:** On-policy RL (represented by PPO) and off-policy RL (represented by SAC).
-- **By task:** Robot-control reinforcement learning (Robot Control RL) and embodied foundation-model reinforcement-learning post-training (Foundation Model RL Post-training).
+<a id="course-section-02"></a>
 
-These two dimensions are independent and can be combined into different research directions.
-
----
-
-# 1. Overall Classification of Embodied Reinforcement Learning
-
-## 1.1 Classification Framework
+### 1.1 Classification Framework
 
 ```text
                  Embodied Reinforcement Learning
@@ -54,7 +74,9 @@ Robot manipulation can employ either conventional low-level control policies or 
 
 Therefore, **the same manipulation task can fall under conventional robot-control RL or foundation-model RL post-training; what matters is the policy model and training objective.**
 
-## 1.2 Core Classification Table
+<a id="course-section-03"></a>
+
+### 1.2 Core Classification Table
 
 | Classification dimension | Category | Representative algorithm or method | Main use |
 |---|---|---|---|
@@ -68,9 +90,13 @@ Note that DPPO, DSRL, and OGPO were developed for generative policies and cannot
 
 ---
 
-# 2. Classification by Algorithm: PPO and SAC
+<a id="course-section-04"></a>
 
-## 2.1 On-policy RL: PPO
+## 2. Classification by Algorithm: PPO and SAC
+
+<a id="course-section-05"></a>
+
+### 2.1 On-policy RL: PPO
 
 **PPO (Proximal Policy Optimization)** is a widely used reinforcement-learning algorithm for robot locomotion and motion control.
 
@@ -82,7 +108,7 @@ Its main characteristics are:
 - It integrates readily with large-scale, GPU-parallel simulation.
 - It is not well suited to repeatedly using large amounts of old data over long periods.
 
-### Which tasks mainly use PPO?
+#### Which tasks mainly use PPO?
 
 | Application | Specific tasks |
 |---|---|
@@ -93,7 +119,7 @@ Its main characteristics are:
 | Sim-to-Real | Train a control policy in simulation and deploy it on physical hardware |
 | Generative-policy post-training | Policy-gradient approaches such as DPPO for Diffusion Policies |
 
-### Why is PPO popular in robot locomotion?
+#### Why is PPO popular in robot locomotion?
 
 Locomotion tasks can often run thousands of robots simultaneously in simulators such as Isaac Lab.
 
@@ -123,7 +149,9 @@ In this setting, large quantities of environment interaction data are readily av
 
 The official Isaac Lab documentation also recommends RSL-RL as one starting point for a new robot RL project. ([Isaac Lab documentation](https://isaac-sim.github.io/IsaacLab/develop/source/concepts/reinforcement_learning.html))
 
-## 2.2 Off-policy RL: SAC
+<a id="course-section-06"></a>
+
+### 2.2 Off-policy RL: SAC
 
 **SAC (Soft Actor-Critic)** is a representative off-policy algorithm for continuous robot control.
 
@@ -136,7 +164,7 @@ Its main characteristics are:
 - It can use a critic to guide action selection.
 - It is sensitive to the quality of critic learning.
 
-### Which tasks mainly use SAC?
+#### Which tasks mainly use SAC?
 
 | Application | Specific tasks |
 |---|---|
@@ -147,7 +175,7 @@ Its main characteristics are:
 | Latent RL | Learning the latent variables of a pretrained generative policy |
 | Embodied-model post-training | Off-policy policy optimization guided by a critic |
 
-### Why is SAC suitable for learning on physical robots?
+#### Why is SAC suitable for learning on physical robots?
 
 Interactions with a physical robot are costly.
 
@@ -165,7 +193,9 @@ SAC can reuse existing experience through a replay buffer, making it a common ch
 
 However, **SAC's advantage in interaction sample efficiency does not mean that it outperforms PPO on every robot task.** In particular, when large-scale parallel simulation is available, PPO may achieve higher training throughput.
 
-## 2.3 Comparing PPO and SAC
+<a id="course-section-07"></a>
+
+### 2.3 Comparing PPO and SAC
 
 | Dimension | PPO | SAC |
 |---|---|---|
@@ -180,7 +210,7 @@ However, **SAC's advantage in interaction sample efficiency does not mean that i
 | Typical tasks | Locomotion | Manipulation, online RL |
 | Representative framework | RSL-RL | Stable-Baselines3 and other SAC implementations |
 
-### How should you choose?
+#### How should you choose?
 
 **Choose PPO when:**
 
@@ -194,7 +224,9 @@ In practice, the choice also depends on the policy architecture. If the policy i
 
 ---
 
-# 3. Classification by Task: Robot Motion-Control Reinforcement Learning
+<a id="course-section-08"></a>
+
+## 3. Classification by Task: Robot Motion-Control Reinforcement Learning
 
 The main objective of robot motion-control RL is:
 
@@ -202,11 +234,13 @@ The main objective of robot motion-control RL is:
 
 Usually, a relatively lightweight control policy is trained directly and then deployed to the robot's control system.
 
-## 3.1 Locomotion RL: Robot Motion Control
+<a id="course-section-09"></a>
+
+### 3.1 Locomotion RL: Robot Motion Control
 
 Locomotion RL mainly targets robot mobility and whole-body movement capabilities.
 
-### Typical applications
+#### Typical applications
 
 | Area | Task | Main use |
 |---|---|---|
@@ -217,7 +251,7 @@ Locomotion RL mainly targets robot mobility and whole-body movement capabilities
 | Push Recovery | Recovery from external pushes | Improve robot stability |
 | Terrain Adaptation | Slopes, gravel, and stairs | Adaptation to challenging terrain |
 
-### Typical training process
+#### Typical training process
 
 ```text
 Robot model
@@ -241,7 +275,7 @@ Sim-to-Real
 Deploy on a physical robot
 ```
 
-### What are the major research topics?
+#### What are the major research topics?
 
 **1. Motion capabilities**
 
@@ -272,7 +306,7 @@ Main techniques include:
 - Privileged Learning;
 - Online Adaptation.
 
-### Typical technical stack
+#### Typical technical stack
 
 | Module | Common choice |
 |---|---|
@@ -288,13 +322,15 @@ Main techniques include:
 
 It is often possible to train from scratch in simulation. The main bottlenecks are physics simulation, reward design, task complexity, and robustness after deployment on physical hardware.
 
-## 3.2 Manipulation RL: Robot Manipulation Reinforcement Learning
+<a id="course-section-10"></a>
+
+### 3.2 Manipulation RL: Robot Manipulation Reinforcement Learning
 
 Manipulation RL mainly addresses robot-arm and dexterous-hand operation.
 
 Although it and locomotion RL are both forms of robot control RL, manipulation tasks often involve more complicated contact dynamics.
 
-### Typical applications
+#### Typical applications
 
 | Area | Task | Main use |
 |---|---|---|
@@ -306,7 +342,7 @@ Although it and locomotion RL are both forms of robot control RL, manipulation t
 | Contact-Rich Manipulation | Insertion, rotation, assembly | Precision contact operations |
 | Bimanual Manipulation | Coordinated two-arm control | Two-handed manipulation and assembly |
 
-### Differences from locomotion RL
+#### Differences from locomotion RL
 
 Locomotion focuses more on:
 
@@ -324,7 +360,7 @@ Manipulation focuses more on:
 - Finger coordination;
 - Precision operation.
 
-### Should you use PPO or SAC?
+#### Should you use PPO or SAC?
 
 **PPO:**
 
@@ -338,7 +374,7 @@ Suitable for research on real-robot online learning and manipulation tasks requi
 
 For example, start from an existing manipulation policy and use a small number of real-world interactions to progressively improve grasp success.
 
-### Important distinction
+#### Important distinction
 
 Here, the trained policy may still be a conventional low-level controller:
 
@@ -359,9 +395,13 @@ This is a different problem setting from VLA reinforcement-learning post-trainin
 
 ---
 
-# 4. Classification by Task: Embodied Foundation-Model RL Post-Training
+<a id="course-section-11"></a>
 
-## 4.1 What Is Foundation-Model RL Post-Training?
+## 4. Classification by Task: Embodied Foundation-Model RL Post-Training
+
+<a id="course-section-12"></a>
+
+### 4.1 What Is Foundation-Model RL Post-Training?
 
 Embodied foundation models are usually pretrained on large amounts of demonstration data and then improved through reinforcement learning.
 
@@ -396,7 +436,9 @@ The main difference from training a locomotion policy from scratch is that:
 
 The purpose of RL is no longer to learn basic movements from scratch, but to further improve performance based on existing capabilities.
 
-## 4.2 What Problems Does RL Post-Training Solve?
+<a id="course-section-13"></a>
+
+### 4.2 What Problems Does RL Post-Training Solve?
 
 | Problem | Role of RL post-training |
 |---|---|
@@ -414,11 +456,13 @@ A pretrained VLA can already grasp a screwdriver, but its success rate is only 7
 
 We would like to use reinforcement learning to improve success rate, eliminate unnecessary movements, and increase robustness to variations in initial pose.
 
-## 4.3 Five Types of Foundation-Model RL Post-Training
+<a id="course-section-14"></a>
+
+### 4.3 Five Types of Foundation-Model RL Post-Training
 
 These methods can be divided into five categories according to **which part of the model reinforcement learning updates.**
 
-### Type 1: Full Policy Fine-tuning
+#### Type 1: Full Policy Fine-tuning
 
 **Directly update the pretrained generative policy.**
 
@@ -437,7 +481,7 @@ The advantage is a broader scope for modifying the policy and potentially improv
 
 The drawbacks are high training costs and the need to avoid damaging previously learned capabilities.
 
-### Type 2: Latent / Noise-Space RL
+#### Type 2: Latent / Noise-Space RL
 
 **Freeze the pretrained model and optimize only its input latent variables or noise distribution.**
 
@@ -462,7 +506,7 @@ Limitation:
 
 It is difficult to go beyond the representational capabilities of the frozen generator itself.
 
-### Type 3: Action Residual RL
+#### Type 3: Action Residual RL
 
 **Add RL-based corrections to the actions produced by a pretrained policy.**
 
@@ -502,7 +546,7 @@ For example:
 
 This category usually does not require retraining the base VLA.
 
-### Type 4: Feature / Token-Level RL
+#### Type 4: Feature / Token-Level RL
 
 **Train a lightweight RL module using internal features of a pretrained VLA.**
 
@@ -525,7 +569,7 @@ Examples:
 
 This category is appropriate when the goal is to preserve the foundation model's representations while reducing online training costs.
 
-### Type 5: Velocity Field Fine-tuning
+#### Type 5: Velocity Field Fine-tuning
 
 **Directly optimize the velocity field of a Flow Matching Action Expert.**
 
@@ -542,7 +586,9 @@ When the goal is to genuinely improve a Flow Matching action-generation model wi
 
 This is a research direction highly relevant to post-training large Flow Matching VLAs.
 
-## 4.4 Summary of the Five Types
+<a id="course-section-15"></a>
+
+### 4.4 Summary of the Five Types
 
 | Method | Representative | Updated component | Main use |
 |---|---|---|---|
@@ -558,7 +604,9 @@ These categories are not completely mutually exclusive. For example, training on
 
 ---
 
-# 5. How PPO and SAC Are Used Across the Two Task Categories
+<a id="course-section-16"></a>
+
+## 5. How PPO and SAC Are Used Across the Two Task Categories
 
 Combining the two classification dimensions gives the following core table.
 
@@ -567,7 +615,9 @@ Combining the two classification dimensions gives the following core table.
 | **On-policy PPO** | Train locomotion control policies in large-scale simulation | Generative-policy fine-tuning such as DPPO |
 | **Off-policy SAC** | Dexterous manipulation and real-robot online learning | Adapted methods such as DSRL based on SAC or an off-policy critic |
 
-## 5.1 PPO + Locomotion
+<a id="course-section-17"></a>
+
+### 5.1 PPO + Locomotion
 
 **Typical task:**
 
@@ -581,7 +631,9 @@ Isaac Lab + RSL-RL + PPO.
 
 Make full use of large-scale simulation environments.
 
-## 5.2 SAC + Manipulation
+<a id="course-section-18"></a>
+
+### 5.2 SAC + Manipulation
 
 **Typical task:**
 
@@ -591,7 +643,9 @@ A robot learns grasping and object manipulation through online interactions.
 
 Reuse experiences in the replay buffer and reduce the need to obtain new training data.
 
-## 5.3 PPO-Style Methods + VLA
+<a id="course-section-19"></a>
+
+### 5.3 PPO-Style Methods + VLA
 
 **Typical task:**
 
@@ -601,7 +655,9 @@ Use DPPO to post-train a Diffusion Policy with reinforcement learning.
 
 Directly improve the generative policy using policy gradients.
 
-## 5.4 SAC / Off-policy Critic-Style Methods + VLA
+<a id="course-section-20"></a>
+
+### 5.4 SAC / Off-policy Critic-Style Methods + VLA
 
 **Typical task:**
 
@@ -617,7 +673,9 @@ OGPO and Q-VGM are off-policy generative-policy optimization approaches, but the
 
 ---
 
-# 6. How to Choose an RL Method for Your Task
+<a id="course-section-21"></a>
+
+## 6. How to Choose an RL Method for Your Task
 
 The following table provides practical guidelines for project selection.
 
@@ -637,9 +695,13 @@ Practical choices should also consider model size, the availability of simulatio
 
 ---
 
-# 7. Typical Experimental Paths for the Two Research Directions
+<a id="course-section-22"></a>
 
-## 7.1 Robot Motion-Control RL
+## 7. Typical Experimental Paths for the Two Research Directions
+
+<a id="course-section-23"></a>
+
+### 7.1 Robot Motion-Control RL
 
 Recommended path:
 
@@ -673,7 +735,9 @@ Recommended starting points:
 
 [Isaac Lab](https://github.com/isaac-sim/IsaacLab) + [RSL-RL](https://github.com/leggedrobotics/rsl_rl)
 
-## 7.2 Embodied Foundation-Model RL Post-Training
+<a id="course-section-24"></a>
+
+### 7.2 Embodied Foundation-Model RL Post-Training
 
 Recommended path:
 
@@ -717,7 +781,9 @@ Recommended starting path:
 
 ---
 
-# 8. Final Summary
+<a id="course-section-25"></a>
+
+## 8. Final Summary
 
 For reinforcement learning in embodied AI, the field is best understood using the following three-level classification.
 

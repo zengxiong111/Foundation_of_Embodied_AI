@@ -5,13 +5,81 @@ date: "October 15, 2026"
 lang: en-US
 ---
 
-> **Applications:** Embodied AI, robot manipulation, dexterous hands, imitation learning, reinforcement learning (RL), vision-language-action models (VLAs), and sim-to-real transfer.  
-> **Tools:** OpenCV, ROS 2, Intel RealSense SDK, Kalibr, URDF, and TF2.  
-> **Running example:** Tron2 manipulator + head-mounted RGB-D camera + wrist RGB camera + BrainCo Revo3 dexterous hand.
+# Camera Calibration for Robot Learning
 
-This tutorial emphasizes **practical modeling, calibration, validation, and deployment for robot learning**. Its goal is not to derive every detail of projective geometry. Instead, it explains what must be calibrated, what measurements to collect, how to use OpenCV and ROS 2, how to validate accuracy, and how calibration supports 6D pose estimation, closed-loop visual control, imitation learning, and RL.
+<!-- course-meta:start -->
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Robot_Camera_Calibration_Tutorial_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Camera_Calibration_Tutorial_EN.pdf)
 
-# 1. Types of Camera Calibration and Their Uses
+| Item | Details |
+|---|---|
+| Applicability | OpenCV 4.x concepts; ROS 2 Jazzy; device SDK version must be selected separately |
+| Documentation review date | 2026-10-18 |
+| License | CC BY 4.0 · Xiong Zeng and contributors |
+
+**Verification scope:** Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation. See [version notes](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.md) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
+<!-- course-meta:end -->
+
+<!-- course-toc:start -->
+## Contents
+
+- [1. Types of Camera Calibration and Their Uses](#course-section-01)
+- [2. Essential Mathematics and Coordinate Frames](#course-section-02)
+  - [2.1 Frame definitions](#course-section-03)
+  - [2.2 Robot frames versus optical camera frames](#course-section-04)
+- [3. Intrinsic Calibration](#course-section-05)
+  - [3.1 Intrinsic matrix and distortion](#course-section-06)
+  - [3.2 Why intrinsics matter](#course-section-07)
+  - [3.3 Choosing a calibration target](#course-section-08)
+  - [3.4 Practical intrinsic-calibration procedure](#course-section-09)
+- [4. Extrinsic Calibration](#course-section-10)
+  - [4.1 What an extrinsic transform means](#course-section-11)
+  - [4.2 Known target pose: PnP followed by transform composition](#course-section-12)
+- [5. Hand-Eye Calibration](#course-section-13)
+  - [5.1 The two standard configurations](#course-section-14)
+  - [5.2 Eye-in-hand: calibrating the wrist camera](#course-section-15)
+  - [5.3 Eye-to-hand: fixed camera with a board on the robot](#course-section-16)
+- [6. Specific Considerations for Tron2 Head and Wrist Cameras](#course-section-17)
+  - [6.1 Camera mounted on a moving head](#course-section-18)
+  - [6.2 Wrist-mounted camera](#course-section-19)
+  - [6.3 Relative transform between head and wrist cameras](#course-section-20)
+- [7. RGB-D and Depth-Camera Calibration](#course-section-21)
+  - [7.1 Internal camera frames](#course-section-22)
+  - [7.2 From an RGB pixel to a point in the robot base frame](#course-section-23)
+  - [7.3 Should factory depth calibration be redone?](#course-section-24)
+- [8. Complete OpenCV Hand-Eye Example](#course-section-25)
+  - [8.1 Data conventions](#course-section-26)
+  - [8.2 Code supporting both configurations](#course-section-27)
+  - [8.3 Validating the output](#course-section-28)
+- [9. Camera Calibration in ROS 2](#course-section-29)
+  - [9.1 Useful tools](#course-section-30)
+  - [9.2 Intrinsic calibration in ROS 2](#course-section-31)
+  - [9.3 Hand-eye calibration in ROS 2](#course-section-32)
+- [10. Using Calibration Results in ROS TF2 and URDF](#course-section-33)
+  - [10.1 Recommended TF structure](#course-section-34)
+  - [10.2 Static extrinsic publishers](#course-section-35)
+  - [10.3 Dynamic transform checks](#course-section-36)
+- [11. How Calibration Is Used in Robot Learning](#course-section-37)
+  - [11.1 6D pose estimation and visually guided grasping](#course-section-38)
+  - [11.2 Imitation learning and VLAs](#course-section-39)
+  - [11.3 Reinforcement learning and sim-to-real](#course-section-40)
+  - [11.4 Visual feedback and synchronization](#course-section-41)
+- [12. Accuracy Metrics and Calibration Validation](#course-section-42)
+  - [12.1 Reprojection error](#course-section-43)
+  - [12.2 3D localization error](#course-section-44)
+  - [12.3 Grasp-level validation](#course-section-45)
+- [13. Common Failure Modes and Troubleshooting](#course-section-46)
+- [14. Recommended Open-Source Tools and References](#course-section-47)
+- [15. Recommended Tron2 + Revo3 Implementation Plan](#course-section-48)
+  - [Phase 1: Intrinsics and depth verification](#course-section-49)
+  - [Phase 2: Head camera calibration](#course-section-50)
+  - [Phase 3: Wrist camera and tool center point](#course-section-51)
+  - [Phase 4: Visual control and learning deployment](#course-section-52)
+- [16. Summary and Deployment Checklist](#course-section-53)
+<!-- course-toc:end -->
+
+<a id="course-section-01"></a>
+
+## 1. Types of Camera Calibration and Their Uses
 
 In robot learning, *camera calibration* is broader than estimating intrinsics. It also involves the geometric and temporal relationships among cameras, robots, and the workspace.
 
@@ -28,9 +96,13 @@ Closely related topics are **robot kinematic calibration** and **camera-IMU cali
 
 **Important distinction:** A RealSense device usually comes with factory intrinsics, but installing it on Tron2 still requires determining its pose relative to the robot. If the camera is mounted on a moving head, its transform relative to the base varies with head-joint angles.
 
-# 2. Essential Mathematics and Coordinate Frames
+<a id="course-section-02"></a>
 
-## 2.1 Frame definitions
+## 2. Essential Mathematics and Coordinate Frames
+
+<a id="course-section-03"></a>
+
+### 2.1 Frame definitions
 
 | Symbol | Frame | Meaning |
 |:--|:--|:--|
@@ -74,7 +146,9 @@ $$
 
 One of the principal objectives of calibration is therefore to obtain an accurate ${}^B T_C$.
 
-## 2.2 Robot frames versus optical camera frames
+<a id="course-section-04"></a>
+
+### 2.2 Robot frames versus optical camera frames
 
 The typical ROS REP 103 conventions are:
 
@@ -86,9 +160,13 @@ The typical ROS REP 103 conventions are:
 
 Consequently, `camera_link` and `camera_optical_frame` may be different frames connected by a fixed rotation. Do not interpret optical coordinates returned by OpenCV as robot body-frame coordinates without checking the transform. See [ROS REP 103](https://www.ros.org/reps/rep-0103.html).
 
-# 3. Intrinsic Calibration
+<a id="course-section-05"></a>
 
-## 3.1 Intrinsic matrix and distortion
+## 3. Intrinsic Calibration
+
+<a id="course-section-06"></a>
+
+### 3.1 Intrinsic matrix and distortion
 
 For an ideal pinhole camera,
 
@@ -115,7 +193,9 @@ $$
 
 for radial and tangential distortion; other models are appropriate for fisheye and specialized lenses.
 
-## 3.2 Why intrinsics matter
+<a id="course-section-07"></a>
+
+### 3.2 Why intrinsics matter
 
 **Use 1: Projecting 3D points into images.** Given a point $p_C=(X,Y,Z)$, camera intrinsics determine its image pixel $(u,v)$. This is needed for visualization, reprojection, visual servoing, and synthetic-real image alignment.
 
@@ -133,7 +213,9 @@ For distorted pixels, undistort first or use a correct camera-model deprojection
 
 **Use 3: 6D object-pose estimation.** PnP, FoundationPose, MegaPose, and CAD-model tracking typically use intrinsics. An ordinary RGB pixel by itself determines a ray, not the absolute distance of a point along that ray.
 
-## 3.3 Choosing a calibration target
+<a id="course-section-08"></a>
+
+### 3.3 Choosing a calibration target
 
 | Target | Advantages | Limitations | Typical use |
 |:--|:--|:--|:--|
@@ -143,7 +225,9 @@ For distorted pixels, undistort first or use a correct camera-model deprojection
 
 For ordinary robot labs, **ChArUco** is a good starting point, although a checkerboard is also effective. See the [OpenCV ChArUco detection tutorial](https://docs.opencv.org/4.x/df/d4a/tutorial_charuco_detection.html).
 
-## 3.4 Practical intrinsic-calibration procedure
+<a id="course-section-09"></a>
+
+### 3.4 Practical intrinsic-calibration procedure
 
 1. **Prepare a rigid board.** For example, a 7-by-5-square ChArUco board with 30 mm squares and 20 mm tags. These are illustrative dimensions, not a requirement. Print at true scale on a flat backing.
 2. **Capture diverse views.** Start with roughly 20–40 sharp, useful images. Move the board across the center, corners, distances, tilt angles, and apparent scales. Keep important camera settings controlled.
@@ -157,9 +241,13 @@ $$
 
 5. **Validate with held-out views.** Inspect RMS reprojection error, residuals across the image, and straight lines after undistortion. An RMS around 0.3–0.5 pixels can be a useful reference for high-quality captures; it is **not** a universal acceptance threshold, nor a measure of millimeter-scale robot accuracy.
 
-# 4. Extrinsic Calibration
+<a id="course-section-10"></a>
 
-## 4.1 What an extrinsic transform means
+## 4. Extrinsic Calibration
+
+<a id="course-section-11"></a>
+
+### 4.1 What an extrinsic transform means
 
 Intrinsics answer “how does a 3D point project into the image?” Extrinsics answer “where is the camera with respect to a reference frame?” For a head-mounted Tron2 camera, a common objective is
 
@@ -167,7 +255,9 @@ $$
 {}^B T_C=\begin{bmatrix}{}^B R_C&{}^B t_C\\0&1\end{bmatrix}.
 $$
 
-## 4.2 Known target pose: PnP followed by transform composition
+<a id="course-section-12"></a>
+
+### 4.2 Known target pose: PnP followed by transform composition
 
 Suppose a calibration board has a precisely known base-frame pose ${}^B T_T$. PnP estimates the **target-to-camera** transform ${}^C T_T$ using intrinsics and image corners. Then
 
@@ -215,9 +305,13 @@ print(T_B_C)
 
 **Limitation:** If the board is placed arbitrarily and its base-frame pose is unknown, one image normally cannot determine ${}^B T_C$. This motivates hand-eye calibration.
 
-# 5. Hand-Eye Calibration
+<a id="course-section-13"></a>
 
-## 5.1 The two standard configurations
+## 5. Hand-Eye Calibration
+
+<a id="course-section-14"></a>
+
+### 5.1 The two standard configurations
 
 | Property | Eye-in-hand | Eye-to-hand |
 |:--|:--|:--|
@@ -228,7 +322,9 @@ print(T_B_C)
 
 A Tron2 head camera that moves with yaw/pitch is **not a truly static eye-to-hand camera**. It can only be modeled as static while the head joints remain fixed.
 
-## 5.2 Eye-in-hand: calibrating the wrist camera
+<a id="course-section-15"></a>
+
+### 5.2 Eye-in-hand: calibrating the wrist camera
 
 The goal is to estimate the constant ${}^G T_C$. Keep the board stationary while the robot visits several poses. At each pose record:
 
@@ -247,7 +343,9 @@ Pairs of observations yield the classical $AX=XB$ problem, with $X={}^G T_C$. Ro
 
 OpenCV implements several solvers, including Tsai, Park, Horaud, Andreff, and Daniilidis. See [`calibrateHandEye`](https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html).
 
-## 5.3 Eye-to-hand: fixed camera with a board on the robot
+<a id="course-section-16"></a>
+
+### 5.3 Eye-to-hand: fixed camera with a board on the robot
 
 Here the camera is static, and the board is rigidly mounted on the end effector. Each observation satisfies
 
@@ -259,9 +357,13 @@ Both the base-to-camera transform ${}^B T_C$ and the gripper-to-target transform
 
 **Critical convention:** When using OpenCV `cv2.calibrateHandEye()` for this layout, provide ${}^G T_B=({}^B T_G)^{-1}$ as the *robot* pose input, while continuing to supply ${}^C T_T$ as the target pose. The output is then interpreted as ${}^B T_C$. Reusing the eye-in-hand inputs unchanged can give a plausible-looking but incorrect transform.
 
-# 6. Specific Considerations for Tron2 Head and Wrist Cameras
+<a id="course-section-17"></a>
 
-## 6.1 Camera mounted on a moving head
+## 6. Specific Considerations for Tron2 Head and Wrist Cameras
+
+<a id="course-section-18"></a>
+
+### 6.1 Camera mounted on a moving head
 
 Let $H$ denote the terminal link frame of the head kinematic chain, $C_h$ the head optical frame, and $q_h$ the head-joint vector. The camera pose is
 
@@ -274,7 +376,7 @@ $$
 
 **Suggested procedure:** Fix a ChArUco board in the workspace. Capture images across different yaw/pitch poses and record their joint values. Compute ${}^B T_H$ from FK and ${}^{C_h}T_T$ from PnP. Solve for ${}^H T_{C_h}$ using the eye-in-hand formulation, then test on held-out head poses.
 
-### What if the yaw and pitch axes do not intersect?
+#### What if the yaw and pitch axes do not intersect?
 
 A naive expression $R_z(q_y)R_y(q_p)$ omits the offset between rotation axes. Use the full kinematic chain:
 
@@ -287,7 +389,9 @@ The fixed transform ${}^Y T_P$ contains both rotation and translation between ya
 
 For an initial screwdriver-grasping experiment with a fixed head viewpoint, calibrating a single base-to-camera pose is a reasonable starting point. Add full dynamic head modeling when active vision is needed.
 
-## 6.2 Wrist-mounted camera
+<a id="course-section-19"></a>
+
+### 6.2 Wrist-mounted camera
 
 Let $C_w$ be the wrist camera and $q_a$ the arm configuration:
 
@@ -297,7 +401,7 @@ $$
 
 The first term is obtained from FK; the second is estimated through eye-in-hand calibration. If the camera is mounted on `wrist_link` rather than the precise terminal frame used for FK, consistently compose the corresponding link transforms.
 
-### What changes when installing the Revo3 hand?
+#### What changes when installing the Revo3 hand?
 
 Keep the following transforms distinct:
 
@@ -307,7 +411,9 @@ $$
 
 They describe the end-effector pose, wrist-camera mount, and tool-center-point (TCP) mount, respectively. If changing the hand does **not** move the camera relative to the same gripper frame, the prior camera extrinsic can remain valid. However, the TCP and fingertip geometry may change. Recheck calibration if the camera bracket moved, the flange/gripper frame was redefined, or the hardware became loose.
 
-## 6.3 Relative transform between head and wrist cameras
+<a id="course-section-20"></a>
+
+### 6.3 Relative transform between head and wrist cameras
 
 Once each camera's base-frame pose is known,
 
@@ -317,9 +423,13 @@ $$
 
 A separate two-camera calibration is not always necessary, although observing the same target from both cameras is an excellent consistency check. Since the head and arm move, the relative camera-to-camera transform is generally **time-varying**.
 
-# 7. RGB-D and Depth-Camera Calibration
+<a id="course-section-21"></a>
 
-## 7.1 Internal camera frames
+## 7. RGB-D and Depth-Camera Calibration
+
+<a id="course-section-22"></a>
+
+### 7.1 Internal camera frames
 
 Devices such as RealSense D435 and D455 often expose color, infrared, and depth camera frames. Their optical centers usually differ, requiring a known rigid transform such as
 
@@ -329,7 +439,9 @@ $$
 
 The RealSense SDK can normally provide factory intrinsics, extrinsics, and depth scale. Begin by **reading and validating** these values before attempting new device-level calibration.
 
-## 7.2 From an RGB pixel to a point in the robot base frame
+<a id="course-section-23"></a>
+
+### 7.2 From an RGB pixel to a point in the robot base frame
 
 The key pipeline is:
 
@@ -390,7 +502,9 @@ print("Point in base frame:", point_B_h[:3])
 
 This implements “RGB pixel $\to$ 3D camera point $\to$ 3D robot-base point.”
 
-## 7.3 Should factory depth calibration be redone?
+<a id="course-section-24"></a>
+
+### 7.3 Should factory depth calibration be redone?
 
 Not automatically. First verify device calibration at the intended operating range:
 
@@ -405,9 +519,13 @@ Not automatically. First verify device calibration at the intended operating ran
 
 Thin and reflective objects, including screwdrivers, can cause missing depth, incorrect boundaries, and reflection-related failures. Such errors are not always fixed by re-estimating RGB intrinsics. See the [RealSense SDK repository](https://github.com/realsenseai/librealsense).
 
-# 8. Complete OpenCV Hand-Eye Example
+<a id="course-section-25"></a>
 
-## 8.1 Data conventions
+## 8. Complete OpenCV Hand-Eye Example
+
+<a id="course-section-26"></a>
+
+### 8.1 Data conventions
 
 For each of $N$ sampled configurations, store two time-matched 4-by-4 transforms:
 
@@ -418,7 +536,9 @@ camera_T_target.npy  shape = (N, 4, 4)
 
 These are ${}^B T_{G,i}$ and ${}^C T_{T,i}$. Use meters for translations. Rotation blocks must be orthonormal with determinants near one, and each last row must be `[0, 0, 0, 1]`.
 
-## 8.2 Code supporting both configurations
+<a id="course-section-27"></a>
+
+### 8.2 Code supporting both configurations
 
 ```python
 import cv2
@@ -466,7 +586,9 @@ np.save("handeye_result.npy", X)
 
 The example illustrates correct API conventions. For real deployment, reject outliers, ensure sufficiently rich rotational motion, and validate on held-out poses. Confirm that `camera_T_target` refers to the **optical** camera frame, not an ambiguous `camera_link`.
 
-## 8.3 Validating the output
+<a id="course-section-28"></a>
+
+### 8.3 Validating the output
 
 For eye-in-hand, compute for each observation
 
@@ -484,9 +606,13 @@ $$
 
 This estimated board-to-gripper transform should likewise be constant. Report translational and angular residuals separately, and test with robot poses excluded from calibration.
 
-# 9. Camera Calibration in ROS 2
+<a id="course-section-29"></a>
 
-## 9.1 Useful tools
+## 9. Camera Calibration in ROS 2
+
+<a id="course-section-30"></a>
+
+### 9.1 Useful tools
 
 | Tool | Main use |
 |:--|:--|
@@ -498,7 +624,9 @@ This estimated board-to-gripper transform should likewise be constant. Report tr
 | MoveIt Calibration | GUI hand-eye workflow |
 | Kalibr | Multi-camera and camera-IMU spatiotemporal calibration |
 
-## 9.2 Intrinsic calibration in ROS 2
+<a id="course-section-31"></a>
+
+### 9.2 Intrinsic calibration in ROS 2
 
 On a compatible ROS 2 distribution:
 
@@ -522,7 +650,9 @@ ros2 run camera_calibration cameracalibrator \
 
 `8x6` is the number of **internal corners**; `0.025` is the physical square width in meters. Both must match the board. Actual topics depend on the camera driver. See [ROS image_pipeline](https://github.com/ros-perception/image_pipeline).
 
-## 9.3 Hand-eye calibration in ROS 2
+<a id="course-section-32"></a>
+
+### 9.3 Hand-eye calibration in ROS 2
 
 Useful projects include [easy_handeye2](https://github.com/marcoesposito1988/easy_handeye2) and [MoveIt Calibration](https://github.com/marco-faroni/moveit2_calibration). A typical workflow is:
 
@@ -535,9 +665,13 @@ Useful projects include [easy_handeye2](https://github.com/marcoesposito1988/eas
 
 A short Python/OpenCV script often suffices for a one-off experiment. ROS tooling becomes valuable when the team needs a repeatable, standardized calibration procedure.
 
-# 10. Using Calibration Results in ROS TF2 and URDF
+<a id="course-section-33"></a>
 
-## 10.1 Recommended TF structure
+## 10. Using Calibration Results in ROS TF2 and URDF
+
+<a id="course-section-34"></a>
+
+### 10.1 Recommended TF structure
 
 The following is an illustration; replace link names with the actual Tron2 URDF definitions:
 
@@ -568,7 +702,9 @@ URDF + joint_states + robot_state_publisher
       Base-to-camera transform
 ```
 
-## 10.2 Static extrinsic publishers
+<a id="course-section-35"></a>
+
+### 10.2 Static extrinsic publishers
 
 The following translation and rotation values are **syntax examples**, not actual Tron2 calibration parameters:
 
@@ -582,7 +718,9 @@ ros2 run tf2_ros static_transform_publisher \
 
 **Warning:** The rotation into a real optical frame is often **not** the identity quaternion. If the same parent-child transform is already published through URDF and `robot_state_publisher`, do not publish it again.
 
-## 10.3 Dynamic transform checks
+<a id="course-section-36"></a>
+
+### 10.3 Dynamic transform checks
 
 ```bash
 ros2 run tf2_ros tf2_echo \
@@ -594,9 +732,13 @@ ros2 run tf2_ros tf2_echo \
 
 As arm and head joints move, these base-to-camera transforms should update. For recorded images, query TF at the **image acquisition timestamp**, not blindly at the current robot-state timestamp.
 
-# 11. How Calibration Is Used in Robot Learning
+<a id="course-section-37"></a>
 
-## 11.1 6D pose estimation and visually guided grasping
+## 11. How Calibration Is Used in Robot Learning
+
+<a id="course-section-38"></a>
+
+### 11.1 6D pose estimation and visually guided grasping
 
 Suppose FoundationPose estimates a screwdriver pose ${}^{C_h}T_O$ from the head RGB-D camera. Convert it to the base frame using
 
@@ -619,7 +761,9 @@ Head RGB-D
 
 Distinguish **pose-estimation error** from **camera-extrinsic error**. Even a very accurate 6D pose estimator produces systematically wrong robot-frame positions if ${}^B T_C$ is incorrect.
 
-## 11.2 Imitation learning and VLAs
+<a id="course-section-39"></a>
+
+### 11.2 Imitation learning and VLAs
 
 Actions may be represented as TCP increments $a_t=\Delta T_{\mathrm{TCP}}$ or future joint sequences $a_t=q_{t:t+H}$. Whether explicit extrinsics are required depends on the architecture and task:
 
@@ -635,7 +779,9 @@ Actions may be represented as TCP increments $a_t=\Delta T_{\mathrm{TCP}}$ or fu
 
 End-to-end VLA models can learn an implicit visual-to-action mapping. Nevertheless, explicit, consistent camera geometry is often valuable for transfer across cameras, robots, and workspaces.
 
-## 11.3 Reinforcement learning and sim-to-real
+<a id="course-section-40"></a>
+
+### 11.3 Reinforcement learning and sim-to-real
 
 Consider an image-based control policy
 
@@ -659,7 +805,9 @@ $$
 
 **Camera domain randomization improves robustness but should not replace accurate initial calibration.**
 
-## 11.4 Visual feedback and synchronization
+<a id="course-section-41"></a>
+
+### 11.4 Visual feedback and synchronization
 
 For object target pose $T_O^*$ and current pose $T_{O,t}$, an $SE(3)$-valued tracking error may be constructed as
 
@@ -675,7 +823,9 @@ $$
 
 at that time, rather than pairing an older image with the latest arm pose. This matters especially for moving wrist and head cameras.
 
-# 12. Accuracy Metrics and Calibration Validation
+<a id="course-section-42"></a>
+
+## 12. Accuracy Metrics and Calibration Validation
 
 Evaluate the system at **image, geometry, and task** levels:
 
@@ -685,7 +835,9 @@ Evaluate the system at **image, geometry, and task** levels:
 | Geometry | Translation and rotation consistency | Validate extrinsic and hand-eye constraints |
 | Task | 3D localization error and grasp success | Validate full robot-system performance |
 
-## 12.1 Reprojection error
+<a id="course-section-43"></a>
+
+### 12.1 Reprojection error
 
 For observed image corner $p_i$ and predicted corner $\hat p_i$,
 
@@ -701,7 +853,9 @@ $$
 
 An image-space error measured in pixels is not directly a millimeter-level robot-endpoint error.
 
-## 12.2 3D localization error
+<a id="course-section-44"></a>
+
+### 12.2 3D localization error
 
 Given a target point with known base-frame position $p_B^*$, compare it to the visually estimated $\hat p_B$:
 
@@ -711,7 +865,9 @@ $$
 
 Test the workspace center and boundaries, several heights and viewing angles, and multiple yaw/pitch configurations. If head motion causes a substantial error increase, examine head kinematics, axis offsets, timestamps, and camera-mount calibration.
 
-## 12.3 Grasp-level validation
+<a id="course-section-45"></a>
+
+### 12.3 Grasp-level validation
 
 One useful metric is TCP position error,
 
@@ -722,7 +878,9 @@ $$
 
 Also evaluate screwdriver grasp success, repeatability, orientation error, and disturbance recovery. These depend on FK, IK, actuation, TCP geometry, and object perception as well as camera calibration. A grasp failure does **not** prove the camera was calibrated incorrectly.
 
-# 13. Common Failure Modes and Troubleshooting
+<a id="course-section-46"></a>
+
+## 13. Common Failure Modes and Troubleshooting
 
 | Symptom | Likely cause | Check |
 |:--|:--|:--|
@@ -739,7 +897,9 @@ Also evaluate screwdriver grasp success, repeatability, orientation error, and d
 
 A conservative data-collection sequence is: **move into pose $\rightarrow$ wait until stable $\rightarrow$ acquire image and corresponding robot state $\rightarrow$ save sample**. This reduces motion blur and time-alignment error.
 
-# 14. Recommended Open-Source Tools and References
+<a id="course-section-47"></a>
+
+## 14. Recommended Open-Source Tools and References
 
 | Tool | Main function | Recommended use |
 |:--|:--|:--|
@@ -753,11 +913,15 @@ A conservative data-collection sequence is: **move into pose $\rightarrow$ wait 
 
 For this two-camera system, prioritize TF, PnP, and hand-eye calibration.
 
-# 15. Recommended Tron2 + Revo3 Implementation Plan
+<a id="course-section-48"></a>
+
+## 15. Recommended Tron2 + Revo3 Implementation Plan
 
 A four-phase rollout helps isolate different error sources instead of combining them from the start.
 
-## Phase 1: Intrinsics and depth verification
+<a id="course-section-49"></a>
+
+### Phase 1: Intrinsics and depth verification
 
 - Read RealSense RGB/depth intrinsics and distortion coefficients.
 - Verify or recalibrate wrist RGB intrinsics when necessary.
@@ -766,7 +930,9 @@ A four-phase rollout helps isolate different error sources instead of combining 
 
 This phase generally does not require robot movement.
 
-## Phase 2: Head camera calibration
+<a id="course-section-50"></a>
+
+### Phase 2: Head camera calibration
 
 **Goal:** obtain ${}^B T_{C_h}(q_h)$.
 
@@ -779,7 +945,9 @@ This phase generally does not require robot movement.
 
 If experiments currently use only one head orientation, start by locking the head and calibrating the corresponding base-camera transform.
 
-## Phase 3: Wrist camera and tool center point
+<a id="course-section-51"></a>
+
+### Phase 3: Wrist camera and tool center point
 
 **Goals:** obtain ${}^G T_{C_w}$ and ${}^G T_{\mathrm{TCP}}$.
 
@@ -789,7 +957,9 @@ If experiments currently use only one head orientation, start by locking the hea
 4. Validate board-pose constancy on unseen robot poses.
 5. Recheck tool and fingertip geometry after mounting the Revo3 hand.
 
-## Phase 4: Visual control and learning deployment
+<a id="course-section-52"></a>
+
+### Phase 4: Visual control and learning deployment
 
 Suggested unified data flow:
 
@@ -815,7 +985,9 @@ $$
 
 Combined with FK, TF2, and synchronized timestamps, these connect head perception, wrist vision, and grasp control in one consistent coordinate system.
 
-# 16. Summary and Deployment Checklist
+<a id="course-section-53"></a>
+
+## 16. Summary and Deployment Checklist
 
 | Core question | Main technique | Role in robot learning |
 |:--|:--|:--|

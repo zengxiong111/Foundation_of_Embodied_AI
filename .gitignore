@@ -14,3 +14,6 @@ __pycache__/
 .candidate*
 # Repository policy: no changelogs
 [Cc][Hh][Aa][Nn][Gg][Ee][Ll][Oo][Gg]*
+# Installed build dependencies and local build output
+node_modules/
+.course-build/

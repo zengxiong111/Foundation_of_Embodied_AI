@@ -5,13 +5,81 @@ date: "2026 年 10 月 15 日"
 lang: zh-CN
 ---
 
-> **适用领域：** 具身智能、机器人操作（manipulation）、灵巧手、模仿学习、强化学习（RL）、视觉语言动作模型（VLA）、Sim-to-Real。  
-> **工具栈：** OpenCV、ROS 2、RealSense SDK、Kalibr、URDF、TF2。  
-> **贯穿案例：** Tron2 机械臂 + 头部 RGB-D 相机 + 腕部 RGB 相机 + BrainCo Revo3 灵巧手。
+# 机器人学习中的相机标定教程
 
-本教程面向机器人学习中的**实际建模、标定与部署**。重点不是详尽推导成像几何，而是弄清楚应该标定什么、需要哪些数据、如何使用 OpenCV/ROS 2 实施、怎样验证精度，以及如何将结果用于 6D 位姿估计、视觉闭环、模仿学习和强化学习。
+<!-- course-meta:start -->
+[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Robot_Camera_Calibration_Tutorial_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Camera_Calibration_Tutorial_ZH.pdf)
 
-# 一、相机标定的分类与用途
+| 项目 | 说明 |
+|---|---|
+| 适用范围 | OpenCV 4.x 概念；ROS 2 Jazzy；设备 SDK 版本需另行匹配 |
+| 文档核验日期 | 2026-10-18 |
+| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
+
+**核验边界：** 文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。 版本与固定源码引用见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
+<!-- course-meta:end -->
+
+<!-- course-toc:start -->
+## 目录
+
+- [一、相机标定的分类与用途](#course-section-01)
+- [二、最重要的数学概念与坐标系](#course-section-02)
+  - [2.1 坐标系约定](#course-section-03)
+  - [2.2 机器人坐标系与相机 Optical Frame](#course-section-04)
+- [三、相机内参标定（Intrinsic Calibration）](#course-section-05)
+  - [3.1 相机矩阵和畸变](#course-section-06)
+  - [3.2 内参有什么用？](#course-section-07)
+  - [3.3 标定板选择](#course-section-08)
+  - [3.4 内参标定实际流程](#course-section-09)
+- [四、相机外参标定（Extrinsic Calibration）](#course-section-10)
+  - [4.1 外参到底是什么？](#course-section-11)
+  - [4.2 已知标定板位姿时：PnP + 坐标变换](#course-section-12)
+- [五、手眼标定（Hand-Eye Calibration）](#course-section-13)
+  - [5.1 两种常见布局](#course-section-14)
+  - [5.2 Eye-in-Hand：腕部相机](#course-section-15)
+  - [5.3 Eye-to-Hand：固定相机、末端标定板](#course-section-16)
+- [六、Tron2 头部与腕部相机的特殊情况](#course-section-17)
+  - [6.1 可转动头部相机](#course-section-18)
+  - [6.2 腕部相机](#course-section-19)
+  - [6.3 头部相机与腕部相机之间的变换](#course-section-20)
+- [七、RGB-D 深度相机标定与对齐](#course-section-21)
+  - [7.1 设备内部坐标系](#course-section-22)
+  - [7.2 RGB 像素到机器人三维点](#course-section-23)
+  - [7.3 深度相机需要重新标定吗？](#course-section-24)
+- [八、OpenCV 完整手眼标定代码](#course-section-25)
+  - [8.1 数据格式](#course-section-26)
+  - [8.2 统一支持 Eye-in-Hand / Eye-to-Hand](#course-section-27)
+  - [8.3 标定结果验证](#course-section-28)
+- [九、ROS 2 中的标定工具与基本操作](#course-section-29)
+  - [9.1 常用工具](#course-section-30)
+  - [9.2 相机内参标定](#course-section-31)
+  - [9.3 ROS 2 手眼标定](#course-section-32)
+- [十、将标定结果写入 ROS TF2 / URDF](#course-section-33)
+  - [10.1 推荐的 TF 结构](#course-section-34)
+  - [10.2 静态外参发布](#course-section-35)
+  - [10.3 动态 TF 检查](#course-section-36)
+- [十一、相机标定如何进入机器人学习](#course-section-37)
+  - [11.1 物体 6D 位姿估计与视觉抓取](#course-section-38)
+  - [11.2 模仿学习与 VLA](#course-section-39)
+  - [11.3 强化学习与 Sim-to-Real](#course-section-40)
+  - [11.4 视觉闭环控制与时间同步](#course-section-41)
+- [十二、标定精度与结果验证](#course-section-42)
+  - [12.1 重投影误差](#course-section-43)
+  - [12.2 三维定位误差](#course-section-44)
+  - [12.3 实际抓取测试](#course-section-45)
+- [十三、常见问题与排查](#course-section-46)
+- [十四、推荐开源工具与官方资料](#course-section-47)
+- [十五、针对 Tron2 + Revo3 的实施路线](#course-section-48)
+  - [阶段一：设备内参与深度检查](#course-section-49)
+  - [阶段二：头部相机几何标定](#course-section-50)
+  - [阶段三：腕部相机与 TCP](#course-section-51)
+  - [阶段四：视觉闭环与学习部署](#course-section-52)
+- [十六、总结与检查清单](#course-section-53)
+<!-- course-toc:end -->
+
+<a id="course-section-01"></a>
+
+## 一、相机标定的分类与用途
 
 在机器人学习中，“相机标定”不仅指计算相机内参，还包括建立相机、机器人和环境之间的空间及时序关系。
 
@@ -28,9 +96,13 @@ lang: zh-CN
 
 **重要区分：** RealSense 相机通常已有出厂内参；安装到 Tron2 上以后，仍需要确定相机相对于机器人运动学链的位置和朝向。对于可转动的头部云台，相机到基座的变换还是随关节角度变化的。
 
-# 二、最重要的数学概念与坐标系
+<a id="course-section-02"></a>
 
-## 2.1 坐标系约定
+## 二、最重要的数学概念与坐标系
+
+<a id="course-section-03"></a>
+
+### 2.1 坐标系约定
 
 | 符号 | 名称 | 说明 |
 |:--|:--|:--|
@@ -74,7 +146,9 @@ $$
 
 相机标定的关键任务之一，就是获取足够准确的 ${}^B T_C$。
 
-## 2.2 机器人坐标系与相机 Optical Frame
+<a id="course-section-04"></a>
+
+### 2.2 机器人坐标系与相机 Optical Frame
 
 ROS 常见约定（REP 103）如下：
 
@@ -86,9 +160,13 @@ ROS 常见约定（REP 103）如下：
 
 因此，`camera_link` 不一定等同于 `camera_optical_frame`。从普通相机机体坐标系到 optical frame，通常还有一段固定旋转。不要直接把 OpenCV 输出的光学坐标当作机器人机体坐标使用。[参考：ROS REP 103](https://www.ros.org/reps/rep-0103.html)。
 
-# 三、相机内参标定（Intrinsic Calibration）
+<a id="course-section-05"></a>
 
-## 3.1 相机矩阵和畸变
+## 三、相机内参标定（Intrinsic Calibration）
+
+<a id="course-section-06"></a>
+
+### 3.1 相机矩阵和畸变
 
 理想针孔模型中，内参矩阵是
 
@@ -115,7 +193,9 @@ $$
 
 前两类参数分别描述径向畸变和切向畸变；鱼眼等镜头需要相应的其他模型。
 
-## 3.2 内参有什么用？
+<a id="course-section-07"></a>
+
+### 3.2 内参有什么用？
 
 **任务一：三维点投影到图像。** 给定相机坐标系中 $p_C=(X,Y,Z)$，利用 $K$ 计算其像素位置 $(u,v)$。用于可视化、重投影、视觉控制和仿真—真实图像对齐。
 
@@ -133,7 +213,9 @@ $$
 
 **任务三：6D 位姿估计。** PnP、FoundationPose、MegaPose 和基于 CAD 模型的跟踪常使用内参。注意：仅凭普通 RGB 图像中的一个像素，无法独立恢复该点的绝对深度。
 
-## 3.3 标定板选择
+<a id="course-section-08"></a>
+
+### 3.3 标定板选择
 
 | 标定板 | 优点 | 注意事项 | 典型用途 |
 |:--|:--|:--|:--|
@@ -143,7 +225,9 @@ $$
 
 对于普通机器人实验，优先建议 **ChArUco**；也可使用检测稳定的棋盘格。OpenCV 的 [ArUco/ChArUco 指南](https://docs.opencv.org/4.x/df/d4a/tutorial_charuco_detection.html) 提供标板检测示例。
 
-## 3.4 内参标定实际流程
+<a id="course-section-09"></a>
+
+### 3.4 内参标定实际流程
 
 1. **制作标定板。** 例如 7×5 方格的 ChArUco 板，方格边长 30 mm、标记边长 20 mm；这些只是示例。打印必须按真实物理尺寸，固定在刚性平板上，避免卷曲。
 2. **采集图像。** 以 20–40 张清晰、有效图像作为初始数据集；让标定板出现在中心及四角，覆盖不同距离、倾斜角和尺度；固定对焦、曝光或其他关键成像设置。
@@ -157,9 +241,13 @@ $$
 
 5. **独立验证。** 查看 RMS 重投影误差、图像各区域的残差、去畸变后的直线，以及未用于标定的图像。约 0.3–0.5 px 可以作为高质量标定的参考范围，但绝不是所有分辨率、镜头和任务通用的合格线，也不代表毫米级定位误差。
 
-# 四、相机外参标定（Extrinsic Calibration）
+<a id="course-section-10"></a>
 
-## 4.1 外参到底是什么？
+## 四、相机外参标定（Extrinsic Calibration）
+
+<a id="course-section-11"></a>
+
+### 4.1 外参到底是什么？
 
 相机内参回答“**三维点怎样投影到图像**”；外参回答“**相机相对某个参考坐标系在哪里**”。对于 Tron2 头部相机，一个典型目标是求
 
@@ -167,7 +255,9 @@ $$
 {}^B T_C=\begin{bmatrix}{}^B R_C&{}^B t_C\\0&1\end{bmatrix}.
 $$
 
-## 4.2 已知标定板位姿时：PnP + 坐标变换
+<a id="course-section-12"></a>
+
+### 4.2 已知标定板位姿时：PnP + 坐标变换
 
 如果已经准确知道标定板在机器人基座中的位姿 ${}^B T_T$，通过相机内参和图像角点，PnP 可估计 ${}^C T_T$。于是
 
@@ -215,9 +305,13 @@ print(T_B_C)
 
 **限制：** 如果标定板只是随意摆在桌面上，且不知道 ${}^B T_T$，一张图像通常不足以得到 ${}^B T_C$；此时可使用下一节的手眼标定。
 
-# 五、手眼标定（Hand-Eye Calibration）
+<a id="course-section-13"></a>
 
-## 5.1 两种常见布局
+## 五、手眼标定（Hand-Eye Calibration）
+
+<a id="course-section-14"></a>
+
+### 5.1 两种常见布局
 
 | 项目 | Eye-in-Hand | Eye-to-Hand |
 |:--|:--|:--|
@@ -228,7 +322,9 @@ print(T_B_C)
 
 注意，**可随 yaw/pitch 转动的 Tron2 头部相机，并不是严格意义上的固定 Eye-to-Hand 相机**；只能在云台姿态固定时暂时如此处理。
 
-## 5.2 Eye-in-Hand：腕部相机
+<a id="course-section-15"></a>
+
+### 5.2 Eye-in-Hand：腕部相机
 
 希望求解固定变换 ${}^G T_C$。将标定板固定在桌上，驱动机械臂到不同姿态，每次记录：
 
@@ -247,7 +343,9 @@ $$
 
 OpenCV 包含 Tsai、Park、Horaud、Andreff、Daniilidis 等求解选项；参考 [`calibrateHandEye`](https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html)。
 
-## 5.3 Eye-to-Hand：固定相机、末端标定板
+<a id="course-section-16"></a>
+
+### 5.3 Eye-to-Hand：固定相机、末端标定板
 
 现在相机固定在环境中，标定板刚性安装在机器人末端。每次观察满足
 
@@ -259,9 +357,13 @@ $$
 
 **关键：** 使用 `cv2.calibrateHandEye()` 做 Eye-to-Hand 时，机器人位姿输入应转换为 ${}^G T_B=({}^B T_G)^{-1}$，标定板位姿仍输入 ${}^C T_T$；输出才可解释为 ${}^B T_C$。直接照搬 Eye-in-Hand 的输入可能造成错误的变换方向。
 
-# 六、Tron2 头部与腕部相机的特殊情况
+<a id="course-section-17"></a>
 
-## 6.1 可转动头部相机
+## 六、Tron2 头部与腕部相机的特殊情况
+
+<a id="course-section-18"></a>
+
+### 6.1 可转动头部相机
 
 定义 $H$ 为头部运动学链的末端安装坐标系，$C_h$ 为头部相机光学坐标系，$q_h$ 为头部关节角。则
 
@@ -274,7 +376,7 @@ $$
 
 推荐方法：把 ChArUco 板固定在桌面；采集多个 yaw/pitch 姿态的图像和关节角；用 FK 求 ${}^B T_H$，由 PnP 求 ${}^{C_h}T_T$，利用 Eye-in-Hand 的形式求 ${}^H T_{C_h}$；最后用保留的姿态验证。
 
-### yaw/pitch 旋转轴不相交时
+#### yaw/pitch 旋转轴不相交时
 
 不能简单地写成 $R_z(q_y)R_y(q_p)$ 并忽略关节中心之间的平移。应使用完整的刚体变换链：
 
@@ -287,7 +389,9 @@ $$
 
 对于当前固定头部视角的螺丝刀抓取实验，可先固定云台姿态完成一组基座—相机外参，再逐步扩展到动态头部模型。
 
-## 6.2 腕部相机
+<a id="course-section-19"></a>
+
+### 6.2 腕部相机
 
 定义 $C_w$ 为腕部相机，$q_a$ 为机械臂关节角，则
 
@@ -297,7 +401,7 @@ $$
 
 其中 ${}^B T_G(q_a)$ 来自 FK，${}^G T_{C_w}$ 由 Eye-in-Hand 标定。若腕相机安装在 `wrist_link` 而非用于运动学记录的 $G$ 坐标系，应使用一致的链接并正确组合固定变换。
 
-### 更换 Revo3 灵巧手的影响
+#### 更换 Revo3 灵巧手的影响
 
 必须区分
 
@@ -307,7 +411,9 @@ $$
 
 第一项是机械臂末端位姿；第二项是腕部相机外参；第三项是 TCP 相对于末端的安装变换。更换灵巧手而**没有改变相机相对末端的安装位置**时，相机外参原则上仍有效，但 TCP 与指尖几何可能变化。若相机支架移动、末端坐标系定义改变或安装发生松动，应重新检查相机标定。
 
-## 6.3 头部相机与腕部相机之间的变换
+<a id="course-section-20"></a>
+
+### 6.3 头部相机与腕部相机之间的变换
 
 一旦两台相机都在机器人基座中有位姿，就可以计算：
 
@@ -317,9 +423,13 @@ $$
 
 因此，两台相机不一定要单独做一轮“双目标定”；但通过共同观察标定板来验证两路外参与运动学的一致性仍然非常有价值。由于两条运动学链会运动，${}^{C_h}T_{C_w}$ 通常**不是常数**。
 
-# 七、RGB-D 深度相机标定与对齐
+<a id="course-section-21"></a>
 
-## 7.1 设备内部坐标系
+## 七、RGB-D 深度相机标定与对齐
+
+<a id="course-section-22"></a>
+
+### 7.1 设备内部坐标系
 
 D435、D455 等 RGB-D 设备通常包含 RGB、左右红外/深度等不同的光学坐标系。RGB 与 Depth 的光学中心通常不完全重合，因而需要已标定的
 
@@ -329,7 +439,9 @@ $$
 
 RealSense SDK 一般能够读取相机出厂标定的内参、外参和深度尺度，通常先**读取并验证**即可。
 
-## 7.2 RGB 像素到机器人三维点
+<a id="course-section-23"></a>
+
+### 7.2 RGB 像素到机器人三维点
 
 基本流水线：
 
@@ -390,7 +502,9 @@ print("Point in base frame:", point_B_h[:3])
 
 这就完成了“RGB 像素 $\to$ 相机三维点 $\to$ 机器人基座三维点”。
 
-## 7.3 深度相机需要重新标定吗？
+<a id="course-section-24"></a>
+
+### 7.3 深度相机需要重新标定吗？
 
 先确认出厂数据和实际表现，再决定是否进行设备的深度重新标定。建议检查：
 
@@ -405,9 +519,13 @@ print("Point in base frame:", point_B_h[:3])
 
 对于螺丝刀等细长或反光物体，要注意深度空洞、边缘错配和多路径/反光等误差；它们不一定能通过重新标定内参解决。[参考：RealSense SDK](https://github.com/realsenseai/librealsense)。
 
-# 八、OpenCV 完整手眼标定代码
+<a id="course-section-25"></a>
 
-## 8.1 数据格式
+## 八、OpenCV 完整手眼标定代码
+
+<a id="course-section-26"></a>
+
+### 8.1 数据格式
 
 每个姿态记录两组匹配的 4×4 齐次变换，并以同一时间点对应：
 
@@ -418,7 +536,9 @@ camera_T_target.npy  shape = (N, 4, 4)
 
 即分别存放 ${}^B T_{G,i}$ 和 ${}^C T_{T,i}$，平移采用米。保存的矩阵应满足旋转正交、行列式约等于 1，底行等于 `[0, 0, 0, 1]`。
 
-## 8.2 统一支持 Eye-in-Hand / Eye-to-Hand
+<a id="course-section-27"></a>
+
+### 8.2 统一支持 Eye-in-Hand / Eye-to-Hand
 
 ```python
 import cv2
@@ -466,7 +586,9 @@ np.save("handeye_result.npy", X)
 
 该示例展示接口用法，但实际部署前还需要剔除坏样本、检查运动激励是否充分，并在独立姿态上验证结果。尤其必须确保 `camera_T_target` 使用的是**光学相机坐标系**而非 `camera_link`。
 
-## 8.3 标定结果验证
+<a id="course-section-28"></a>
+
+### 8.3 标定结果验证
 
 Eye-in-Hand：对每一组采样计算
 
@@ -486,9 +608,13 @@ $$
 
 实践中应分别报告平移残差、旋转角残差，并保留未参加拟合的姿态做独立测试，而不能只目测最终矩阵是否“差不多”。
 
-# 九、ROS 2 中的标定工具与基本操作
+<a id="course-section-29"></a>
 
-## 9.1 常用工具
+## 九、ROS 2 中的标定工具与基本操作
+
+<a id="course-section-30"></a>
+
+### 9.1 常用工具
 
 | 工具 | 功能 |
 |:--|:--|
@@ -500,7 +626,9 @@ $$
 | MoveIt Calibration | 手眼标定 GUI |
 | Kalibr | 多相机/相机–IMU 时空标定 |
 
-## 9.2 相机内参标定
+<a id="course-section-31"></a>
+
+### 9.2 相机内参标定
 
 在支持的 ROS 2 发行版中：
 
@@ -524,7 +652,9 @@ ros2 run camera_calibration cameracalibrator \
 
 这里 `8x6` 是**内部角点数**，`0.025` 表示方格边长为 0.025 m；实际参数必须与标定板一致。不同相机驱动的 Topic 名称可能不同。[参考：image_pipeline](https://github.com/ros-perception/image_pipeline)。
 
-## 9.3 ROS 2 手眼标定
+<a id="course-section-32"></a>
+
+### 9.3 ROS 2 手眼标定
 
 可参考 [easy_handeye2](https://github.com/marcoesposito1988/easy_handeye2) 或 [MoveIt Calibration](https://github.com/marco-faroni/moveit2_calibration)。典型工作流是：
 
@@ -537,9 +667,13 @@ ros2 run camera_calibration cameracalibrator \
 
 只需要一次性计算时，OpenCV Python 脚本通常已足够；反复做团队实验时，ROS 工具更有利于标准化。
 
-# 十、将标定结果写入 ROS TF2 / URDF
+<a id="course-section-33"></a>
 
-## 10.1 推荐的 TF 结构
+## 十、将标定结果写入 ROS TF2 / URDF
+
+<a id="course-section-34"></a>
+
+### 10.1 推荐的 TF 结构
 
 以下仅为示例，具体链接名字以 Tron2 URDF 为准：
 
@@ -570,7 +704,9 @@ URDF + joint_states + robot_state_publisher
       Base-to-camera transform
 ```
 
-## 10.2 静态外参发布
+<a id="course-section-35"></a>
+
+### 10.2 静态外参发布
 
 下面的平移与旋转只是**命令格式示意**，不是 Tron2 标定数据：
 
@@ -584,7 +720,9 @@ ros2 run tf2_ros static_transform_publisher \
 
 **注意：** 实际光学坐标系的旋转一般不是单位四元数。若变换已由 URDF + `robot_state_publisher` 发布，不要重复发布相同的父子 TF 边。
 
-## 10.3 动态 TF 检查
+<a id="course-section-36"></a>
+
+### 10.3 动态 TF 检查
 
 ```bash
 ros2 run tf2_ros tf2_echo \
@@ -596,9 +734,13 @@ ros2 run tf2_ros tf2_echo \
 
 机器人关节运动时，相机相对于基座的变换应该随之更新。对采集时的图像，查询 TF 应使用**图像时间戳**，而不是不加区分地取机器人最新状态。
 
-# 十一、相机标定如何进入机器人学习
+<a id="course-section-37"></a>
 
-## 11.1 物体 6D 位姿估计与视觉抓取
+## 十一、相机标定如何进入机器人学习
+
+<a id="course-section-38"></a>
+
+### 11.1 物体 6D 位姿估计与视觉抓取
 
 假设 FoundationPose 从头部 RGB-D 估计到螺丝刀位姿 ${}^{C_h}T_O$，那么
 
@@ -621,7 +763,9 @@ Head RGB-D
 
 必须区分视觉估计器误差与相机外参误差。即使 6D Pose Estimator 很准，错误的 ${}^B T_C$ 也会带来目标在基座下的系统性偏移。
 
-## 11.2 模仿学习与 VLA
+<a id="course-section-39"></a>
+
+### 11.2 模仿学习与 VLA
 
 动作可能以 TCP 增量 $a_t=\Delta T_{\mathrm{TCP}}$，或者关节序列 $a_t=q_{t:t+H}$ 表示。是否显式依赖外参取决于任务：
 
@@ -637,7 +781,9 @@ Head RGB-D
 
 端到端 VLA 可以隐式学习视觉—动作映射，但准确、统一的几何关系通常有助于跨相机、跨机器人和跨场景迁移。
 
-## 11.3 强化学习与 Sim-to-Real
+<a id="course-section-40"></a>
+
+### 11.3 强化学习与 Sim-to-Real
 
 视觉策略可以写成
 
@@ -661,7 +807,9 @@ $$
 
 **随机化用于增强鲁棒性，不应替代尽可能准确的基础标定。**
 
-## 11.4 视觉闭环控制与时间同步
+<a id="course-section-41"></a>
+
+### 11.4 视觉闭环控制与时间同步
 
 对目标物体和当前物体位姿，可以构造 $SE(3)$ 位姿误差：
 
@@ -677,7 +825,9 @@ $$
 
 而不是随意使用当前最新机器人姿态。移动中的头部/腕部相机尤为如此。
 
-# 十二、标定精度与结果验证
+<a id="course-section-42"></a>
+
+## 十二、标定精度与结果验证
 
 必须同时评估图像层、几何层与任务层的质量。
 
@@ -687,7 +837,9 @@ $$
 | 几何层 | 平移残差、旋转角残差 | 检查外参与手眼约束 |
 | 任务层 | 三维定位误差、抓取成功率 | 检查整套机器人闭环系统 |
 
-## 12.1 重投影误差
+<a id="course-section-43"></a>
+
+### 12.1 重投影误差
 
 检测角点 $p_i$ 与投影预测 $\hat p_i$ 之间的欧氏误差为
 
@@ -703,7 +855,9 @@ $$
 
 图像里的像素误差不能直接等同于机器人末端的毫米级误差。
 
-## 12.2 三维定位误差
+<a id="course-section-44"></a>
+
+### 12.2 三维定位误差
 
 对真实位置已知的测试点 $p_B^*$，比较视觉估计 $\hat p_B$：
 
@@ -713,7 +867,9 @@ $$
 
 分别测试工作空间中心、边缘、不同高度、不同观察方向，以及不同 yaw/pitch 姿态。如果头部一转动误差就显著增大，应优先检查头部运动学、转轴位置、时间同步和相机安装变换。
 
-## 12.3 实际抓取测试
+<a id="course-section-45"></a>
+
+### 12.3 实际抓取测试
 
 还可以检查 TCP 的目标位置误差
 
@@ -724,7 +880,9 @@ $$
 
 及螺丝刀抓取成功率、重复性、目标姿态误差和扰动恢复能力。要注意这些指标还受到 FK、IK、执行器、TCP 几何和物体位姿估计的共同影响；抓取失败**不等于**相机标定失败。
 
-# 十三、常见问题与排查
+<a id="course-section-46"></a>
+
+## 十三、常见问题与排查
 
 | 现象 | 可能原因 | 排查方式 |
 |:--|:--|:--|
@@ -741,7 +899,9 @@ $$
 
 手眼采样的简单保守策略是：**运动到位 $\rightarrow$ 等待稳定 $\rightarrow$ 同时记录图像和对应机器人状态 $\rightarrow$ 保存样本**。这样可以减少运动模糊、时间偏移及末端弹性形变影响。
 
-# 十四、推荐开源工具与官方资料
+<a id="course-section-47"></a>
+
+## 十四、推荐开源工具与官方资料
 
 | 工具 | 主要功能 | 使用建议 |
 |:--|:--|:--|
@@ -755,11 +915,15 @@ $$
 
 对于只有头部和腕部两台相机的操作系统，不必一开始就引入复杂的相机–IMU 联合标定工具。优先把机器人 TF 链、PnP 和手眼标定做好。
 
-# 十五、针对 Tron2 + Revo3 的实施路线
+<a id="course-section-48"></a>
+
+## 十五、针对 Tron2 + Revo3 的实施路线
 
 建议分成四个阶段进行，避免一开始把所有误差来源混合在一起。
 
-## 阶段一：设备内参与深度检查
+<a id="course-section-49"></a>
+
+### 阶段一：设备内参与深度检查
 
 - 读取 RealSense RGB/Depth 内参和畸变；
 - 对腕部 RGB 图像进行必要的内参验证或重标定；
@@ -768,7 +932,9 @@ $$
 
 此阶段通常不需要机械臂运动。
 
-## 阶段二：头部相机几何标定
+<a id="course-section-50"></a>
+
+### 阶段二：头部相机几何标定
 
 目标：获得 ${}^B T_{C_h}(q_h)$。
 
@@ -781,7 +947,9 @@ $$
 
 若当前只使用一个头部角度，可先将云台固定并完成简化版标定。
 
-## 阶段三：腕部相机与 TCP
+<a id="course-section-51"></a>
+
+### 阶段三：腕部相机与 TCP
 
 目标：获得 ${}^G T_{C_w}$ 和 ${}^G T_{\mathrm{TCP}}$。
 
@@ -791,7 +959,9 @@ $$
 4. 用未见姿态验证固定目标板的一致性；
 5. 核对更换 Revo3 之后的工具坐标系和指尖几何。
 
-## 阶段四：视觉闭环与学习部署
+<a id="course-section-52"></a>
+
+### 阶段四：视觉闭环与学习部署
 
 统一数据流：
 
@@ -817,7 +987,9 @@ $$
 
 得到这三个结果后，再结合 FK、TF2 和时间同步，即可把头部感知、腕部视觉及抓取控制整合到统一坐标系统中。
 
-# 十六、总结与检查清单
+<a id="course-section-53"></a>
+
+## 十六、总结与检查清单
 
 | 核心问题 | 对应技术 | 机器人学习中的作用 |
 |:--|:--|:--|

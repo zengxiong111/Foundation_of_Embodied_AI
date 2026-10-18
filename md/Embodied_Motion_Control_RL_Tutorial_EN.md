@@ -6,14 +6,101 @@ date: "2026-10-15"
 lang: en-US
 ---
 
-> **Scope.** This tutorial focuses on **motion-control reinforcement learning (Motion Control RL)** in embodied AI. It emphasizes task categories, the practical roles of algorithms, environment design, training workflows, simulation-to-real transfer, and robot case studies. Equations are included where they clarify an implementation; detailed derivations of PPO and SAC are intentionally out of scope.
->
->
-> **Reading guide.** Chapters 1–3 cover tasks and algorithms. Chapters 4–5 explain how to train a controller. Chapters 6–7 focus on imitation and teacher–student learning. Chapters 8–10 present robot examples and sim-to-real transfer. Chapters 11–15 discuss evaluation, software, references, and research directions.
+# Reinforcement Learning for Motion Control in Embodied AI: A Complete Tutorial
 
-# Chapter 1: What Is Motion-Control Reinforcement Learning?
+<!-- course-meta:start -->
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Embodied_Motion_Control_RL_Tutorial_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Motion_Control_RL_Tutorial_EN.pdf)
 
-## 1.1 Where motion-control RL fits in an embodied system
+| Item | Details |
+|---|---|
+| Applicability | Isaac Lab / RSL-RL workflows are illustrative; task, trainer, asset and actuator versions must be bound together |
+| Documentation review date | 2026-10-18 |
+| License | CC BY 4.0 · Xiong Zeng and contributors |
+
+**Verification scope:** Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation. See [version notes](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.md) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
+<!-- course-meta:end -->
+
+<!-- course-toc:start -->
+## Contents
+
+- [Chapter 1: What Is Motion-Control Reinforcement Learning?](#course-section-01)
+  - [1.1 Where motion-control RL fits in an embodied system](#course-section-02)
+  - [1.2 Motion-control RL versus RL post-training of embodied foundation models](#course-section-03)
+- [Chapter 2: A Taxonomy of Motion-Control RL](#course-section-04)
+  - [2.1 Classification by robotic task](#course-section-05)
+  - [2.2 Classification by training strategy](#course-section-06)
+- [Chapter 3: Algorithms for Motion-Control RL](#course-section-07)
+  - [3.1 PPO: a standard baseline for large-scale simulation](#course-section-08)
+  - [3.2 SAC: improved reuse of interaction data](#course-section-09)
+  - [3.3 PPO versus SAC](#course-section-10)
+- [Chapter 4: Designing a Motion-Control RL Environment](#course-section-11)
+  - [4.1 Observation: what can the robot sense?](#course-section-12)
+  - [4.2 Action: what should RL output?](#course-section-13)
+  - [4.3 Reward: what behavior should the robot optimize?](#course-section-14)
+  - [4.4 Reset: which initial states should be sampled?](#course-section-15)
+- [Chapter 5: Training a Complete Motion Controller](#course-section-16)
+  - [5.1 The standard workflow](#course-section-17)
+  - [5.2 Step 1: build a robot simulation model](#course-section-18)
+  - [5.3 Step 2: choose control frequencies](#course-section-19)
+  - [5.4 Step 3: parallel training](#course-section-20)
+- [Chapter 6: Motion-Imitation Reinforcement Learning](#course-section-21)
+  - [6.1 The basic pipeline](#course-section-22)
+  - [6.2 Motion-tracking rewards](#course-section-23)
+  - [6.3 DeepMimic](#course-section-24)
+  - [6.4 AMP: Adversarial Motion Priors](#course-section-25)
+  - [6.5 Motion tracking versus AMP](#course-section-26)
+  - [6.6 From tracking one clip to universal control](#course-section-27)
+- [Chapter 7: Teacher–Student Reinforcement Learning](#course-section-28)
+  - [7.1 Why use teacher–student training?](#course-section-29)
+  - [7.2 Standard training procedure](#course-section-30)
+  - [7.3 Asymmetric actor–critic versus teacher–student](#course-section-31)
+  - [7.4 RMA: Rapid Motor Adaptation](#course-section-32)
+- [Chapter 8: Case Study I — Training Unitree G1 Walking with PPO](#course-section-33)
+  - [8.1 Task definition](#course-section-34)
+  - [8.2 Observation](#course-section-35)
+  - [8.3 Action](#course-section-36)
+  - [8.4 Reward components](#course-section-37)
+  - [8.5 Curriculum learning](#course-section-38)
+  - [8.6 Open-source starting point](#course-section-39)
+- [Chapter 9: Case Study II — Arm and Dexterous-Hand RL](#course-section-40)
+  - [9.1 Task definition](#course-section-41)
+  - [9.2 Recommended control architecture](#course-section-42)
+  - [9.3 Three training routes](#course-section-43)
+  - [9.4 Observation design](#course-section-44)
+  - [9.5 Reward design](#course-section-45)
+  - [9.6 Proposed training stages](#course-section-46)
+- [Chapter 10: Simulation-to-Real Transfer](#course-section-47)
+  - [10.1 Why simulation success does not ensure hardware success](#course-section-48)
+  - [10.2 Domain randomization](#course-section-49)
+  - [10.3 Sim-to-sim evaluation](#course-section-50)
+  - [10.4 Real-robot deployment checklist](#course-section-51)
+- [Chapter 11: Evaluating Motion-Control RL](#course-section-52)
+  - [11.1 Legged-robot metrics](#course-section-53)
+  - [11.2 Motion-tracking metrics](#course-section-54)
+  - [11.3 Dexterous-manipulation metrics](#course-section-55)
+- [Chapter 12: Open-Source Frameworks and Tools](#course-section-56)
+  - [12.1 Isaac Lab](#course-section-57)
+  - [12.2 RSL-RL](#course-section-58)
+  - [12.3 MuJoCo Playground](#course-section-59)
+  - [12.4 Which framework should you choose?](#course-section-60)
+- [Chapter 13: Representative Papers and Reading Order](#course-section-61)
+- [Chapter 14: Learning and Research Roadmap](#course-section-62)
+  - [Stage 1: basic motion-control RL](#course-section-63)
+  - [Stage 2: motion-tracking RL](#course-section-64)
+  - [Stage 3: teacher–student and sim-to-real](#course-section-65)
+  - [Stage 4: complex motion control](#course-section-66)
+  - [Stage 5: universal motion controllers](#course-section-67)
+- [Chapter 15: Summary and Main Takeaways](#course-section-68)
+- [References and Open-Source Links](#course-section-69)
+<!-- course-toc:end -->
+
+<a id="course-section-01"></a>
+
+## Chapter 1: What Is Motion-Control Reinforcement Learning?
+
+<a id="course-section-02"></a>
+
+### 1.1 Where motion-control RL fits in an embodied system
 
 A robotic system can be approximately organized into three levels:
 
@@ -57,7 +144,9 @@ where $o_t$ contains observations such as joint states, IMU readings, and vision
 
 Conventional controllers typically employ explicitly designed control laws, whereas motion-control RL learns a feedback policy from interactions with a dynamical system. These approaches are complementary: practical robotic systems often combine RL with PD, inverse kinematics (IK), model-predictive control (MPC), and whole-body control (WBC).
 
-## 1.2 Motion-control RL versus RL post-training of embodied foundation models
+<a id="course-section-03"></a>
+
+### 1.2 Motion-control RL versus RL post-training of embodied foundation models
 
 | Dimension | Motion-control RL | RL post-training for foundation policies |
 |---|---|---|
@@ -72,9 +161,13 @@ Conventional controllers typically employ explicitly designed control laws, wher
 
 For instance, training a Unitree G1 to walk under velocity commands is motion-control RL. Improving the grasping success rate of an already pretrained $\pi_{0.5}$ policy through RL is foundation-policy post-training. The boundary is not absolute: both may optimize the same robot actions for manipulation, but differ in architecture, initialization, and objectives.
 
-# Chapter 2: A Taxonomy of Motion-Control RL
+<a id="course-section-04"></a>
 
-## 2.1 Classification by robotic task
+## Chapter 2: A Taxonomy of Motion-Control RL
+
+<a id="course-section-05"></a>
+
+### 2.1 Classification by robotic task
 
 | Category | Typical tasks | Main challenges |
 |---|---|---|
@@ -87,7 +180,7 @@ For instance, training a Unitree G1 to walk under velocity commands is motion-co
 
 These categories overlap. A humanoid carrying a box may simultaneously require locomotion, whole-body coordination, and manipulation.
 
-### A. Legged locomotion
+#### A. Legged locomotion
 
 The objective is to move stably under a command. A common velocity command is
 
@@ -97,11 +190,11 @@ $$
 
 representing longitudinal, lateral, and yaw velocities. The policy outputs joint actions that track these commands. Quadruped and bipedal locomotion have developed relatively mature large-scale simulation workflows. A representative example is *Learning to Walk in Minutes Using Massively Parallel Deep Reinforcement Learning*, which trained and deployed an ANYmal controller using massively parallel simulation [1].
 
-### B. Agile locomotion
+#### B. Agile locomotion
 
 Agile locomotion includes jumping, stair climbing, obstacle crossing, running, fall recovery, and mid-air posture control. Compared with basic walking, the robot must exploit its dynamics and contact transitions. Climbing stairs, for example, requires coordinated foot clearance, landing timing, and center-of-mass transfer.
 
-### C. Whole-body motion tracking
+#### C. Whole-body motion tracking
 
 The robot is given a reference motion $q^{\mathrm{ref}}(t)$ and learns to track it while remaining dynamically feasible.
 
@@ -120,11 +213,11 @@ Human video / mocap -> Motion reconstruction -> Robot retargeting
 
 Representative approaches include DeepMimic, AMP, HOVER, and BeyondMimic. They explore reference imitation, motion-prior learning, multimodal whole-body control, and difficult humanoid motions [2][3][4].
 
-### D. Manipulation control
+#### D. Manipulation control
 
 The goal is to pick up, carry, insert, or otherwise manipulate objects. RL can output joint commands or end-effector pose increments; an IK, operational-space control (OSC), or joint controller may then convert these into actuator commands. Compared with locomotion, these tasks emphasize end-effector accuracy, interaction forces, task success, collision safety, and recovery.
 
-### E. Dexterous manipulation
+#### E. Dexterous manipulation
 
 A multi-fingered hand controls several contacts simultaneously:
 
@@ -134,11 +227,13 @@ $$
 
 Tasks include stable grasps, in-hand rotation, regrasping, tool use, and recovery after object slip. The primary difficulties are high-dimensional actions and complex finger–object contact dynamics.
 
-### F. Loco-manipulation
+#### F. Loco-manipulation
 
 Loco-manipulation combines moving the robot and interacting with objects. Examples include carrying while walking, using a hand for support during obstacle crossing, manipulating objects with both hands while moving, and opening a door. The objective shifts from isolated skills to coordinated whole-body behavior and contact planning.
 
-## 2.2 Classification by training strategy
+<a id="course-section-06"></a>
+
+### 2.2 Classification by training strategy
 
 | Strategy | Main idea | Suitable applications |
 |---|---|---|
@@ -151,9 +246,13 @@ Loco-manipulation combines moving the robot and interacting with objects. Exampl
 
 These strategies can be combined. For instance, train a privileged teacher with imitation-guided RL, distill its behavior into a student that only sees deployable sensors, and transfer that student to hardware.
 
-# Chapter 3: Algorithms for Motion-Control RL
+<a id="course-section-07"></a>
 
-## 3.1 PPO: a standard baseline for large-scale simulation
+## Chapter 3: Algorithms for Motion-Control RL
+
+<a id="course-section-08"></a>
+
+### 3.1 PPO: a standard baseline for large-scale simulation
 
 Proximal Policy Optimization (PPO) is an on-policy RL algorithm widely used for quadrupeds, bipeds, humanoid motion tracking, and dexterous manipulation. A typical loop is
 
@@ -177,7 +276,9 @@ PPO is particularly effective when coupled with GPU-parallel physics simulation.
 
 A widely used implementation is [RSL-RL](https://github.com/leggedrobotics/rsl_rl), which provides PPO, neural-network components, and training utilities aimed at robotic control [5].
 
-## 3.2 SAC: improved reuse of interaction data
+<a id="course-section-09"></a>
+
+### 3.2 SAC: improved reuse of interaction data
 
 Soft Actor-Critic (SAC) is an off-policy algorithm. A replay buffer stores past transitions so that they can contribute to multiple updates.
 
@@ -199,7 +300,9 @@ Update       Update
 
 Robot interaction may be expensive in the real world, making SAC's data reuse attractive. SAC is a useful candidate for continuous arm manipulation, online improvement with limited real-robot experience, dexterous hands, and residual control. However, PPO can be easier to engineer and scale in very high-throughput GPU simulation. Neither algorithm is universally superior; comparisons require matched environments and interaction budgets.
 
-## 3.3 PPO versus SAC
+<a id="course-section-10"></a>
+
+### 3.3 PPO versus SAC
 
 | Property | PPO | SAC |
 |---|---|---|
@@ -216,7 +319,9 @@ Robot interaction may be expensive in the real world, making SAC's data reuse at
 
 **Practical recommendation:** reproduce PPO first for simulation-based bipedal or quadrupedal control. Investigate SAC when limited physical interaction data and online adaptation are central. Use identical tasks, interaction counts, and evaluation protocols for comparisons.
 
-# Chapter 4: Designing a Motion-Control RL Environment
+<a id="course-section-11"></a>
+
+## Chapter 4: Designing a Motion-Control RL Environment
 
 The core of a training environment is
 
@@ -226,7 +331,9 @@ $$
 
 Goal-conditioned tasks also require a Command or Goal definition. In practice, environment design can matter more than minor changes to a PPO network.
 
-## 4.1 Observation: what can the robot sense?
+<a id="course-section-12"></a>
+
+### 4.1 Observation: what can the robot sense?
 
 | Observation | Meaning | Typical source |
 |---|---|---|
@@ -247,7 +354,7 @@ $$
 
 Always distinguish **states available in simulation** from **observations accessible on the deployed robot**. Base linear velocity, contacts, and exact object poses often require estimators on hardware.
 
-### Observation history
+#### Observation history
 
 Motion control is frequently partially observable. Current joint angles alone do not reveal a previous slip, an external push, or actuator delay. One solution is to use a history window:
 
@@ -257,7 +364,9 @@ $$
 
 An MLP, GRU, or Transformer can process this history and help the policy infer hidden dynamical and contact properties.
 
-## 4.2 Action: what should RL output?
+<a id="course-section-13"></a>
+
+### 4.2 Action: what should RL output?
 
 | Action space | Output | Typical characteristics |
 |---|---|---|
@@ -266,7 +375,7 @@ An MLP, GRU, or Transformer can process this history and help the policy infer h
 | Joint torque | Target joint torques | Direct control; harder training and safety challenges |
 | Cartesian action | End-effector pose or velocity | Often natural for robot arms |
 
-### A. Joint-position control
+#### A. Joint-position control
 
 A common parameterization is
 
@@ -289,11 +398,11 @@ $$
 
 This is a residual action around the reference. Using PD control relieves the learned policy from modeling every aspect of actuator control.
 
-### B. Joint-torque control
+#### B. Joint-torque control
 
 The policy directly predicts $\tau_t=\pi_\theta(o_t)$. This gives greater direct control authority, but current, torque, temperature, speed, and position constraints must be enforced explicitly.
 
-### C. Cartesian control
+#### C. Cartesian control
 
 For a robot arm, an action may be $a_t=[\Delta x,\Delta y,\Delta z,\Delta R]$. An IK or OSC module maps the Cartesian command into joint commands.
 
@@ -303,7 +412,7 @@ RL Policy -> End-effector increment / target -> IK / OSC -> Joints -> Arm
 
 The orientation increment $\Delta R$ can be represented using a rotation vector or another consistent parameterization. Isaac Lab offers several joint-space and Cartesian control interfaces [6].
 
-### Suggested starting points
+#### Suggested starting points
 
 | Robot | Initial action-space recommendation |
 |---|---|
@@ -315,7 +424,9 @@ The orientation increment $\Delta R$ can be represented using a rotation vector 
 
 A policy's output need not match the final actuator interface. For example, the policy may predict a Cartesian pose change, while the motor drivers execute joint-position commands.
 
-## 4.3 Reward: what behavior should the robot optimize?
+<a id="course-section-14"></a>
+
+### 4.3 Reward: what behavior should the robot optimize?
 
 A useful decomposition is
 
@@ -348,7 +459,9 @@ Actual tasks may add body-height, foot-slip, collision, joint-limit, energy, and
 
 **Principle:** rewards should capture both task accomplishment and safe, stable, deployable behavior.
 
-## 4.4 Reset: which initial states should be sampled?
+<a id="course-section-15"></a>
+
+### 4.4 Reset: which initial states should be sampled?
 
 Simple locomotion may start from a standing pose. Motion tracking and multistage manipulation should not always begin from one fixed state, or the policy may fail to recover when entering a task midway.
 
@@ -362,9 +475,13 @@ then initialize the robot near the corresponding reference state.
 
 **Event-biased RSI:** increase the sampling probability near takeoff, landing, contact switches, grasp initiation, or release. Ensure sampled states are physically and contact consistent; unrealistic resets can make learning harder rather than easier.
 
-# Chapter 5: Training a Complete Motion Controller
+<a id="course-section-16"></a>
 
-## 5.1 The standard workflow
+## Chapter 5: Training a Complete Motion Controller
+
+<a id="course-section-17"></a>
+
+### 5.1 The standard workflow
 
 ```text
 Robot model (URDF / MJCF / USD)
@@ -394,7 +511,9 @@ Domain Randomization / Curriculum
               Real robot
 ```
 
-## 5.2 Step 1: build a robot simulation model
+<a id="course-section-18"></a>
+
+### 5.2 Step 1: build a robot simulation model
 
 | Component | What must be modeled |
 |---|---|
@@ -407,7 +526,9 @@ Domain Randomization / Curriculum
 
 A URDF is not merely a visualization asset: it contains important dynamical information. However, the presence of a parameter in a file does not imply that it has been calibrated against the real robot.
 
-## 5.3 Step 2: choose control frequencies
+<a id="course-section-19"></a>
+
+### 5.3 Step 2: choose control frequencies
 
 The following values are illustrative rather than hardware-specific:
 
@@ -421,7 +542,9 @@ The following values are illustrative rather than hardware-specific:
 
 If $f_{\mathrm{sim}}=500\,\mathrm{Hz}$ and $f_{\mathrm{RL}}=50\,\mathrm{Hz}$, the simulator advances ten physics steps per policy action. This is called **action decimation**. The high-frequency control loop executes actions while RL updates its goals less often.
 
-## 5.4 Step 3: parallel training
+<a id="course-section-20"></a>
+
+### 5.4 Step 3: parallel training
 
 An **illustrative** PPO configuration for legged locomotion is
 
@@ -449,11 +572,15 @@ Observation
 
 Both actor and critic are updated during training; typical deployment runs the actor only.
 
-# Chapter 6: Motion-Imitation Reinforcement Learning
+<a id="course-section-21"></a>
+
+## Chapter 6: Motion-Imitation Reinforcement Learning
 
 Direct exploration can be difficult for jumping, dance, gymnastics, and high-dimensional dexterous motions. Reference motions provide useful guidance.
 
-## 6.1 The basic pipeline
+<a id="course-section-22"></a>
+
+### 6.1 The basic pipeline
 
 ```text
 Human motion / Teleoperation
@@ -476,7 +603,9 @@ Human motion / Teleoperation
 
 Reference data may originate from motion capture, human-video reconstruction, teleoperation, existing controllers, or motion planners.
 
-## 6.2 Motion-tracking rewards
+<a id="course-section-23"></a>
+
+### 6.2 Motion-tracking rewards
 
 For reference joint positions $q_t^{\mathrm{ref}}$, a simple reward is
 
@@ -486,7 +615,9 @@ $$
 
 Whole-body tasks may also track root position, root orientation, joint velocity, end-effector positions, and contact schedules. Similar joint angles alone do not guarantee a physically stable movement. The policy must balance **motion fidelity, dynamic feasibility, and stability**.
 
-## 6.3 DeepMimic
+<a id="course-section-24"></a>
+
+### 6.3 DeepMimic
 
 DeepMimic is a classic example of combining reference-motion imitation rewards with task rewards to train physical characters to perform complex actions [2].
 
@@ -498,11 +629,15 @@ Task specification -> Task reward ----+
 
 Project: https://xbpeng.github.io/projects/DeepMimic/
 
-## 6.4 AMP: Adversarial Motion Priors
+<a id="course-section-25"></a>
+
+### 6.4 AMP: Adversarial Motion Priors
 
 Conventional motion tracking follows a specified reference at each time step. Adversarial Motion Priors (AMP) instead train a discriminator to provide a motion-style reward from reference datasets. A policy can then accomplish its task while exhibiting motions consistent with that prior, such as a natural-looking gait, without strictly reproducing one reference frame by frame [3].
 
-## 6.5 Motion tracking versus AMP
+<a id="course-section-26"></a>
+
+### 6.5 Motion tracking versus AMP
 
 | Property | Motion-tracking RL | AMP |
 |---|---|---|
@@ -512,15 +647,21 @@ Conventional motion tracking follows a specified reference at each time step. Ad
 | Primary objective | Reproduce a target motion | Match a style / motion distribution |
 | Major challenge | Temporal alignment and stability | Discriminator training and reward balancing |
 
-## 6.6 From tracking one clip to universal control
+<a id="course-section-27"></a>
+
+### 6.6 From tracking one clip to universal control
 
 Projects such as HOVER investigate unifying multiple motion-command modes within a whole-body policy so that the controller is not restricted to reproducing a fixed sequence [4].
 
 **Trend:** single-motion tracking policy → multimode / universal motion controller.
 
-# Chapter 7: Teacher–Student Reinforcement Learning
+<a id="course-section-28"></a>
 
-## 7.1 Why use teacher–student training?
+## Chapter 7: Teacher–Student Reinforcement Learning
+
+<a id="course-section-29"></a>
+
+### 7.1 Why use teacher–student training?
 
 A simulator can expose exact object positions and velocities, contact forces, friction coefficients, and hidden dynamical parameters. These may be unavailable or noisy in a real robot. A policy that directly depends on them may fail to transfer.
 
@@ -540,7 +681,9 @@ object poses, contact forces, friction, dynamics
 Real observations (Camera / Encoder / IMU) -> Student policy
 ```
 
-## 7.2 Standard training procedure
+<a id="course-section-30"></a>
+
+### 7.2 Standard training procedure
 
 First train a teacher with privileged state information:
 
@@ -562,7 +705,9 @@ $$
 
 The student may use observation histories and learned state estimators to infer hidden properties. Practical distillation also needs to account for differences between the state distributions visited by teacher and student.
 
-## 7.3 Asymmetric actor–critic versus teacher–student
+<a id="course-section-31"></a>
+
+### 7.3 Asymmetric actor–critic versus teacher–student
 
 **Asymmetric actor–critic:** the actor uses only deployable observations from the start of training, while the critic can use privileged simulation information.
 
@@ -570,23 +715,33 @@ The student may use observation histories and learned state estimators to infer 
 
 The first is a **training architecture**; the second is a **policy-transfer procedure**. They can be combined. Isaac Lab and RSL-RL support relevant observation groups and training configurations [5][6].
 
-## 7.4 RMA: Rapid Motor Adaptation
+<a id="course-section-32"></a>
+
+### 7.4 RMA: Rapid Motor Adaptation
 
 Rapid Motor Adaptation (RMA) integrates a motor policy with a mechanism for adapting to unknown dynamics. Recent observation history provides information that helps the robot respond to changing terrain, friction, payload, and dynamics [7].
 
 Paper: https://arxiv.org/abs/2107.04034
 
-# Chapter 8: Case Study I — Training Unitree G1 Walking with PPO
+<a id="course-section-33"></a>
 
-## 8.1 Task definition
+## Chapter 8: Case Study I — Training Unitree G1 Walking with PPO
+
+<a id="course-section-34"></a>
+
+### 8.1 Task definition
 
 Train the G1 to move stably under $c_t=[v_x^{\mathrm{cmd}},v_y^{\mathrm{cmd}},\omega_z^{\mathrm{cmd}}]$, including forward/backward movement, lateral movement, and turning.
 
-## 8.2 Observation
+<a id="course-section-35"></a>
+
+### 8.2 Observation
 
 Start with proprioception: joint positions, joint velocities, base angular velocity, projected gravity, previous actions, and velocity commands. For stairs or uneven terrain, gradually add height scans, contact estimates, observation histories, and visual features.
 
-## 8.3 Action
+<a id="course-section-36"></a>
+
+### 8.3 Action
 
 Use joint-position targets:
 
@@ -596,7 +751,9 @@ $$
 
 executed by a low-level PD controller. This makes it easier to reuse existing hardware interfaces.
 
-## 8.4 Reward components
+<a id="course-section-37"></a>
+
+### 8.4 Reward components
 
 | Reward | Purpose |
 |---|---|
@@ -608,7 +765,9 @@ executed by a low-level PD controller. This makes it easier to reuse existing ha
 | Foot-slip penalty | Reduce foot sliding |
 | Termination penalty | Penalize falls and failures |
 
-## 8.5 Curriculum learning
+<a id="course-section-38"></a>
+
+### 8.5 Curriculum learning
 
 | Stage | Training condition | Goal |
 |---|---|---|
@@ -622,7 +781,9 @@ executed by a low-level PD controller. This makes it easier to reuse existing ha
 
 The command and terrain distributions can be expanded continuously. A separate controller need not be retrained from scratch for every stage.
 
-## 8.6 Open-source starting point
+<a id="course-section-39"></a>
+
+### 8.6 Open-source starting point
 
 [Unitree RL Lab](https://github.com/unitreerobotics/unitree_rl_lab) builds on Isaac Lab and includes training and deployment-related code for Unitree platforms [8]. The following commands are **illustrative for the repository interface**; verify the current tasks and dependencies in the checked-out version:
 
@@ -639,11 +800,15 @@ The command and terrain distributions can be expanded continuously. A separate c
 
 **First controlled study:** reproduce flat-ground walking, then ablate action smoothness, domain randomization, observation history, and the foot-slip penalty. Compare convergence, velocity tracking, and perturbation recovery.
 
-# Chapter 9: Case Study II — Arm and Dexterous-Hand RL
+<a id="course-section-40"></a>
+
+## Chapter 9: Case Study II — Arm and Dexterous-Hand RL
 
 Consider a **Tron2 arm, Revo3 dexterous hand, and screwdriver** to illustrate how locomotion-style RL environment design extends to contact-rich manipulation.
 
-## 9.1 Task definition
+<a id="course-section-41"></a>
+
+### 9.1 Task definition
 
 1. Pick up a screwdriver from multiple positions on a tabletop.
 2. Coordinate arm posture and finger contacts.
@@ -651,7 +816,9 @@ Consider a **Tron2 arm, Revo3 dexterous hand, and screwdriver** to illustrate ho
 4. Rotate it by a desired angle.
 5. Maintain or recover the grasp after disturbances.
 
-## 9.2 Recommended control architecture
+<a id="course-section-42"></a>
+
+### 9.2 Recommended control architecture
 
 ```text
 Object Pose / Goal Pose
@@ -676,7 +843,9 @@ Object Pose / Goal Pose
 
 It is reasonable to train independent arm and hand controllers first, then move toward a coupled policy.
 
-## 9.3 Three training routes
+<a id="course-section-43"></a>
+
+### 9.3 Three training routes
 
 **Route A: RL from scratch.** Define rewards for grasping, lifting, rotation, and success:
 
@@ -696,7 +865,9 @@ $$
 
 For example, the baseline could track an arm-end-effector trajectory while RL adjusts finger contacts; alternatively, RL can produce limited corrections for both arm and hand. Residual magnitudes, action rates, and contact forces must be constrained.
 
-## 9.4 Observation design
+<a id="course-section-44"></a>
+
+### 9.4 Observation design
 
 One possible observation vector is
 
@@ -707,7 +878,9 @@ $$
 
 Here $\hat T_{\mathrm{object}}$ is estimated from head- or wrist-mounted cameras. If object velocity is not directly observable, histories or a state estimator can help infer it. **Do not silently give the actor ground-truth object state that only exists in simulation.** The critic, however, may use privileged information.
 
-## 9.5 Reward design
+<a id="course-section-45"></a>
+
+### 9.5 Reward design
 
 | Reward | Role |
 |---|---|
@@ -722,7 +895,9 @@ Here $\hat T_{\mathrm{object}}$ is estimated from head- or wrist-mounted cameras
 
 A policy with only a terminal rotation-success reward may rarely discover useful grasps through random exploration. A curriculum and carefully chosen intermediate rewards often help.
 
-## 9.6 Proposed training stages
+<a id="course-section-46"></a>
+
+### 9.6 Proposed training stages
 
 | Stage | Task | Goal |
 |---|---|---|
@@ -737,9 +912,13 @@ A policy with only a terminal rotation-success reward may rarely discover useful
 
 When reference trajectories are available, Uniform RSI and Event-biased RSI can emphasize critical segments such as contact establishment, release, and object rotation.
 
-# Chapter 10: Simulation-to-Real Transfer
+<a id="course-section-47"></a>
 
-## 10.1 Why simulation success does not ensure hardware success
+## Chapter 10: Simulation-to-Real Transfer
+
+<a id="course-section-48"></a>
+
+### 10.1 Why simulation success does not ensure hardware success
 
 | Mismatch | Typical cause |
 |---|---|
@@ -754,7 +933,9 @@ When reference trajectories are available, Uniform RSI and Event-biased RSI can 
 
 For instance, a simulated motor may respond much faster than its physical counterpart; the resulting timing error can induce oscillations.
 
-## 10.2 Domain randomization
+<a id="course-section-49"></a>
+
+### 10.2 Domain randomization
 
 Randomize environment and dynamics parameters during training:
 
@@ -776,7 +957,9 @@ The vector $\xi$ may include link mass, center of mass, friction, motor strength
 
 Ranges should reflect calibration, hardware specifications, and physically plausible uncertainty. Wider randomization is not automatically better.
 
-## 10.3 Sim-to-sim evaluation
+<a id="course-section-50"></a>
+
+### 10.3 Sim-to-sim evaluation
 
 A policy trained in Isaac Lab can be tested in MuJoCo, or vice versa, to detect over-reliance on simulator-specific numerical behavior.
 
@@ -789,7 +972,9 @@ Isaac Lab Training -> Export Policy -> MuJoCo Evaluation
 
 If the controller behaves very differently between engines, inspect dynamics, contact, and action interfaces first. Passing sim-to-sim tests is additional evidence, not a guarantee of real-world safety.
 
-## 10.4 Real-robot deployment checklist
+<a id="course-section-51"></a>
+
+### 10.4 Real-robot deployment checklist
 
 - Match observation dimensions, ordering, and normalization to training.
 - Verify joint indexing, sign conventions, units, coordinate frames, and zero positions.
@@ -799,15 +984,19 @@ If the controller behaves very differently between engines, inspect dynamics, co
 - Use fall protection for bipeds; guard against excessive contact forces, jamming, and dropped objects for dexterous hands.
 - Begin with low-risk, small-amplitude tests before expanding the task envelope.
 
-### Advanced topic: learning the simulation–reality dynamics gap
+#### Advanced topic: learning the simulation–reality dynamics gap
 
 Work such as ASAP uses data from real robots to help align simulated and physical dynamics, thereby improving sim-to-real transfer of agile whole-body behavior [9].
 
-# Chapter 11: Evaluating Motion-Control RL
+<a id="course-section-52"></a>
+
+## Chapter 11: Evaluating Motion-Control RL
 
 An increasing training reward does not necessarily imply a better deployable controller. Use held-out conditions and independent task metrics.
 
-## 11.1 Legged-robot metrics
+<a id="course-section-53"></a>
+
+### 11.1 Legged-robot metrics
 
 | Metric | Meaning |
 |---|---|
@@ -820,7 +1009,9 @@ An increasing training reward does not necessarily imply a better deployable con
 | Recovery rate | Success after perturbations |
 | Generalization | Performance on unseen terrain or parameters |
 
-## 11.2 Motion-tracking metrics
+<a id="course-section-54"></a>
+
+### 11.2 Motion-tracking metrics
 
 | Metric | Meaning |
 |---|---|
@@ -832,7 +1023,9 @@ An increasing training reward does not necessarily imply a better deployable con
 | Motion completion rate | Fraction of completed motion clips |
 | Recovery rate | Robustness after disturbances |
 
-## 11.3 Dexterous-manipulation metrics
+<a id="course-section-55"></a>
+
+### 11.3 Dexterous-manipulation metrics
 
 | Metric | Meaning |
 |---|---|
@@ -847,7 +1040,9 @@ An increasing training reward does not necessarily imply a better deployable con
 
 **Fair comparison:** match the environment and task, the interaction budget, and test conditions; report multiple random seeds, unseen initial states, and metrics independent of the training reward. Keep training success, simulated generalization, and real-world performance separate.
 
-# Chapter 12: Open-Source Frameworks and Tools
+<a id="course-section-56"></a>
+
+## Chapter 12: Open-Source Frameworks and Tools
 
 | Framework | Main use | Recommendation |
 |---|---|---|
@@ -858,7 +1053,9 @@ An increasing training reward does not necessarily imply a better deployable con
 | legged_gym | Classic legged PPO codebase | Useful for foundations |
 | skrl | Multiple RL algorithms | Useful for comparisons |
 
-## 12.1 Isaac Lab
+<a id="course-section-57"></a>
+
+### 12.1 Isaac Lab
 
 Repository: https://github.com/isaac-sim/IsaacLab
 
@@ -875,19 +1072,25 @@ Isaac Lab covers legged locomotion, humanoid locomotion, manipulation, dexterous
 
 IDs may change between releases, so consult the task registry of the installed version.
 
-## 12.2 RSL-RL
+<a id="course-section-58"></a>
+
+### 12.2 RSL-RL
 
 Repository: https://github.com/leggedrobotics/rsl_rl
 
 A productive code-reading sequence is **Runner → PPO → Actor/Critic → Rollout Storage → Distillation**. For PPO research in motion control, this is a practical baseline implementation [5].
 
-## 12.3 MuJoCo Playground
+<a id="course-section-59"></a>
+
+### 12.3 MuJoCo Playground
 
 Repository: https://github.com/google-deepmind/mujoco_playground
 
 MuJoCo Playground provides GPU-accelerated learning tasks for quadrupeds, humanoids, dexterous hands, and robot arms. Some batched dynamics tasks can be more lightweight than running a full rendering-focused simulator, but performance depends on GPU, contact complexity, visual input, and the simulation backend [10].
 
-## 12.4 Which framework should you choose?
+<a id="course-section-60"></a>
+
+### 12.4 Which framework should you choose?
 
 | Research goal | Suggested starting point |
 |---|---|
@@ -900,7 +1103,9 @@ MuJoCo Playground provides GPU-accelerated learning tasks for quadrupeds, humano
 | Compare SAC and PPO | An RL stack supporting both methods |
 | Lightweight control experiments | MuJoCo Playground |
 
-# Chapter 13: Representative Papers and Reading Order
+<a id="course-section-61"></a>
+
+## Chapter 13: Representative Papers and Reading Order
 
 | Paper / project | Year | Core topic | What to learn |
 |---|---|---|---|
@@ -921,27 +1126,37 @@ Four particularly useful starting points are:
 3. **RMA:** privileged information, observation history, motor adaptation, and deployment [7].
 4. **HOVER:** whole-body control, multiple command modalities, tracking, and distillation [4].
 
-# Chapter 14: Learning and Research Roadmap
+<a id="course-section-62"></a>
 
-## Stage 1: basic motion-control RL
+## Chapter 14: Learning and Research Roadmap
+
+<a id="course-section-63"></a>
+
+### Stage 1: basic motion-control RL
 
 **Goal:** train a quadruped or biped to walk stably.
 
 Learn Isaac Lab, RSL-RL, PPO, observation/action/reward design, and domain randomization. First reproduce velocity tracking on a platform such as G1; then ablate reward terms and observations.
 
-## Stage 2: motion-tracking RL
+<a id="course-section-64"></a>
+
+### Stage 2: motion-tracking RL
 
 **Goal:** track a reference while maintaining dynamic feasibility and recovery ability.
 
 Study motion retargeting, tracking rewards, RSI, curricula, and residual RL. Start from one reference motion, then vary initial states and external disturbances.
 
-## Stage 3: teacher–student and sim-to-real
+<a id="course-section-65"></a>
+
+### Stage 3: teacher–student and sim-to-real
 
 **Goal:** eliminate dependence on simulator-only ground-truth state.
 
 Study asymmetric actor–critic, privileged information, distillation, observation histories, and domain randomization. Train a privileged teacher, transfer its behavior to a deployable student, and test the controller in another simulator.
 
-## Stage 4: complex motion control
+<a id="course-section-66"></a>
+
+### Stage 4: complex motion control
 
 | Direction | Example tasks |
 |---|---|
@@ -950,7 +1165,9 @@ Study asymmetric actor–critic, privileged information, distillation, observati
 
 Focus on contact dynamics, task curricula, strong robustness, and closed-loop hardware control.
 
-## Stage 5: universal motion controllers
+<a id="course-section-67"></a>
+
+### Stage 5: universal motion controllers
 
 Investigate a conditional policy that can handle multiple commands:
 
@@ -960,7 +1177,9 @@ $$
 
 The condition $c_t$ may encode desired velocity, target pose, a reference-motion segment, desired object motion, or skill identity. Related directions include goal-conditioned motion control, universal motion tracking, hierarchical motion policies, residual motor adaptation, and learning-based whole-body control.
 
-# Chapter 15: Summary and Main Takeaways
+<a id="course-section-68"></a>
+
+## Chapter 15: Summary and Main Takeaways
 
 Motion-control RL is best understood along three dimensions: **task category, training strategy, and engineering workflow**.
 
@@ -1001,7 +1220,9 @@ $$
 
 ---
 
-# References and Open-Source Links
+<a id="course-section-69"></a>
+
+## References and Open-Source Links
 
 The following links point primarily to papers, project pages, and official repositories. Confirm final bibliographic details and currently supported task IDs from the relevant publication and software release.
 

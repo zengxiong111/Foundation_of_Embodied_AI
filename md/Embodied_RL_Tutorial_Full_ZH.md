@@ -1,34 +1,54 @@
 # 具身智能中的强化学习教程：算法分类、任务分类与应用场景
 
-**Reinforcement Learning for Embodied AI: Algorithms, Applications, and Research Directions**
+<!-- course-meta:start -->
+[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Embodied_RL_Tutorial_Full_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_RL_Tutorial_Full_ZH.pdf)
 
-*2026 年 10 月 15 日*
+| 项目 | 说明 |
+|---|---|
+| 适用范围 | 算法与任务分类；不规定统一框架运行环境 |
+| 文档核验日期 | 2026-10-18 |
+| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
+**核验边界：** 文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。 版本与固定源码引用见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
+<!-- course-meta:end -->
+
+<!-- course-toc:start -->
 ## 目录
 
-1. [一、具身强化学习的总体分类](#一具身强化学习的总体分类)
-2. [二、按算法分类：PPO 与 SAC](#二按算法分类ppo-与-sac)
-3. [三、按任务分类：机器人运动控制强化学习](#三按任务分类机器人运动控制强化学习)
-4. [四、按任务分类：具身基础模型强化学习后训练](#四按任务分类具身基础模型强化学习后训练)
-5. [五、PPO、SAC 在两类任务中的具体用途](#五ppo-sac-在两类任务中的具体用途)
-6. [六、如何根据任务选择 RL 方法？](#六如何根据任务选择-rl-方法)
-7. [七、两个研究方向的典型实验路线](#七两个研究方向的典型实验路线)
-8. [八、最后总结](#八最后总结)
+- [一、具身强化学习的总体分类](#course-section-01)
+  - [1.1 分类框架](#course-section-02)
+  - [1.2 核心分类表](#course-section-03)
+- [二、按算法分类：PPO 与 SAC](#course-section-04)
+  - [2.1 On-policy RL：PPO](#course-section-05)
+  - [2.2 Off-policy RL：SAC](#course-section-06)
+  - [2.3 PPO 与 SAC 的比较](#course-section-07)
+- [三、按任务分类：机器人运动控制强化学习](#course-section-08)
+  - [3.1 Locomotion RL：机器人运动控制](#course-section-09)
+  - [3.2 Manipulation RL：机器人操作强化学习](#course-section-10)
+- [四、按任务分类：具身基础模型强化学习后训练](#course-section-11)
+  - [4.1 什么是具身基础模型 RL Post-training？](#course-section-12)
+  - [4.2 RL 后训练主要解决什么问题？](#course-section-13)
+  - [4.3 具身基础模型 RL 后训练的五类方法](#course-section-14)
+  - [4.4 五类方法的总结](#course-section-15)
+- [五、PPO、SAC 在两类任务中的具体用途](#course-section-16)
+  - [5.1 PPO + Locomotion](#course-section-17)
+  - [5.2 SAC + Manipulation](#course-section-18)
+  - [5.3 PPO 类方法 + VLA](#course-section-19)
+  - [5.4 SAC / Off-policy Critic 类方法 + VLA](#course-section-20)
+- [六、如何根据任务选择 RL 方法？](#course-section-21)
+- [七、两个研究方向的典型实验路线](#course-section-22)
+  - [7.1 机器人运控 RL](#course-section-23)
+  - [7.2 具身基础模型 RL 后训练](#course-section-24)
+- [八、最后总结](#course-section-25)
+<!-- course-toc:end -->
 
-本教程重点介绍具身智能中强化学习的**分类、用途、典型方法、适用场景及研究方向**，不涉及强化学习的数学基础和算法推导。
+<a id="course-section-01"></a>
 
-具身强化学习可以从两个主要维度进行分类：
+## 一、具身强化学习的总体分类
 
-- **按算法分类**：On-policy RL（以 PPO 为代表）和 Off-policy RL（以 SAC 为代表）。
-- **按任务分类**：机器人运动控制强化学习（Robot Control RL）和具身基础模型强化学习后训练（Foundation Model RL Post-training）。
+<a id="course-section-02"></a>
 
-这两个维度相互独立，可以组合形成不同的研究路线。
-
----
-
-# 一、具身强化学习的总体分类
-
-## 1.1 分类框架
+### 1.1 分类框架
 
 ```text
                 具身智能强化学习
@@ -54,7 +74,9 @@
 
 因此，**同一个操作任务可以属于传统机器人控制 RL，也可以属于具身基础模型 RL 后训练，关键取决于策略模型和训练目标。**
 
-## 1.2 核心分类表
+<a id="course-section-03"></a>
+
+### 1.2 核心分类表
 
 | 分类维度 | 类别 | 代表算法或方法 | 主要用途 |
 |---|---|---|---|
@@ -68,9 +90,13 @@
 
 ---
 
-# 二、按算法分类：PPO 与 SAC
+<a id="course-section-04"></a>
 
-## 2.1 On-policy RL：PPO
+## 二、按算法分类：PPO 与 SAC
+
+<a id="course-section-05"></a>
+
+### 2.1 On-policy RL：PPO
 
 **PPO（Proximal Policy Optimization）** 是机器人运控中广泛使用的强化学习算法。
 
@@ -82,7 +108,7 @@
 - 容易结合 GPU 大规模并行仿真；
 - 不适合长期重复使用大量旧数据。
 
-### PPO 主要用于哪些任务？
+#### PPO 主要用于哪些任务？
 
 | 应用 | 具体任务 |
 |---|---|
@@ -93,7 +119,7 @@
 | Sim-to-Real | 仿真训练控制策略并部署到真机 |
 | 生成式策略后训练 | DPPO 等针对 Diffusion Policy 的策略梯度方法 |
 
-### 为什么运控领域喜欢 PPO？
+#### 为什么运控领域喜欢 PPO？
 
 因为运控任务通常可以在 Isaac Lab 等仿真器中同时运行数千个机器人。
 
@@ -123,7 +149,9 @@
 
 Isaac Lab 官方文档也将 RSL-RL 作为新机器人 RL 项目的一种推荐起点。([Isaac Lab 文档](https://isaac-sim.github.io/IsaacLab/develop/source/concepts/reinforcement_learning.html))
 
-## 2.2 Off-policy RL：SAC
+<a id="course-section-06"></a>
+
+### 2.2 Off-policy RL：SAC
 
 **SAC（Soft Actor-Critic）** 是机器人连续控制中具有代表性的 Off-policy 算法。
 
@@ -136,7 +164,7 @@ Isaac Lab 官方文档也将 RSL-RL 作为新机器人 RL 项目的一种推荐�
 - 可以利用 Critic 指导动作选择；
 - 对 Critic 的学习质量比较敏感。
 
-### SAC 主要用于哪些任务？
+#### SAC 主要用于哪些任务？
 
 | 应用 | 具体任务 |
 |---|---|
@@ -147,7 +175,7 @@ Isaac Lab 官方文档也将 RSL-RL 作为新机器人 RL 项目的一种推荐�
 | Latent RL | 学习预训练生成策略的潜变量 |
 | 具身模型后训练 | 基于 Critic 的 Off-policy 策略优化 |
 
-### 为什么 SAC 适合真实机器人学习？
+#### 为什么 SAC 适合真实机器人学习？
 
 因为真实机器人交互比较昂贵。
 
@@ -165,7 +193,9 @@ SAC 可以通过 Replay Buffer 反复利用已有经验，因此常用于研究�
 
 但需要强调：**SAC 的样本效率优势并不意味着它在所有机器人任务上都比 PPO 更好。** 特别是在拥有大规模并行仿真资源时，PPO 可能获得更高的训练吞吐量。
 
-## 2.3 PPO 与 SAC 的比较
+<a id="course-section-07"></a>
+
+### 2.3 PPO 与 SAC 的比较
 
 | 维度 | PPO | SAC |
 |---|---|---|
@@ -180,7 +210,7 @@ SAC 可以通过 Replay Buffer 反复利用已有经验，因此常用于研究�
 | 典型任务 | Locomotion | Manipulation、Online RL |
 | 代表框架 | RSL-RL | Stable-Baselines3、其他 SAC 实现 |
 
-### 如何选择？
+#### 如何选择？
 
 **选择 PPO：**
 
@@ -194,7 +224,9 @@ SAC 可以通过 Replay Buffer 反复利用已有经验，因此常用于研究�
 
 ---
 
-# 三、按任务分类：机器人运动控制强化学习
+<a id="course-section-08"></a>
+
+## 三、按任务分类：机器人运动控制强化学习
 
 机器人运动控制强化学习主要目标是：
 
@@ -202,11 +234,13 @@ SAC 可以通过 Replay Buffer 反复利用已有经验，因此常用于研究�
 
 通常直接训练一个相对轻量的控制策略，并将其部署到机器人控制系统中。
 
-## 3.1 Locomotion RL：机器人运动控制
+<a id="course-section-09"></a>
+
+### 3.1 Locomotion RL：机器人运动控制
 
 Locomotion RL 主要针对机器人移动与全身运动能力。
 
-### 典型应用
+#### 典型应用
 
 | 方向 | 任务 | 主要用途 |
 |---|---|---|
@@ -217,7 +251,7 @@ Locomotion RL 主要针对机器人移动与全身运动能力。
 | Push Recovery | 外部推力扰动恢复 | 提高机器人稳定性 |
 | Terrain Adaptation | 斜坡、碎石、楼梯 | 复杂地形适应 |
 
-### 典型训练方式
+#### 典型训练方式
 
 ```text
 机器人模型
@@ -241,7 +275,7 @@ Sim-to-Real
 真实机器人部署
 ```
 
-### 这一方向主要研究什么？
+#### 这一方向主要研究什么？
 
 **1. 运动能力**
 
@@ -272,7 +306,7 @@ Sim-to-Real
 - Privileged Learning；
 - Online Adaptation。
 
-### 典型技术栈
+#### 典型技术栈
 
 | 模块 | 常见选择 |
 |---|---|
@@ -288,13 +322,15 @@ Sim-to-Real
 
 通常可以在仿真中从零训练，主要瓶颈是物理仿真、奖励设计、任务复杂度以及真实部署的鲁棒性。
 
-## 3.2 Manipulation RL：机器人操作强化学习
+<a id="course-section-10"></a>
+
+### 3.2 Manipulation RL：机器人操作强化学习
 
 Manipulation RL 主要针对机械臂和灵巧手操作。
 
 虽然它与 Locomotion RL 都属于机器人控制层面的强化学习，但操作任务经常涉及更复杂的接触动力学。
 
-### 典型应用
+#### 典型应用
 
 | 方向 | 任务 | 主要用途 |
 |---|---|---|
@@ -306,7 +342,7 @@ Manipulation RL 主要针对机械臂和灵巧手操作。
 | Contact-Rich Manipulation | 插孔、旋转、装配 | 精密接触操作 |
 | Bimanual Manipulation | 双臂协同 | 双手操作与装配 |
 
-### 与 Locomotion RL 的区别
+#### 与 Locomotion RL 的区别
 
 Locomotion 更多关注：
 
@@ -324,7 +360,7 @@ Manipulation 更多关注：
 - 手指协调；
 - 精密操作。
 
-### 使用 PPO 还是 SAC？
+#### 使用 PPO 还是 SAC？
 
 **PPO：**
 
@@ -338,7 +374,7 @@ Manipulation 更多关注：
 
 例如，在已有初始操作策略的基础上，通过少量真实交互逐步提高抓取成功率。
 
-### 重要区别
+#### 重要区别
 
 这里训练的可能仍然是传统低层控制策略：
 
@@ -356,9 +392,13 @@ Robot
 
 ---
 
-# 四、按任务分类：具身基础模型强化学习后训练
+<a id="course-section-11"></a>
 
-## 4.1 什么是具身基础模型 RL Post-training？
+## 四、按任务分类：具身基础模型强化学习后训练
+
+<a id="course-section-12"></a>
+
+### 4.1 什么是具身基础模型 RL Post-training？
 
 具身基础模型通常先利用大量演示数据进行预训练，再利用强化学习提高任务表现。
 
@@ -393,7 +433,9 @@ Robot
 
 强化学习的目标不再是从零学习基本动作，而是在已有能力基础上进一步提升性能。
 
-## 4.2 RL 后训练主要解决什么问题？
+<a id="course-section-13"></a>
+
+### 4.2 RL 后训练主要解决什么问题？
 
 | 问题 | RL 后训练的作用 |
 |---|---|
@@ -411,11 +453,13 @@ Robot
 
 我们希望通过强化学习，提高成功率、减少不必要的动作，并提高对初始姿态变化的鲁棒性。
 
-## 4.3 具身基础模型 RL 后训练的五类方法
+<a id="course-section-14"></a>
+
+### 4.3 具身基础模型 RL 后训练的五类方法
 
 按照**强化学习究竟更新模型的哪个部分**，可以分为五类。
 
-### 第一类：Full Policy Fine-tuning
+#### 第一类：Full Policy Fine-tuning
 
 **直接更新预训练生成策略。**
 
@@ -434,7 +478,7 @@ Robot
 
 局限是训练成本较高，并且需要防止破坏原有的预训练能力。
 
-### 第二类：Latent / Noise-Space RL
+#### 第二类：Latent / Noise-Space RL
 
 **冻结预训练模型，只优化其输入潜变量或噪声分布。**
 
@@ -459,7 +503,7 @@ DSRL 通过学习 Diffusion Policy 的初始噪声分布实现策略改进，而
 
 无法轻易突破冻结生成器本身的表达能力限制。
 
-### 第三类：Action Residual RL
+#### 第三类：Action Residual RL
 
 **在预训练策略输出的动作上增加 RL 修正。**
 
@@ -499,7 +543,7 @@ Residual Action ───► Add
 
 这类方法通常不需要重新训练基础 VLA。
 
-### 第四类：Feature / Token-Level RL
+#### 第四类：Feature / Token-Level RL
 
 **利用预训练 VLA 的内部特征，训练轻量 RL 模块。**
 
@@ -522,7 +566,7 @@ RL Token 通过预训练 VLA 提供紧凑的任务相关表示，并训练轻量
 
 这类方法适合希望保留基础模型表征、降低在线训练开销的场景。
 
-### 第五类：Velocity Field Fine-tuning
+#### 第五类：Velocity Field Fine-tuning
 
 **直接优化 Flow Matching Action Expert 的 Velocity Field。**
 
@@ -539,7 +583,9 @@ Q-VGM 使用 Critic 提供的价值梯度信号，通过局部 Velocity Matching
 
 这是一条与大型 Flow Matching VLA 后训练高度相关的研究路线。
 
-## 4.4 五类方法的总结
+<a id="course-section-15"></a>
+
+### 4.4 五类方法的总结
 
 | 方法 | 代表 | 更新内容 | 主要用途 |
 |---|---|---|---|
@@ -555,7 +601,9 @@ Q-VGM 使用 Critic 提供的价值梯度信号，通过局部 Velocity Matching
 
 ---
 
-# 五、PPO、SAC 在两类任务中的具体用途
+<a id="course-section-16"></a>
+
+## 五、PPO、SAC 在两类任务中的具体用途
 
 将两个分类维度组合，可以得到下面这张核心表。
 
@@ -564,7 +612,9 @@ Q-VGM 使用 Critic 提供的价值梯度信号，通过局部 Velocity Matching
 | **On-policy PPO** | 大规模仿真训练运控策略 | DPPO 等生成策略微调 |
 | **Off-policy SAC** | 灵巧操作、真实机器人在线学习 | DSRL 等基于 SAC 或 Off-policy Critic 的适配方法 |
 
-## 5.1 PPO + Locomotion
+<a id="course-section-17"></a>
+
+### 5.1 PPO + Locomotion
 
 **典型任务：**
 
@@ -578,7 +628,9 @@ Isaac Lab + RSL-RL + PPO。
 
 充分利用大规模仿真环境。
 
-## 5.2 SAC + Manipulation
+<a id="course-section-18"></a>
+
+### 5.2 SAC + Manipulation
 
 **典型任务：**
 
@@ -588,7 +640,9 @@ Isaac Lab + RSL-RL + PPO。
 
 复用 Replay Buffer 中的经验，减少获得新训练数据的需求。
 
-## 5.3 PPO 类方法 + VLA
+<a id="course-section-19"></a>
+
+### 5.3 PPO 类方法 + VLA
 
 **典型任务：**
 
@@ -598,7 +652,9 @@ Isaac Lab + RSL-RL + PPO。
 
 直接通过策略梯度改进生成策略。
 
-## 5.4 SAC / Off-policy Critic 类方法 + VLA
+<a id="course-section-20"></a>
+
+### 5.4 SAC / Off-policy Critic 类方法 + VLA
 
 **典型任务：**
 
@@ -614,7 +670,9 @@ OGPO 和 Q-VGM 都属于 Off-policy 生成策略优化路线，但并不等价�
 
 ---
 
-# 六、如何根据任务选择 RL 方法？
+<a id="course-section-21"></a>
+
+## 六、如何根据任务选择 RL 方法？
 
 下面给出实际项目中比较有用的选型参考。
 
@@ -634,9 +692,13 @@ OGPO 和 Q-VGM 都属于 Off-policy 生成策略优化路线，但并不等价�
 
 ---
 
-# 七、两个研究方向的典型实验路线
+<a id="course-section-22"></a>
 
-## 7.1 机器人运控 RL
+## 七、两个研究方向的典型实验路线
+
+<a id="course-section-23"></a>
+
+### 7.1 机器人运控 RL
 
 推荐路线：
 
@@ -670,7 +732,9 @@ Isaac Lab / MuJoCo
 
 [Isaac Lab](https://github.com/isaac-sim/IsaacLab) + [RSL-RL](https://github.com/leggedrobotics/rsl_rl)
 
-## 7.2 具身基础模型 RL 后训练
+<a id="course-section-24"></a>
+
+### 7.2 具身基础模型 RL 后训练
 
 推荐路线：
 
@@ -714,7 +778,9 @@ Isaac Lab / MuJoCo
 
 ---
 
-# 八、最后总结
+<a id="course-section-25"></a>
+
+## 八、最后总结
 
 对于具身智能中的强化学习，建议采用以下三层分类来理解整个领域。
 

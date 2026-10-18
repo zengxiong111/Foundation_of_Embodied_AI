@@ -1,37 +1,92 @@
 # ROS 2 for Robot Learning: A Complete Practical Tutorial
 
-**Robot Operating System for Robot Learning**  
-**Target stack: Ubuntu 24.04 + ROS 2 Jazzy + Python**  
-**Examples: Tron2 robot arm, BrainCo Revo3 dexterous hand, RGB-D cameras, PPO/SAC, and Sim2Real**  
-**Prepared: October 15, 2026**
+<!-- course-meta:start -->
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/ROS2_Robot_Learning_Tutorial_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/ROS2_Robot_Learning_Tutorial_EN.pdf)
 
-> **Audience and scope:** This tutorial is intended for researchers who already have some background in Python, control, or robot learning. It focuses on what ROS is for, how its major components fit together, and how to build practical workflows. Unless otherwise stated, node names, topic names, robot interfaces, and update rates are illustrative; check them against the actual hardware SDK and drivers.
+| Item | Details |
+|---|---|
+| Applicability | Ubuntu 24.04; ROS 2 Jazzy; Python examples |
+| Documentation review date | 2026-10-18 |
+| License | CC BY 4.0 · Xiong Zeng and contributors |
 
+**Verification scope:** Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation. See [version notes](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.md) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
+<!-- course-meta:end -->
+
+<!-- course-toc:start -->
 ## Contents
 
-1. What Is ROS, and Why Use It in Robot Learning?
-2. ROS 1 vs. ROS 2 and Choosing a Distribution
-3. Core ROS 2 Concepts
-4. Installing ROS 2 Jazzy on Ubuntu 24.04
-5. Hands-on: Writing a Robot Learning Policy Node in Python
-6. Recording Robot Learning Data with ROS 2
-7. URDF, TF2, RViz, and ros2_control
-8. Connecting ROS to Isaac Lab / MuJoCo RL
-9. A Tron2 + Revo3 Dexterous Manipulation Architecture
-10. Common ROS Issues in Robot Learning
-11. A Recommended Learning Path
-12. Summary and Practical Recommendations
-13. Official Documentation and References
+- [1. What Is ROS, and Why Use It in Robot Learning?](#course-section-01)
+  - [1.1 Definition of ROS](#course-section-02)
+  - [1.2 A typical robot learning system](#course-section-03)
+  - [1.3 Is ROS always required for robot learning?](#course-section-04)
+- [2. ROS 1 vs. ROS 2 and Choosing a Distribution](#course-section-05)
+  - [2.1 Main architectural differences](#course-section-06)
+  - [2.2 Which ROS distribution should you use in 2026?](#course-section-07)
+- [3. Core ROS 2 Concepts](#course-section-08)
+  - [3.1 Node](#course-section-09)
+  - [3.2 Topic: publish / subscribe](#course-section-10)
+  - [3.3 Message: data schema](#course-section-11)
+  - [3.4 Service: request / response](#course-section-12)
+  - [3.5 Action: longer operations with progress feedback](#course-section-13)
+  - [3.6 Parameter: node configuration](#course-section-14)
+  - [3.7 TF2: coordinate-frame management](#course-section-15)
+  - [3.8 QoS: Quality of Service](#course-section-16)
+- [4. Installing ROS 2 Jazzy on Ubuntu 24.04](#course-section-17)
+  - [4.1 Check your system and configure repositories](#course-section-18)
+  - [4.2 Install ROS 2 and developer tools](#course-section-19)
+  - [4.3 Source the environment and verify](#course-section-20)
+  - [4.4 First communication test](#course-section-21)
+  - [4.5 Essential command-line tools](#course-section-22)
+- [5. Hands-on: Writing a Robot Learning Policy Node in Python](#course-section-23)
+  - [5.1 Create a workspace](#course-section-24)
+  - [5.2 Create a Python package](#course-section-25)
+  - [5.3 Implement the policy node](#course-section-26)
+  - [5.4 Declare dependencies and entry point](#course-section-27)
+  - [5.5 Build and run](#course-section-28)
+  - [5.6 Publish simulated state and inspect output](#course-section-29)
+  - [5.7 Replace the toy mapping with a PPO / SAC policy](#course-section-30)
+- [6. Recording Robot Learning Data with ROS 2](#course-section-31)
+  - [6.1 Teleoperation data collection architecture](#course-section-32)
+  - [6.2 What is rosbag2?](#course-section-33)
+  - [6.3 Record and replay a session](#course-section-34)
+  - [6.4 What should a robot learning dataset contain?](#course-section-35)
+  - [6.5 Time alignment and dataset conversion](#course-section-36)
+- [7. URDF, TF2, RViz, and ros2_control](#course-section-37)
+  - [7.1 URDF: robot model description](#course-section-38)
+  - [7.2 Relationship between URDF and TF2](#course-section-39)
+  - [7.3 RViz 2: visualization](#course-section-40)
+  - [7.4 ros2_control: connecting commands to hardware](#course-section-41)
+- [8. Connecting ROS to Isaac Lab / MuJoCo RL](#course-section-42)
+  - [8.1 Simulated training usually needs no ROS](#course-section-43)
+  - [8.2 Real-world deployment needs integration](#course-section-44)
+  - [8.3 Consistent semantics matter more than transport](#course-section-45)
+  - [8.4 Frequency and latency](#course-section-46)
+- [9. A Tron2 + Revo3 Dexterous Manipulation Architecture](#course-section-47)
+  - [9.1 Suggested ROS node architecture](#course-section-48)
+  - [9.2 Suggested workspace layout](#course-section-49)
+  - [9.3 Splitting arm and hand actions](#course-section-50)
+  - [9.4 Integrating FoundationPose](#course-section-51)
+- [10. Common ROS Issues in Robot Learning](#course-section-52)
+  - [10.1 ROS 2 and Conda environments](#course-section-53)
+  - [10.2 Safety boundary for real hardware](#course-section-54)
+- [11. A Recommended Learning Path](#course-section-55)
+- [12. Summary and Practical Recommendations](#course-section-56)
+- [13. Official Documentation and References](#course-section-57)
+<!-- course-toc:end -->
 
----
+<a id="course-section-01"></a>
 
 ## 1. What Is ROS, and Why Use It in Robot Learning?
+
+<a id="course-section-02"></a>
 
 ### 1.1 Definition of ROS
 
 Despite its name, the Robot Operating System (ROS) is not an operating system in the sense of Ubuntu or Windows. It is a robotics software framework and ecosystem. Its central role is to allow separate robot software components to communicate, share information, and work together.
 
 A robot may have cameras, a manipulator, a dexterous hand, an object pose estimator, a neural policy, and low-level controllers. The components can be written in different languages, run in different processes, or even live on different computers. ROS supplies a common messaging, communication, and tooling layer.
+
+<a id="course-section-03"></a>
 
 ### 1.2 A typical robot learning system
 
@@ -81,6 +136,8 @@ The surrounding software systems have different responsibilities:
 
 **The essential distinction is that ROS handles integration and communication, learning frameworks handle training and inference, and controllers execute the resulting commands.** They complement rather than replace one another.
 
+<a id="course-section-04"></a>
+
 ### 1.3 Is ROS always required for robot learning?
 
 No. If a task only involves Python and a physics simulator, ROS may be unnecessary.
@@ -100,7 +157,11 @@ No. If a task only involves Python and a physics simulator, ROS may be unnecessa
 
 ---
 
+<a id="course-section-05"></a>
+
 ## 2. ROS 1 vs. ROS 2 and Choosing a Distribution
+
+<a id="course-section-06"></a>
 
 ### 2.1 Main architectural differences
 
@@ -119,6 +180,8 @@ ROS 1 is the earlier ecosystem. ROS 2 was redesigned for contemporary robotics a
 
 Importantly, ROS 2 does **not** automatically make an application hard real-time. Determinism still depends on the OS, scheduling, hardware drivers, and system design.
 
+<a id="course-section-07"></a>
+
 ### 2.2 Which ROS distribution should you use in 2026?
 
 As of **October 2026**, ROS 2 **Lyrical Luth** has been released (May 22, 2026). The correct distribution nevertheless depends on the installed Ubuntu release and vendor-driver compatibility.
@@ -133,7 +196,11 @@ As of **October 2026**, ROS 2 **Lyrical Luth** has been released (May 22, 2026).
 
 ---
 
+<a id="course-section-08"></a>
+
 ## 3. Core ROS 2 Concepts
+
+<a id="course-section-09"></a>
 
 ### 3.1 Node
 
@@ -149,6 +216,8 @@ ROS 2 System
 ```
 
 The separation allows a perception component such as FoundationPose to be updated without rewriting the arm driver.
+
+<a id="course-section-10"></a>
 
 ### 3.2 Topic: publish / subscribe
 
@@ -170,6 +239,8 @@ The publisher does not need to know its subscribers, and multiple subscribers ma
 | `/tf`, `/tf_static` | Dynamic and static transforms |
 
 **The main role of topics in robot learning is to carry data among perception, observation construction, the policy, and the controller.** Actual topic names depend on the driver and namespace.
+
+<a id="course-section-11"></a>
 
 ### 3.3 Message: data schema
 
@@ -199,6 +270,8 @@ effort       # Joint torques or forces
 
 Whether Revo3 exposes this standard message and the correct joint ordering depends on the actual driver or adapter. **Never assume that array indices have the same joint meaning across devices.**
 
+<a id="course-section-12"></a>
+
 ### 3.4 Service: request / response
 
 A Service is useful for one-off operations that should return a response:
@@ -209,6 +282,8 @@ policy_node <--Reset Result----- reset_server
 ```
 
 Typical uses include resetting a robot, querying device information, switching modes, or starting calibration. A service resembles a remote function call, but can still fail or time out.
+
+<a id="course-section-13"></a>
 
 ### 3.5 Action: longer operations with progress feedback
 
@@ -221,6 +296,8 @@ An Action supports the workflow "submit goal -> receive progress -> get result".
 | Action | Long operation with feedback and result | Execute a grasp or trajectory |
 
 For periodic closed-loop commands at, say, 50 Hz, one normally uses a topic or a direct in-process interface rather than creating a new Action every control tick.
+
+<a id="course-section-14"></a>
 
 ### 3.6 Parameter: node configuration
 
@@ -236,6 +313,8 @@ policy_node:
 ```
 
 Common settings include control frequency, camera names, model paths, reference frames, action scaling, and joint limits.
+
+<a id="course-section-15"></a>
 
 ### 3.7 TF2: coordinate-frame management
 
@@ -260,6 +339,8 @@ Here `B` means robot base, `C` means camera, and `O` means object. TF2 stores an
 
 **TF2 does not calibrate a camera for you.** The extrinsic transform `T(B,C)` must first come from URDF geometry, hand-eye calibration, or another valid calibration procedure. This is especially relevant when working with Tron2 head/wrist cameras and the offsets among yaw/pitch joints.
 
+<a id="course-section-16"></a>
+
 ### 3.8 QoS: Quality of Service
 
 QoS controls message delivery behavior:
@@ -275,9 +356,13 @@ Camera streams often use `Best Effort` to avoid retransmitting stale frames. Som
 
 ---
 
+<a id="course-section-17"></a>
+
 ## 4. Installing ROS 2 Jazzy on Ubuntu 24.04
 
 The commands below follow the official **Jazzy Ubuntu Debian package instructions**. Installation requires network access and administrator privileges. First check that another ROS installation will not conflict.
+
+<a id="course-section-18"></a>
 
 ### 4.1 Check your system and configure repositories
 
@@ -307,6 +392,8 @@ sudo locale-gen en_US en_US.UTF-8
 sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 ```
 
+<a id="course-section-19"></a>
+
 ### 4.2 Install ROS 2 and developer tools
 
 ```bash
@@ -315,6 +402,8 @@ sudo apt install ros-jazzy-desktop ros-dev-tools
 ```
 
 `ros-jazzy-desktop` includes RViz, demos, and common tools. For a non-GUI installation, `ros-jazzy-ros-base` is a smaller alternative.
+
+<a id="course-section-20"></a>
 
 ### 4.3 Source the environment and verify
 
@@ -330,6 +419,8 @@ echo 'source /opt/ros/jazzy/setup.bash' >> ~/.bashrc
 ```
 
 Avoid unintentionally sourcing multiple ROS distributions in the same shell.
+
+<a id="course-section-21"></a>
 
 ### 4.4 First communication test
 
@@ -348,6 +439,8 @@ ros2 run demo_nodes_py listener
 ```
 
 Expected output includes messages similar to `Publishing: Hello World` and `I heard: Hello World`, verifying Python/C++ interoperability.
+
+<a id="course-section-22"></a>
 
 ### 4.5 Essential command-line tools
 
@@ -370,6 +463,8 @@ The node/topic/frame names are examples. During real-robot debugging, `ros2 topi
 
 ---
 
+<a id="course-section-23"></a>
+
 ## 5. Hands-on: Writing a Robot Learning Policy Node in Python
 
 We will build a minimal reproducible pipeline that **does not command any real motors**:
@@ -383,6 +478,8 @@ We will build a minimal reproducible pipeline that **does not command any real m
        v
 /demo/policy_target
 ```
+
+<a id="course-section-24"></a>
 
 ### 5.1 Create a workspace
 
@@ -400,6 +497,8 @@ ros2_ws/
 |-- install/  # Installed packages (generated)
 `-- log/      # Build logs (generated)
 ```
+
+<a id="course-section-25"></a>
 
 ### 5.2 Create a Python package
 
@@ -426,6 +525,8 @@ robot_learning_demo/
 ```
 
 `package.xml` declares dependencies; `setup.py` defines Python installation and executable entry points; `demo_policy.py` contains the policy node.
+
+<a id="course-section-26"></a>
 
 ### 5.3 Implement the policy node
 
@@ -486,6 +587,8 @@ if __name__ == "__main__":
 
 The demonstration mapping is `a_t = 0.5 q_t`. It illustrates how observations become actions; it is **not** a trained or safe robot control policy. `Float64MultiArray` is chosen for simplicity; actual systems must define joint ordering, units, command semantics, limits, and timeout handling.
 
+<a id="course-section-27"></a>
+
 ### 5.4 Declare dependencies and entry point
 
 Add these dependencies to `package.xml` (do not duplicate existing entries):
@@ -502,6 +605,8 @@ Check that `setup.py` includes the following `console_scripts` entry:
 'demo_policy = robot_learning_demo.demo_policy:main'
 ```
 
+<a id="course-section-28"></a>
+
 ### 5.5 Build and run
 
 ```bash
@@ -512,6 +617,8 @@ ros2 run robot_learning_demo demo_policy
 ```
 
 The node now waits for state messages. Ensure Jazzy is sourced before building with `colcon`.
+
+<a id="course-section-29"></a>
 
 ### 5.6 Publish simulated state and inspect output
 
@@ -546,6 +653,8 @@ data:
 ```
 
 You have completed the minimal pipeline: publish state -> subscribe -> compute an action -> publish the action.
+
+<a id="course-section-30"></a>
 
 ### 5.7 Replace the toy mapping with a PPO / SAC policy
 
@@ -584,7 +693,11 @@ Sensor Callback -> Observation Buffer
 
 ---
 
+<a id="course-section-31"></a>
+
 ## 6. Recording Robot Learning Data with ROS 2
+
+<a id="course-section-32"></a>
 
 ### 6.1 Teleoperation data collection architecture
 
@@ -617,9 +730,13 @@ Human Operator / PICO / Glove
     BC / Diffusion Policy / VLA
 ```
 
+<a id="course-section-33"></a>
+
 ### 6.2 What is rosbag2?
 
 rosbag2 is the ROS 2 tool for recording and replaying topic messages and related metadata. Common storage backends include SQLite3 and MCAP. It is useful for reproducing data collection sessions and diagnosing sensing or algorithm behavior.
+
+<a id="course-section-34"></a>
 
 ### 6.3 Record and replay a session
 
@@ -653,6 +770,8 @@ ros2 bag play demo_001
 
 **Safety warning:** Replaying a bag can republish control topics if those topics were recorded. Isolate the real hardware control interface or disconnect actuation before replaying such commands.
 
+<a id="course-section-35"></a>
+
 ### 6.4 What should a robot learning dataset contain?
 
 An imitation learning dataset can be written as:
@@ -677,6 +796,8 @@ A crucial distinction is:
 - **Executed state:** What onboard sensors indicate the robot actually did.
 
 They may differ due to delays, saturation, controller limits, or contact and must not be treated as interchangeable.
+
+<a id="course-section-36"></a>
 
 ### 6.5 Time alignment and dataset conversion
 
@@ -717,7 +838,11 @@ Choose a reference timeline, interpolate states, match image frames, or construc
 
 ---
 
+<a id="course-section-37"></a>
+
 ## 7. URDF, TF2, RViz, and ros2_control
+
+<a id="course-section-38"></a>
 
 ### 7.1 URDF: robot model description
 
@@ -746,6 +871,8 @@ Common XML elements include:
 
 URDF provides structure for visualization, kinematics, and conversion into simulation models, although simulation imports may need extra parameters and format conversion.
 
+<a id="course-section-39"></a>
+
 ### 7.2 Relationship between URDF and TF2
 
 **URDF describes structure; TF2 manages coordinate transforms over time.**
@@ -765,6 +892,8 @@ robot_state_publisher <- /joint_states
 
 For Tron2, this helps inspect the end effector, Revo3 hand base, head camera, and wrist camera. Incorrect URDF extrinsics will not be corrected by TF2 automatically.
 
+<a id="course-section-40"></a>
+
 ### 7.3 RViz 2: visualization
 
 Start RViz:
@@ -774,6 +903,8 @@ rviz2
 ```
 
 RViz can display the robot model, TF tree, camera images, point clouds, joint state, pose markers, and trajectories. With FoundationPose, it is useful for checking where the estimated object pose lies relative to the robot base.
+
+<a id="course-section-41"></a>
 
 ### 7.4 ros2_control: connecting commands to hardware
 
@@ -820,7 +951,11 @@ ros2 control list_controllers
 
 ---
 
+<a id="course-section-42"></a>
+
 ## 8. Connecting ROS to Isaac Lab / MuJoCo RL
+
+<a id="course-section-43"></a>
 
 ### 8.1 Simulated training usually needs no ROS
 
@@ -834,6 +969,8 @@ for step in range(num_steps):
 ```
 
 This is conceptual pseudocode, not an exact API signature for every Gymnasium or Isaac Lab version. GPU-parallel environments require high throughput; using a ROS topic at every simulation step usually adds unnecessary serialization and scheduling costs.
+
+<a id="course-section-44"></a>
 
 ### 8.2 Real-world deployment needs integration
 
@@ -872,6 +1009,8 @@ Object Pose ---+                                |
                                             Real Robot
 ```
 
+<a id="course-section-45"></a>
+
 ### 8.3 Consistent semantics matter more than transport
 
 | Item | Training | Real-robot requirement |
@@ -884,6 +1023,8 @@ Object Pose ---+                                |
 | Frames | Simulation world/base | Define corresponding real-world frames |
 
 ROS standardizes communication but does not automatically fix joint ordering, camera calibration, normalization, dynamics mismatch, or latency.
+
+<a id="course-section-46"></a>
 
 ### 8.4 Frequency and latency
 
@@ -899,9 +1040,13 @@ Python ROS 2 nodes do not automatically provide hard real-time execution. For ro
 
 ---
 
+<a id="course-section-47"></a>
+
 ## 9. A Tron2 + Revo3 Dexterous Manipulation Architecture
 
 Target task: **pick a screwdriver up from a table, carry it to a specified location, and rotate it.** The proposed system contains Tron2, BrainCo Revo3, a head RGB-D camera, a wrist RGB camera, FoundationPose, and a PPO/SAC policy.
+
+<a id="course-section-48"></a>
 
 ### 9.1 Suggested ROS node architecture
 
@@ -934,6 +1079,8 @@ Target task: **pick a screwdriver up from a table, carry it to a specified locat
                           Tron2 + Revo3
 ```
 
+<a id="course-section-49"></a>
+
 ### 9.2 Suggested workspace layout
 
 ```text
@@ -952,6 +1099,8 @@ robot_learning_ws/
 ```
 
 This is a proposed engineering layout, **not** a claim that the vendors distribute packages with these names. If a vendor only provides a Python/C++ SDK, wrap it in a ROS driver or adapter.
+
+<a id="course-section-50"></a>
 
 ### 9.3 Splitting arm and hand actions
 
@@ -974,6 +1123,8 @@ Here the arm action dimension is `n_a`, and the hand action dimension is `n_h`. 
 ```
 
 The design could use separate topics for the two subsystems or a unified Robot Action message with a dispatcher. Either approach must specify time alignment, joint ordering, command semantics, and failure handling across the arm and hand.
+
+<a id="course-section-51"></a>
 
 ### 9.4 Integrating FoundationPose
 
@@ -1000,6 +1151,8 @@ The pose estimation node can be developed independently of the controller, provi
 
 ---
 
+<a id="course-section-52"></a>
+
 ## 10. Common ROS Issues in Robot Learning
 
 | Symptom | Possible cause | What to check |
@@ -1013,6 +1166,8 @@ The pose estimation node can be developed independently of the controller, provi
 | ROS conflicts with Conda | System Python vs. Conda ABI/dependency mismatch | Compatible environment or separate processes |
 | Bag recordings are huge | Multiple high-bandwidth RGB-D streams | Compression, MCAP/storage settings, splitting |
 | RViz robot model is wrong | URDF, JointState, or TF inconsistency | Inspect Robot Model and TF step by step |
+
+<a id="course-section-53"></a>
 
 ### 10.1 ROS 2 and Conda environments
 
@@ -1035,11 +1190,15 @@ PyTorch Inference Process
 
 Processes can communicate through ROS topics, dedicated IPC, or shared memory, rather than requiring every dependency in the same Python environment.
 
+<a id="course-section-54"></a>
+
 ### 10.2 Safety boundary for real hardware
 
 A learned policy output is not a trusted low-level motor command. Real deployments need joint limits, velocity/acceleration bounds, command timeouts, stopping and emergency-stop mechanisms, disconnection fallback behavior, and initial testing at low speed without payload or contact. ROS is not a replacement for a hardware safety system.
 
 ---
+
+<a id="course-section-55"></a>
 
 ## 11. A Recommended Learning Path
 
@@ -1056,6 +1215,8 @@ A learned policy output is not a trusted low-level motor command. Real deploymen
 For researchers already comfortable with Python, control, and robot learning, the most efficient path is to learn what is needed for **data collection -> policy deployment -> reproducible experiments**, rather than covering every ROS subsystem in isolation.
 
 ---
+
+<a id="course-section-56"></a>
 
 ## 12. Summary and Practical Recommendations
 
@@ -1078,6 +1239,8 @@ For a **Tron2 + Revo3** research platform, prioritize five skills:
 **The goal is not to put more ROS into training. It is to build an observable, reproducible, maintainable sensor -> policy -> controller -> robot pipeline.**
 
 ---
+
+<a id="course-section-57"></a>
 
 ## 13. Official Documentation and References
 

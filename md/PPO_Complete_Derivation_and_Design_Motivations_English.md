@@ -6,17 +6,80 @@ date: "October 15, 2026"
 lang: en-US
 ---
 
-> **Learning objective.** Understand not just the PPO loss, but why every component was introduced. This tutorial develops the mathematics step by step, provides numerical examples, addresses implementation pitfalls, and connects PPO to continuous robot control and residual reinforcement learning.
+# PPO: A Complete Derivation and Its Design Motivations
 
-**Central idea:** Increase the probability of advantageous actions and decrease the probability of disadvantageous actions, without changing the policy so aggressively that an improvement estimate constructed from old-policy data becomes unreliable.
+<!-- course-meta:start -->
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/PPO_%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC%E4%B8%8E%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA_%E4%B8%AD%E6%96%87.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_EN.pdf)
 
-**Roadmap:** Expected return $\rightarrow$ Policy gradient $\rightarrow$ Baselines and advantage $\rightarrow$ Performance differences and importance sampling $\rightarrow$ TRPO $\rightarrow$ PPO-Clip $\rightarrow$ GAE $\rightarrow$ Complete actor–critic objective $\rightarrow$ Continuous control and implementation.
+| Item | Details |
+|---|---|
+| Applicability | PPO-Clip / GAE theory; PyTorch-style examples are instructional, not a tested training package |
+| Documentation review date | 2026-10-18 |
+| License | CC BY 4.0 · Xiong Zeng and contributors |
 
-> **Notation.** We mainly consider a discounted infinite-horizon MDP with $\gamma\in[0,1)$, and $J(\theta)$ is the discounted return from the initial-state distribution. We explicitly distinguish the rigorous discounted-state-occupancy formulation from the time-step averages commonly used in PPO implementations. Within each PPO optimization phase, the advantage estimates $\hat A_t$ are held fixed after being computed from an old-policy rollout.
+**Verification scope:** Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation. See [version notes](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.md) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
+<!-- course-meta:end -->
 
-# Part I. From Expected Return to Policy Gradients
+<!-- course-toc:start -->
+## Contents
 
-## 1. Formulating the reinforcement-learning objective
+- [Part I. From Expected Return to Policy Gradients](#course-section-01)
+  - [1. Formulating the reinforcement-learning objective](#course-section-02)
+  - [2. Deriving policy gradients using the log-derivative trick](#course-section-03)
+  - [3. Causality and reward-to-go](#course-section-04)
+- [Part II. Baselines, Value Functions, and Advantage](#course-section-05)
+  - [4. Why can we subtract a baseline?](#course-section-06)
+  - [5. Why use the value function as the baseline?](#course-section-07)
+- [Part III. Performance Differences, Surrogate Objectives, and Importance Sampling](#course-section-08)
+  - [6. Why can't we reuse old data indefinitely?](#course-section-09)
+  - [7. Step-by-step proof of the performance difference lemma](#course-section-10)
+  - [8. Approximating true improvement by a surrogate objective](#course-section-11)
+  - [9. Deriving the probability ratio by importance sampling](#course-section-12)
+- [Part IV. TRPO: Controlling Policy Updates with a Trust Region](#course-section-13)
+  - [10. Why is unconstrained maximization of CPI dangerous?](#course-section-14)
+  - [11. KL divergence and the TRPO constraint](#course-section-15)
+  - [12. TRPO's local second-order approximation and natural gradient](#course-section-16)
+- [Part V. Deriving the PPO-Clipped Objective](#course-section-17)
+  - [13. From a KL penalty to a clipped surrogate](#course-section-18)
+  - [14. Positive advantage: stop rewarding overly large probability increases](#course-section-19)
+  - [15. Negative advantage: stop rewarding overly large probability decreases](#course-section-20)
+  - [16. Why do we need `min` instead of clipping alone?](#course-section-21)
+  - [17. Gradient-level interpretation of clipping](#course-section-22)
+  - [18. PPO does not enforce a hard ratio or KL constraint](#course-section-23)
+- [Part VI. GAE: How Do We Estimate the Advantage?](#course-section-24)
+  - [19. Monte Carlo advantage: motivation and cost](#course-section-25)
+  - [20. One-step TD advantage from the Bellman equation](#course-section-26)
+  - [21. Deriving n-step advantage estimates](#course-section-27)
+  - [22. Exponential weighting and the GAE derivation](#course-section-28)
+  - [23. The $O(T)$ backward recursion for GAE](#course-section-29)
+  - [24. Constructing critic targets from GAE](#course-section-30)
+- [Part VII. The Complete Actor–Critic Loss](#course-section-31)
+  - [25. Actor loss](#course-section-32)
+  - [26. Critic loss](#course-section-33)
+  - [27. Motivation for the entropy bonus](#course-section-34)
+  - [28. Final PPO training objective](#course-section-35)
+- [Part VIII. Continuous-Action PPO and Robot Control](#course-section-36)
+  - [29. Gaussian policy log probabilities and importance ratios](#course-section-37)
+  - [30. How does a Gaussian-policy gradient move the action mean?](#course-section-38)
+  - [31. Example: residual PPO for robot manipulation](#course-section-39)
+- [Part IX. A Complete PPO Iteration](#course-section-40)
+  - [32. Ten steps from rollout collection to policy updates](#course-section-41)
+  - [33. Compact, adaptable PyTorch implementations](#course-section-42)
+- [Part X. Hyperparameters and Diagnostics](#course-section-43)
+  - [34. Common starting hyperparameters and what they mean](#course-section-44)
+- [Part XI. Connections to REINFORCE, Actor–Critic, and TRPO](#course-section-45)
+  - [35. Algorithmic progression: one design choice per problem](#course-section-46)
+- [Part XII. Final Formula Sheet and Research Takeaways](#course-section-47)
+  - [References and further reading](#course-section-48)
+<!-- course-toc:end -->
+
+<a id="course-section-01"></a>
+
+## Part I. From Expected Return to Policy Gradients
+
+<a id="course-section-02"></a>
+
+### 1. Formulating the reinforcement-learning objective
 
 Consider a Markov decision process (MDP)
 
@@ -40,7 +103,9 @@ $$\theta\longrightarrow a_0\longrightarrow s_1\longrightarrow a_1\longrightarrow
 
 With contact, collision, friction, or unknown dynamics, differentiating the return through the physical environment may be unavailable or impractical. We need a gradient estimator that **does not require differentiable dynamics**.
 
-## 2. Deriving policy gradients using the log-derivative trick
+<a id="course-section-03"></a>
+
+### 2. Deriving policy gradients using the log-derivative trick
 
 Differentiate the expected return:
 
@@ -93,7 +158,9 @@ A rigorous infinite-horizon derivation requires the usual integrability and inte
 
 **What did this accomplish?** We differentiate only the policy network's $\log\pi_\theta(a_t\mid s_t)$. The environment is used in the forward direction to generate trajectories and rewards, without requiring its derivatives.
 
-## 3. Causality and reward-to-go
+<a id="course-section-04"></a>
+
+### 3. Causality and reward-to-go
 
 Equation (5) multiplies every action's score gradient by the entire trajectory return. But the action $a_t$ cannot change rewards that occurred before $t$. The zero-mean score identity makes the expected contribution of those past-reward cross terms vanish. Define reward-to-go
 
@@ -109,9 +176,13 @@ $$
 
 **Motivation.** Credit an action for outcomes that it can actually influence. Discarding past rewards often reduces variance while preserving the expected gradient. The explicit $\gamma^t$ is needed for the return objective in Eq. (1); implementations commonly average sampled time steps without this explicit factor, which amounts to a particular sampling/weighting convention rather than an identical expression for every infinite-horizon formulation.
 
-# Part II. Baselines, Value Functions, and Advantage
+<a id="course-section-05"></a>
 
-## 4. Why can we subtract a baseline?
+## Part II. Baselines, Value Functions, and Advantage
+
+<a id="course-section-06"></a>
+
+### 4. Why can we subtract a baseline?
 
 Reward-to-go still fluctuates because future outcomes are random. Introduce a state-dependent baseline $b(s_t)$:
 
@@ -140,7 +211,9 @@ $$
 
 **Motivation.** Remove a common, action-independent component of future return, leaving a more informative relative-action signal. Not every baseline necessarily reduces variance; the minimum-variance baseline can depend on the squared norm of the score gradient. Using $V^\pi(s)$ is a natural and highly practical choice.
 
-## 5. Why use the value function as the baseline?
+<a id="course-section-07"></a>
+
+### 5. Why use the value function as the baseline?
 
 Define the state-value function, action-value function, and advantage function:
 
@@ -171,15 +244,21 @@ $$
 
 This motivates the **actor–critic architecture**: the actor $\pi_\theta$ generates actions; the critic $V_\phi$ approximates state values; the advantage connects the two. An imperfect state-only baseline does not itself change the ideal score-function expectation, but bootstrapped advantage estimators constructed from an imperfect critic can be biased.
 
-# Part III. Performance Differences, Surrogate Objectives, and Importance Sampling
+<a id="course-section-08"></a>
 
-## 6. Why can't we reuse old data indefinitely?
+## Part III. Performance Differences, Surrogate Objectives, and Importance Sampling
+
+<a id="course-section-09"></a>
+
+### 6. Why can't we reuse old data indefinitely?
 
 The policy-gradient theorem describes expectations under the current policy. After data is collected with $\pi_{\theta_0}$ and the policy changes to $\pi_{\theta_1}$ or $\pi_{\theta_2}$, the same rollout is still distributed according to $\pi_{\theta_0}$, not the new policy. Recollecting trajectories after every optimizer step, however, is expensive.
 
 One goal of PPO is to **perform several relatively safe first-order optimization steps on one batch of old-policy data**. Achieving this requires separating changes in the state distribution from changes in action probabilities at a given state.
 
-## 7. Step-by-step proof of the performance difference lemma
+<a id="course-section-10"></a>
+
+### 7. Step-by-step proof of the performance difference lemma
 
 Define the normalized discounted state-visitation distribution
 
@@ -230,7 +309,9 @@ Re-expressing the discounted sum using the occupancy distribution gives Eq. (12)
 
 **Interpretation.** A new policy improves performance when, in the states it *actually visits* and with the actions it *actually chooses*, it achieves positive advantage relative to the old policy.
 
-## 8. Approximating true improvement by a surrogate objective
+<a id="course-section-11"></a>
+
+### 8. Approximating true improvement by a surrogate objective
 
 The challenge in Eq. (12) is the new-policy state distribution:
 
@@ -252,7 +333,9 @@ We have frozen the state distribution and need only reason about changes in acti
 
 **Crucial condition.** The approximation is credible only while $\pi_\theta$ remains reasonably close to $\pi_{\mathrm{old}}$. This is precisely the motivation behind trust regions and clipping.
 
-## 9. Deriving the probability ratio by importance sampling
+<a id="course-section-12"></a>
+
+### 9. Deriving the probability ratio by importance sampling
 
 Equation (13) still takes actions from the new policy, whereas our stored actions were sampled by the old policy. Conditional on state $s$,
 
@@ -287,15 +370,21 @@ For example, if the old policy assigns probability $0.2$ to an action and the ne
 
 **Limits.** This importance-sampling identity requires appropriate support / absolute continuity: an action receiving positive probability under the new policy cannot have zero probability under the old policy. Standard nondegenerate Gaussians typically satisfy this support condition. Importantly, the ratio corrects the **conditional action distribution**, not the discrepancy between $d_{\pi_\theta}$ and $d_{\pi_{\mathrm{old}}}$. It therefore does not eliminate the state-distribution approximation in Eq. (13).
 
-# Part IV. TRPO: Controlling Policy Updates with a Trust Region
+<a id="course-section-13"></a>
 
-## 10. Why is unconstrained maximization of CPI dangerous?
+## Part IV. TRPO: Controlling Policy Updates with a Trust Region
+
+<a id="course-section-14"></a>
+
+### 10. Why is unconstrained maximization of CPI dangerous?
 
 For an action with positive advantage, $r_t\hat A_t$ increases as $r_t$ grows. With $\hat A=5$, ratios $1.2,2,10$ yield contributions $6,10,50$. It seems attractive to drive the probability of such an action arbitrarily high. But its advantage was estimated under the old policy, and may no longer predict performance after substantial policy changes.
 
 A robot's changed action distribution can trigger a different contact mode, drop an object, or induce states almost absent from the old dataset. Hence increasing $L^{\mathrm{CPI}}$ does **not** guarantee an increase in actual return $J$.
 
-## 11. KL divergence and the TRPO constraint
+<a id="course-section-15"></a>
+
+### 11. KL divergence and the TRPO constraint
 
 Measure changes between the action distributions at a fixed state using KL divergence:
 
@@ -328,7 +417,9 @@ $$
 
 Here $C$ depends on bounds on advantages / returns and on $\gamma$; precise constants and KL orientation depend on the chosen inequality. The theoretical control of a **worst-state** discrepancy is stronger than the **average KL** constraint commonly implemented. Actual neural-network TRPO therefore has no unconditional monotonic-improvement guarantee.
 
-## 12. TRPO's local second-order approximation and natural gradient
+<a id="course-section-16"></a>
+
+### 12. TRPO's local second-order approximation and natural gradient
 
 Write $\Delta\theta=\theta-\theta_{\mathrm{old}}$. Taylor-expand the surrogate:
 
@@ -374,9 +465,13 @@ $$
 
 The direction $F^{-1}g$ is the hallmark of **natural policy gradient**. A large policy network cannot directly invert its Fisher matrix, so TRPO relies on Fisher-vector products, conjugate gradients, line search, and often damping. **PPO's design motivation** is to retain conservative policy improvement while dispensing with this complicated second-order constrained optimization.
 
-# Part V. Deriving the PPO-Clipped Objective
+<a id="course-section-17"></a>
 
-## 13. From a KL penalty to a clipped surrogate
+## Part V. Deriving the PPO-Clipped Objective
+
+<a id="course-section-18"></a>
+
+### 13. From a KL penalty to a clipped surrogate
 
 A straightforward first-order alternative is PPO-Penalty:
 
@@ -404,7 +499,9 @@ $$
 
 Values around $\epsilon=0.1$–$0.2$ are common starting points, not universal prescriptions. The key is to understand **why the `min` and `clip` operations must be used together**.
 
-## 14. Positive advantage: stop rewarding overly large probability increases
+<a id="course-section-19"></a>
+
+### 14. Positive advantage: stop rewarding overly large probability increases
 
 If $\hat A_t>0$, we want the probability of this action to increase, hence $r_t>1$ is beneficial. Equation (21) reduces to
 
@@ -429,7 +526,9 @@ Set $\hat A_t=2$ and $\epsilon=0.2$:
 
 Once $r_t>1.2$, that sample no longer rewards further increases in its probability; its derivative in that direction is zero. **Motivation:** Avoid excessively reinforcing a sample that appears advantageous under the old policy.
 
-## 15. Negative advantage: stop rewarding overly large probability decreases
+<a id="course-section-20"></a>
+
+### 15. Negative advantage: stop rewarding overly large probability decreases
 
 For $\hat A_t<0$, reducing the action probability is beneficial. Multiplying by a negative advantage reverses the min/max relationship:
 
@@ -454,7 +553,9 @@ With $\hat A_t=-2$ and $\epsilon=0.2$:
 
 PPO maximizes this objective, so reducing $r_t$ is helpful for a negative-advantage sample. Once $r_t<0.8$, however, further probability decreases produce no additional surrogate reward.
 
-## 16. Why do we need `min` instead of clipping alone?
+<a id="course-section-21"></a>
+
+### 16. Why do we need `min` instead of clipping alone?
 
 Suppose we optimized only $\operatorname{clip}(r,1-\epsilon,1+\epsilon)\hat A$. If $\hat A>0$, $r=0.5$, and $\epsilon=0.2$, then a good action has already been made much less likely—an **unfavorable** change. Clipping alone returns $0.8\hat A$ and gives zero derivative everywhere below $r=0.8$, providing no correction signal.
 
@@ -469,7 +570,9 @@ $$
 
 Since $\min(x,y)\le x$, the sample-wise bound $L^{\mathrm{CLIP}}\le L^{\mathrm{CPI}}$ holds. This is a pessimistic **lower bound on the unclipped surrogate**, **not a guaranteed lower bound on the true return** $J$.
 
-## 17. Gradient-level interpretation of clipping
+<a id="course-section-22"></a>
+
+### 17. Gradient-level interpretation of clipping
 
 Because the denominator in the probability ratio is fixed while optimizing the current rollout,
 
@@ -491,7 +594,9 @@ $$
 
 At $\theta=\theta_{\mathrm{old}}$, all ratios equal one. The initial local gradient therefore agrees with CPI / advantage policy gradient (up to the chosen normalization). **PPO does not change the initial improvement direction; it moderates the gain from further changes as repeated updates move the probability ratios away from one.**
 
-## 18. PPO does not enforce a hard ratio or KL constraint
+<a id="course-section-23"></a>
+
+### 18. PPO does not enforce a hard ratio or KL constraint
 
 Choosing $\epsilon=0.2$ does **not** ensure $0.8\le r_t\le1.2$ after an optimizer step. Clipping changes an objective, not the feasible parameter set. Parameters are shared across states and samples, and several mini-batch epochs can still drive the average KL too high.
 
@@ -501,9 +606,13 @@ $$\bar D_{\mathrm{KL}}(\pi_{\mathrm{old}}\Vert\pi_\theta)$$
 
 and often use target-KL early stopping, learning-rate adaptation, and/or gradient clipping. Distinguish three separate operations: **ratio clipping** limits surrogate incentives, **gradient clipping** limits gradient norms, and **action clipping** limits executed command values.
 
-# Part VI. GAE: How Do We Estimate the Advantage?
+<a id="course-section-24"></a>
 
-## 19. Monte Carlo advantage: motivation and cost
+## Part VI. GAE: How Do We Estimate the Advantage?
+
+<a id="course-section-25"></a>
+
+### 19. Monte Carlo advantage: motivation and cost
 
 The $\hat A_t$ used by PPO is not directly observed. By definition $A^\pi=Q^\pi-V^\pi$. The simplest estimate substitutes the sampled reward-to-go for the action value:
 
@@ -516,7 +625,9 @@ For a properly completed episode, the conditional expectation of the sampled ret
 
 **Question:** Could we estimate advantage with shorter segments of experience instead of depending on the entire future trajectory?
 
-## 20. One-step TD advantage from the Bellman equation
+<a id="course-section-26"></a>
+
+### 20. One-step TD advantage from the Bellman equation
 
 The Bellman identity reads
 
@@ -539,7 +650,9 @@ It needs just one transition $s_t,a_t,r_t,s_{t+1}$. Replacing random distant rew
 | Monte Carlo | Less bias from bootstrapping future values | High variance from uncertain long-term returns |
 | One-step TD | Lower variance and immediate feedback | Greater dependence on critic accuracy |
 
-## 21. Deriving n-step advantage estimates
+<a id="course-section-27"></a>
+
+### 21. Deriving n-step advantage estimates
 
 The one-step estimate is
 
@@ -569,7 +682,9 @@ $$
 
 Small $n$ emphasizes value bootstrapping; large $n$ uses more observed future rewards. **GAE's motivation:** Rather than choosing one $n$, smoothly aggregate many n-step estimators.
 
-## 22. Exponential weighting and the GAE derivation
+<a id="course-section-28"></a>
+
+### 22. Exponential weighting and the GAE derivation
 
 Let $0\le\lambda<1$. Define
 
@@ -607,7 +722,9 @@ $$\hat A_t=\delta_t+\gamma\lambda\delta_{t+1}
 
 GAE does not mathematically guarantee lower variance in every problem. It introduces a tunable **bias–variance tradeoff**: smaller $\lambda$ generally relies more on the critic, while larger $\lambda$ generally relies more on sampled distant rewards.
 
-## 23. The $O(T)$ backward recursion for GAE
+<a id="course-section-29"></a>
+
+### 23. The $O(T)$ backward recursion for GAE
 
 Equation (32) implies
 
@@ -626,7 +743,9 @@ $$
 
 A single backward pass from $T-1$ computes all advantages in $O(T)$ time. If a fixed-length rollout stops without the MDP actually terminating, bootstrap from $V(s_T)$. But a recursion must not accidentally propagate the next episode's advantage across a reset. Implementations must distinguish **terminated** (genuine terminal), **truncated** (external time limit), and **rollout boundary** (a sampling segment boundary).
 
-## 24. Constructing critic targets from GAE
+<a id="course-section-30"></a>
+
+### 24. Constructing critic targets from GAE
 
 GAE estimates
 
@@ -640,9 +759,13 @@ $$
 
 $V_{\phi_{\mathrm{old}}}$ denotes the critic values saved when targets for the rollout were calculated. Hold these values fixed during the PPO epochs. The construction aligns the actor's advantage estimates with the critic's regression target.
 
-# Part VII. The Complete Actor–Critic Loss
+<a id="course-section-31"></a>
 
-## 25. Actor loss
+## Part VII. The Complete Actor–Critic Loss
+
+<a id="course-section-32"></a>
+
+### 25. Actor loss
 
 First calculate and freeze $\hat A_t$ for the old-policy rollout; advantage normalization is also common. The actor maximizes
 
@@ -660,7 +783,9 @@ $$\boxed{\mathcal L_{\mathrm{actor}}=-L^{\mathrm{CLIP}}}. \tag{36}$$
 
 If the advantage estimates were produced by a differentiable critic currently inside the computational graph, detach them from the actor objective to avoid unintentionally backpropagating through the advantage targets.
 
-## 26. Critic loss
+<a id="course-section-33"></a>
+
+### 26. Critic loss
 
 Train the critic to regress the TD($\lambda$) return:
 
@@ -671,7 +796,9 @@ $$
 
 Direct Monte Carlo return targets are another option. Some PPO implementations use value-function clipping or multiply the squared error by $1/2$; neither is essential to the basic PPO-Clip objective. An inaccurate critic can corrupt the sign or magnitude of advantages, so policy-update stability depends strongly on value estimation quality.
 
-## 27. Motivation for the entropy bonus
+<a id="course-section-34"></a>
+
+### 27. Motivation for the entropy bonus
 
 A stochastic policy may become too concentrated early, ceasing to explore alternative grasps. Use the policy entropy
 
@@ -682,7 +809,9 @@ $$
 
 to encourage sufficient exploration. Let $L^{\mathrm{entropy}}=\mathbb E_t[H(\pi_\theta(\cdot\mid s_t))]$. Higher entropy is not always preferable, particularly near robot deployment. The entropy coefficient may be zero or annealed during training.
 
-## 28. Final PPO training objective
+<a id="course-section-35"></a>
+
+### 28. Final PPO training objective
 
 A common joint maximization objective combines all three terms:
 
@@ -707,9 +836,13 @@ $$
 
 A PPO optimization phase typically uses several mini-batch epochs over a fixed rollout, keeping the stored old log probabilities, advantages, and return targets constant during that phase.
 
-# Part VIII. Continuous-Action PPO and Robot Control
+<a id="course-section-36"></a>
 
-## 29. Gaussian policy log probabilities and importance ratios
+## Part VIII. Continuous-Action PPO and Robot Control
+
+<a id="course-section-37"></a>
+
+### 29. Gaussian policy log probabilities and importance ratios
 
 Robot actions are often continuous vectors: joint position increments, desired velocities, or torques. A typical actor uses a diagonal Gaussian
 
@@ -739,7 +872,9 @@ $$
 
 **Implementation detail.** Sum per-dimension log probabilities to obtain the **joint** action log probability *before* exponentiation. Clipping ratios separately for each action dimension is not standard PPO for a joint policy. A tanh-squashed Gaussian requires the appropriate change-of-variables correction to its log density. If an environment directly hard-clips sampled actions, carefully distinguish the density of the sampled action from that of the executed command.
 
-## 30. How does a Gaussian-policy gradient move the action mean?
+<a id="course-section-38"></a>
+
+### 30. How does a Gaussian-policy gradient move the action mean?
 
 Consider a one-dimensional Gaussian with fixed variance:
 
@@ -763,7 +898,9 @@ $$
 
 For $\hat A>0$, this tends to move the mean toward the sampled action; for $\hat A<0$, it tends to move the mean away. PPO clipping limits further *surrogate benefit* from excessive probability changes. If $\sigma$ is learned, there are additional gradient terms associated with variance.
 
-## 31. Example: residual PPO for robot manipulation
+<a id="course-section-39"></a>
+
+### 31. Example: residual PPO for robot manipulation
 
 Suppose a baseline controller produces
 
@@ -790,9 +927,13 @@ $$
 
 When residuals are scaled, transformed nonlinearly, or filtered through a safety controller, clearly distinguish which variables have the log density used for learning and which commands are actually executed. PPO does not require differentiable contact dynamics, but does require adequate rollouts, rewards, and state/value estimation.
 
-# Part IX. A Complete PPO Iteration
+<a id="course-section-40"></a>
 
-## 32. Ten steps from rollout collection to policy updates
+## Part IX. A Complete PPO Iteration
+
+<a id="course-section-41"></a>
+
+### 32. Ten steps from rollout collection to policy updates
 
 1. **Freeze the old policy.** Set $\pi_{\mathrm{old}}=\pi_{\theta_k}$ and sample several episodes or fixed-length rollouts.
 2. **Store rollout data.** Record $(s_t,a_t,r_t,s_{t+1})$, termination flags, $\log\pi_{\mathrm{old}}(a_t\mid s_t)$, and $V_{\mathrm{old}}(s_t)$.
@@ -805,7 +946,9 @@ When residuals are scaled, transformed nonlinearly, or filtered through a safety
 9. **Optimize actor and critic.** Minimize the joint objective or separate losses for multiple epochs, monitoring KL, clip fraction, and value prediction.
 10. **Collect new on-policy data.** Use the updated policy for the next rollout rather than treating arbitrarily old replay data as ordinary PPO training data.
 
-## 33. Compact, adaptable PyTorch implementations
+<a id="course-section-42"></a>
+
+### 33. Compact, adaptable PyTorch implementations
 
 The following function implements the central PPO actor loss. Both `new_log_prob` and `old_log_prob` must contain **joint** action log probabilities, and the old log probabilities and advantages must remain fixed within the update phase.
 
@@ -871,9 +1014,13 @@ entropy = dist.entropy().sum(dim=-1)
 
 These examples implement the essential formulas; a complete training program still needs a rollout buffer, environment interaction, network definitions, optimizers, correct `terminated/truncated` handling, and metric logging.
 
-# Part X. Hyperparameters and Diagnostics
+<a id="course-section-43"></a>
 
-## 34. Common starting hyperparameters and what they mean
+## Part X. Hyperparameters and Diagnostics
+
+<a id="course-section-44"></a>
+
+### 34. Common starting hyperparameters and what they mean
 
 | Hyperparameter | Common starting point | Main role |
 |---|---|---|
@@ -892,9 +1039,13 @@ These are experimental starting points, not universal optima. Large-scale parall
 
 Useful diagnostics include episode return, task success rate, value loss, explained variance, policy entropy, approximate KL, clip fraction, and gradient norm. If a surrogate improves while actual robot success decreases, investigate distribution shift, critic error, excessive KL, and reward design.
 
-# Part XI. Connections to REINFORCE, Actor–Critic, and TRPO
+<a id="course-section-45"></a>
 
-## 35. Algorithmic progression: one design choice per problem
+## Part XI. Connections to REINFORCE, Actor–Critic, and TRPO
+
+<a id="course-section-46"></a>
+
+### 35. Algorithmic progression: one design choice per problem
 
 | Algorithm | Core expression / idea | Problem addressed |
 |---|---|---|
@@ -908,7 +1059,9 @@ PPO fundamentally remains an **on-policy policy-gradient / actor–critic algori
 
 PPO is especially practical for simulated robotic control because large numbers of environments can be sampled in parallel, optimization is relatively simple, differentiable dynamics are unnecessary, and Gaussian policies naturally model continuous actions. On a physical robot, however, collecting interactions is expensive, so off-policy methods such as SAC may offer important sample-efficiency advantages. Diffusion and flow-matching action policies often lack the conveniently computable explicit log probabilities required by standard PPO, motivating specialized modifications.
 
-# Part XII. Final Formula Sheet and Research Takeaways
+<a id="course-section-47"></a>
+
+## Part XII. Final Formula Sheet and Research Takeaways
 
 **Formula 1: Policy gradient**
 
@@ -961,7 +1114,9 @@ $$
 
 > **Main research insight.** PPO is not a new method for differentiating environments. It uses policy gradients to identify local directions of improvement, importance sampling to construct a surrogate from stored actions, clipping to discourage over-optimization, and GAE to improve advantage estimation. **GAE principally addresses estimator quality; clipping principally addresses policy-update stability.** The two components solve different yet complementary problems.
 
-## References and further reading
+<a id="course-section-48"></a>
+
+### References and further reading
 
 1. Schulman, J., et al. (2017). *Proximal Policy Optimization Algorithms*. arXiv:1707.06347. <https://arxiv.org/abs/1707.06347>
 2. Schulman, J., et al. (2015). *Trust Region Policy Optimization*. ICML. <https://arxiv.org/abs/1502.05477>

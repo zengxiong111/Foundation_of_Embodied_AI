@@ -1,27 +1,69 @@
 # 人形机器人 System 1（VLA）与 System 0（全身运动控制）
 
-**以 NVIDIA GR00T 与 SONIC 为例的完整入门教程**
+<!-- course-meta:start -->
+[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/System1_System0_GR00T_SONIC_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.pdf)
 
-> **一句话理解：** System 1 根据视觉、语言和机器人状态生成“应该做什么动作”；System 0 根据运动目标和实时本体反馈，决定“如何稳定地把动作做出来”。两者都可以闭环，但时间尺度不同。
+| 项目 | 说明 |
+|---|---|
+| 适用范围 | SONIC 论文集成：GR00T N1.5；文档 G1 工作流：N1.7、78 维动作、2.5 Hz 推理 / 50 Hz 动作流。Checkpoint 与观测配置须匹配 |
+| 文档核验日期 | 2026-10-18 |
+| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-**版本：** 2026-10-16　|　**适读对象：** 机器人学习、具身智能、人形机器人运控研究人员
+**核验边界：** 文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。 版本与固定源码引用见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
+<!-- course-meta:end -->
 
-**阅读说明：** 本文使用 *System 1 / System 0* 作为便于教学的分层名称，并非所有机器人论文统一采用的正式术语。SONIC 原论文展示了与 **GR00T N1.5** 的集成；本文训练与部署部分则主要参考 NVIDIA 已公开的 **GR00T N1.7 + SONIC** 流程。两种版本不可直接混同。[R1–R4]
-
+<!-- course-toc:start -->
 ## 目录
 
-1. 整体架构：两个系统分别解决什么问题
-2. System 1：GR00T 如何理解任务并生成动作
-3. System 0：SONIC 如何学习全身运动控制
-4. 两个系统如何通过 Motion Token 连接
-5. 完整例子：走路、抓取、踩踏板、投放
-6. 从零训练、采集数据与真机部署
-7. 研究方向、实验设计与常见误区
-8. 总结与参考资料
+- [1. 整体架构：两个系统分别解决什么问题](#course-section-01)
+  - [1.1 为什么不能只靠一个模型？](#course-section-02)
+  - [1.2 核心区别](#course-section-03)
+  - [1.3 两个闭环，而不是一个开环](#course-section-04)
+- [2. System 1：GR00T 如何理解任务并生成动作](#course-section-05)
+  - [2.1 VLA 是什么？](#course-section-06)
+  - [2.2 GR00T 的两部分结构](#course-section-07)
+  - [2.3 为什么一次预测多个动作？](#course-section-08)
+  - [2.4 Flow Matching 的直觉解释](#course-section-09)
+  - [2.5 VLA 输出可以如何表示？](#course-section-10)
+  - [2.6 GR00T 的训练分为哪几步？](#course-section-11)
+- [3. System 0：SONIC 如何学习全身运动控制](#course-section-12)
+  - [3.1 什么是全身运动控制（WBC）？](#course-section-13)
+  - [3.2 先认识一条常见替代路线：下半身 RL + 上半身 IK](#course-section-14)
+  - [3.3 SONIC 的核心任务：Motion Tracking](#course-section-15)
+  - [3.4 SONIC 的网络：编码器 + Motion Token + 控制解码器](#course-section-16)
+  - [3.5 SONIC 如何从 token 得到关节控制？](#course-section-17)
+  - [3.6 SONIC 的强化学习训练：PPO + 跟踪奖励](#course-section-18)
+  - [3.7 SONIC 学到的是什么，又没有学到什么？](#course-section-19)
+- [4. 两个系统如何通过 Motion Token 连接](#course-section-20)
+  - [4.1 最关键的接口公式](#course-section-21)
+  - [4.2 官方实例中的准确维度](#course-section-22)
+  - [4.3 两种控制频率如何配合？](#course-section-23)
+  - [4.4 为什么这种分层结构更容易泛化？](#course-section-24)
+  - [4.5 分层接口必须处理的工程细节](#course-section-25)
+- [5. 完整例子：走路、抓取、踩踏板、投放](#course-section-26)
+  - [5.1 示例任务](#course-section-27)
+  - [5.2 各模块分别做什么？](#course-section-28)
+  - [5.3 一个容易混淆的边界](#course-section-29)
+- [6. 从零训练、采集数据与真机部署](#course-section-30)
+  - [6.1 Step 1：获得可用的 System 0](#course-section-31)
+  - [6.2 Step 2：通过 SONIC 进行 VR 遥操作示教](#course-section-32)
+  - [6.3 Step 3：微调 GR00T，让它输出 SONIC 动作](#course-section-33)
+  - [6.4 Step 4：通过 PolicyServer + SONIC 部署](#course-section-34)
+  - [6.5 Step 5：如何评价整体系统？](#course-section-35)
+- [7. 研究方向、实验设计与常见误区](#course-section-36)
+  - [7.1 应该分别改进什么？](#course-section-37)
+  - [7.2 建议的最小消融实验](#course-section-38)
+  - [7.3 五个常见误区](#course-section-39)
+- [8. 总结与参考资料](#course-section-40)
+  - [8.1 最值得记住的三条结论](#course-section-41)
+  - [8.2 参考论文与官方资源](#course-section-42)
+<!-- course-toc:end -->
 
----
+<a id="course-section-01"></a>
 
 ## 1. 整体架构：两个系统分别解决什么问题
+
+<a id="course-section-02"></a>
 
 ### 1.1 为什么不能只靠一个模型？
 
@@ -46,6 +88,8 @@ flowchart TD
 
 **重点：** GR00T 不只是传统任务规划器，它可直接生成短时动作序列；SONIC 也不只是被动执行预设轨迹，它会结合实时机器人状态不断调整关节目标。
 
+<a id="course-section-03"></a>
+
 ### 1.2 核心区别
 
 | 对比维度 | System 1：GR00T | System 0：SONIC |
@@ -58,13 +102,19 @@ flowchart TD
 | 主要挑战 | 泛化、感知误差、长时任务 | 接触、平衡、运动耦合、抗扰 |
 | 典型反馈 | 相机与任务状态，较低频 | 本体感觉，高频 |
 
+<a id="course-section-04"></a>
+
 ### 1.3 两个闭环，而不是一个开环
 
 VLA 可以根据新相机图像周期性地重规划；SONIC 则在每个控制周期利用新的关节和 IMU 状态调整动作。分层设计的目的，不是让高层忽略物理，而是使高层不必在每一次视觉推理中重新解决复杂的全身动态控制。
 
 ---
 
+<a id="course-section-05"></a>
+
 ## 2. System 1：GR00T 如何理解任务并生成动作
+
+<a id="course-section-06"></a>
 
 ### 2.1 VLA 是什么？
 
@@ -83,6 +133,8 @@ $$
 $$
 
 例如指令“拿起桌子上的水杯”，VLA 需要判断杯子在哪里、机器人处于什么姿态，并预测伸手、接近、抓取等动作。
+
+<a id="course-section-07"></a>
 
 ### 2.2 GR00T 的两部分结构
 
@@ -106,6 +158,8 @@ flowchart TD
     E --> F[未来动作序列 Action Chunk]
 ```
 
+<a id="course-section-08"></a>
+
 ### 2.3 为什么一次预测多个动作？
 
 GR00T 不是只能输出单个瞬时动作。动作头通常预测长度为 $H$ 的短时序列：
@@ -118,6 +172,8 @@ $$
 
 **Action Chunk 的好处：** 一次推理产生连续动作，减少每个电机控制周期都调用大型 VLA 的开销。**但不能理解为必须把 40 步全部执行完才再次观察环境。** 实际系统可以使用滚动时域控制（Receding Horizon）提前更新下一段动作。
 
+<a id="course-section-09"></a>
+
 ### 2.4 Flow Matching 的直觉解释
 
 Flow Matching 从噪声动作 $x_0$ 出发，通过一个由网络预测的时间相关速度场，逐步得到符合当前图像和任务的动作 $x_1$：
@@ -129,6 +185,8 @@ $$
 
 可以把它想成：模型学习“怎样把随机动作噪声推向合理的动作轨迹”。这里的 $\tau$ 是**生成过程中的流时间**，不等于机器人执行动作的物理时间 $t$。
 
+<a id="course-section-10"></a>
+
 ### 2.5 VLA 输出可以如何表示？
 
 | 动作空间 | 含义 | 适用情况 / 限制 |
@@ -139,6 +197,8 @@ $$
 | Latent Action | 预测学得的运动潜变量 | 与预训练运控衔接；必须匹配解码器 |
 
 **GR00T + SONIC 的关键选择是 Latent Action。** VLA 不必直接回归每个全身关节，而是学习 SONIC 所定义的 **Motion Token 接口**，再由 SONIC 生成全身运动。
+
+<a id="course-section-11"></a>
 
 ### 2.6 GR00T 的训练分为哪几步？
 
@@ -158,13 +218,19 @@ $$
 
 ---
 
+<a id="course-section-12"></a>
+
 ## 3. System 0：SONIC 如何学习全身运动控制
+
+<a id="course-section-13"></a>
 
 ### 3.1 什么是全身运动控制（WBC）？
 
 对固定机械臂而言，控制器主要保证末端执行器达到目标。对人形机器人而言，伸手时还要协调双腿、腰部、脚底接触以及全身重心；走路、爬行、弯腰、用脚踩踏板都要求身体各部分协同。
 
 因此，**Whole-Body Control 不等于把所有关节 PID 放在一起**。它关心全身耦合动力学以及与环境的接触。
+
+<a id="course-section-14"></a>
 
 ### 3.2 先认识一条常见替代路线：下半身 RL + 上半身 IK
 
@@ -173,6 +239,8 @@ NVIDIA 在 GR00T N1.5/N1.6 中提供过 **Decoupled WBC**：下半身强化学�
 其优点是模块清楚、容易调试；局限是上肢动作与步态可能需要额外协调，尤其在大幅弯腰、单腿支撑抓取和脚部操作时。
 
 SONIC 则把多样全身运动映射到**统一的强化学习跟踪策略**。严格地说，SONIC 是学习式的通用全身运动跟踪控制器，并不是传统基于 QP 的 WBC 求解器。
+
+<a id="course-section-15"></a>
 
 ### 3.3 SONIC 的核心任务：Motion Tracking
 
@@ -187,6 +255,8 @@ SONIC 的研究假设是：与其逐个设计“跑步策略”“蹲下策略�
 5. 加入动力学参数扰动和外力等 Domain Randomization，提高 Sim-to-Real 鲁棒性。
 
 论文报告的规模约为 **700 小时动捕、超过一亿帧训练数据、最大约 4200 万参数、约 2.1 万 GPU 小时**。这些是论文的研究规模，不是复现一个可用控制器的最低门槛。[R1]
+
+<a id="course-section-16"></a>
 
 ### 3.4 SONIC 的网络：编码器 + Motion Token + 控制解码器
 
@@ -213,6 +283,8 @@ flowchart TD
 
 **最重要的直觉：** 运动输入可以来自真人、VR、运动规划器或 VLA；只要它被编码为兼容的 Motion Token，就能调用同一个低层控制器。
 
+<a id="course-section-17"></a>
+
 ### 3.5 SONIC 如何从 token 得到关节控制？
 
 可以把 SONIC 写成：
@@ -235,6 +307,8 @@ $$
 
 这只是**关节控制的示意公式**，不是 SONIC 网络本身的训练目标；实际电机控制还有安全限幅、硬件增益、通信延迟等因素。
 
+<a id="course-section-18"></a>
+
 ### 3.6 SONIC 的强化学习训练：PPO + 跟踪奖励
 
 SONIC 使用 PPO，通过密集的 Motion Tracking Reward 训练：
@@ -249,6 +323,8 @@ $$
 
 **Domain Randomization** 通常包含质量、摩擦、执行器响应、外部推力和初始姿态等变化。它有助于鲁棒性，但不能保证所有强扰动都不会跌倒。
 
+<a id="course-section-19"></a>
+
 ### 3.7 SONIC 学到的是什么，又没有学到什么？
 
 SONIC 学到的是：在特定机器人动力学约束下，对丰富运动参考进行全身协调跟踪。
@@ -257,7 +333,11 @@ SONIC **不会单凭语言自行完成目标识别、任务规划和物体检测
 
 ---
 
+<a id="course-section-20"></a>
+
 ## 4. 两个系统如何通过 Motion Token 连接
+
+<a id="course-section-21"></a>
 
 ### 4.1 最关键的接口公式
 
@@ -271,6 +351,8 @@ q_t^{\mathrm{target}}&=\pi_{\mathrm{SONIC}}(s_t,z_t).
 $$
 
 其中 $h_t$ 是由动作接口单独提供给双手的指令，**不要把 14 维手部动作误当成 SONIC 的 29 维身体关节输出**。
+
+<a id="course-section-22"></a>
 
 ### 4.2 官方实例中的准确维度
 
@@ -293,6 +375,8 @@ $$
 | SONIC 身体关节 | 29 个关节目标 |
 
 这里的 **64 维**是共享运动表示的向量维度，不是 64 个“走路、转身、蹲下”这样的固定技能标签；其潜变量由 SONIC 的量化编码器学习得到。
+
+<a id="course-section-23"></a>
 
 ### 4.3 两种控制频率如何配合？
 
@@ -318,11 +402,15 @@ flowchart LR
     G --> H[Robot Servo]
 ```
 
+<a id="course-section-24"></a>
+
 ### 4.4 为什么这种分层结构更容易泛化？
 
 如果 VLA 直接预测全身关节角，那么它需要同时学会视觉条件动作、身体协调和动态平衡。Latent Action 接口将后两项中的许多能力交给已经预训练的 SONIC。
 
 对于某些突然的外力或落脚误差，即使高层 token 没有变化，SONIC 仍可因 $s_t$ 改变而生成不同的关节目标。**但如果 VLA 给出了不可执行的目标，SONIC 不能保证一定挽救任务。**
+
+<a id="course-section-25"></a>
 
 ### 4.5 分层接口必须处理的工程细节
 
@@ -334,13 +422,19 @@ flowchart LR
 
 ---
 
+<a id="course-section-26"></a>
+
 ## 5. 完整例子：走路、抓取、踩踏板、投放
+
+<a id="course-section-27"></a>
 
 ### 5.1 示例任务
 
 **语言指令：** “走到桌边拿起易拉罐，走向垃圾桶，用脚踩开踏板，把易拉罐投进去。”
 
 这是一项典型的 **Loco-Manipulation（移动操作）**：机器人既需要双手操作，也要移动、保持平衡并进行脚部接触。
+
+<a id="course-section-28"></a>
 
 ### 5.2 各模块分别做什么？
 
@@ -355,13 +449,19 @@ flowchart LR
 
 SONIC 论文报告，该复杂的“易拉罐到垃圾桶”任务在 **10 次试验中成功 60%**；多类 VLA 移动操作任务的平均成功率约为 **75%**。这些结果展示了方案可行性，同时也表明其可靠性尚未达到不受约束的真实环境部署要求。[R1]
 
+<a id="course-section-29"></a>
+
 ### 5.3 一个容易混淆的边界
 
 SONIC 可以稳定执行“把脚移动到某个动作参考所对应的位置”，却不会仅凭一句“踩踏板”就自行完成视觉定位并推断落脚目标。高层提供什么动作意图，依然十分重要。
 
 ---
 
+<a id="course-section-30"></a>
+
 ## 6. 从零训练、采集数据与真机部署
+
+<a id="course-section-31"></a>
 
 ### 6.1 Step 1：获得可用的 System 0
 
@@ -383,6 +483,8 @@ SONIC Actor + Motion Encoder
 
 建议先检查：直立稳定、行走/转身、弯腰和单腿支撑、外力恢复、动作切换是否连续，再进入 VLA 数据采集。
 
+<a id="course-section-32"></a>
+
 ### 6.2 Step 2：通过 SONIC 进行 VR 遥操作示教
 
 人类操作员通过 VR / 动捕提供人体动作，SONIC Encoder 将其转换为 Motion Token；SONIC Controller 执行这些 token 驱动机器人。同步记录：
@@ -393,6 +495,8 @@ SONIC Actor + Motion Encoder
 - 每一条示教的成败、复位与中断状态。
 
 官方工作流支持导出 **LeRobot** 格式示教数据，并建议先采集足量成功轨迹，再进行清洗与任务微调。[R4]
+
+<a id="course-section-33"></a>
 
 ### 6.3 Step 3：微调 GR00T，让它输出 SONIC 动作
 
@@ -417,6 +521,8 @@ uv run python gr00t/experiment/launch_finetune.py \
 
 命令仅展示关键接口，具体其余训练参数、软件依赖和脚本路径，以当前官方文档和代码版本为准。[R4]
 
+<a id="course-section-34"></a>
+
 ### 6.4 Step 4：通过 PolicyServer + SONIC 部署
 
 可以使用 GPU 计算机运行 GR00T PolicyServer；机器人侧读取相机、本体反馈，接收动作块并通过 SONIC 控制器执行。[R5]
@@ -431,6 +537,8 @@ GPU 计算机：GR00T PolicyServer
 
 真实部署时先做 **Sim2Sim**，再做低速、受限空间的真机验证。官方提供了 MuJoCo 仿真流程和 C++ 推理栈，不建议将首次运行直接放到无保护的真实环境。[R2, R5]
 
+<a id="course-section-35"></a>
+
 ### 6.5 Step 5：如何评价整体系统？
 
 | 层次 | 建议评价指标 | 主要帮助定位的问题 |
@@ -444,7 +552,11 @@ GPU 计算机：GR00T PolicyServer
 
 ---
 
+<a id="course-section-36"></a>
+
 ## 7. 研究方向、实验设计与常见误区
+
+<a id="course-section-37"></a>
 
 ### 7.1 应该分别改进什么？
 
@@ -456,6 +568,8 @@ GPU 计算机：GR00T PolicyServer
 | 更好的抗扰 / Sim-to-Real | System 0 | PPO、Domain Randomization、系统辨识 |
 | 脚手协同的复杂接触 | 两层与接口 | 接触丰富的数据、联合评价 |
 | 更稳定的高低层衔接 | 接口与部署 | Token 设计、时序对齐、安全过滤 |
+
+<a id="course-section-38"></a>
 
 ### 7.2 建议的最小消融实验
 
@@ -471,6 +585,8 @@ GPU 计算机：GR00T PolicyServer
 
 固定高层 token，改变仿真质量/摩擦、IMU 噪声和外部扰动，比较成功率、姿态误差及跌倒率。
 
+<a id="course-section-39"></a>
+
 ### 7.3 五个常见误区
 
 1. **“System 1 是语言规划器，System 0 才生成动作。”** 不完全正确。VLA 本身可以直接生成短时动作序列。
@@ -481,7 +597,11 @@ GPU 计算机：GR00T PolicyServer
 
 ---
 
+<a id="course-section-40"></a>
+
 ## 8. 总结与参考资料
+
+<a id="course-section-41"></a>
 
 ### 8.1 最值得记住的三条结论
 
@@ -500,6 +620,8 @@ $$
 \xrightarrow{\;\mathrm{Servo}\;}\text{Robot}
 }.
 $$
+
+<a id="course-section-42"></a>
 
 ### 8.2 参考论文与官方资源
 

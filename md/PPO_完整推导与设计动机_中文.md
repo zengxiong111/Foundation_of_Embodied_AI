@@ -7,17 +7,80 @@ lang: zh-CN
 toc-title: "目录"
 ---
 
-> **阅读目标**：逐步理解 PPO 为什么这样设计，而不仅仅是记住其损失函数。本文覆盖完整数学推导、各步骤的设计动机、数值示例、实现要点，以及在机器人连续控制与残差策略学习中的用法。
+# PPO 完整推导与设计动机
 
-**核心思想**：提高好动作的概率、降低坏动作的概率，同时避免一次策略更新过大，使得根据旧策略数据建立的局部性能模型仍然可信。
+<!-- course-meta:start -->
+[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/PPO_Complete_Derivation_and_Design_Motivations_English.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_CN.pdf)
 
-**阅读路线**：回报最大化 $\rightarrow$ Policy Gradient $\rightarrow$ Baseline / Advantage $\rightarrow$ 性能差分与重要性采样 $\rightarrow$ TRPO $\rightarrow$ PPO-Clip $\rightarrow$ GAE $\rightarrow$ Actor–Critic 完整损失 $\rightarrow$ 机器人应用与实现。
+| 项目 | 说明 |
+|---|---|
+| 适用范围 | PPO-Clip / GAE 理论；PyTorch 风格示例为教学内容，非已测试训练包 |
+| 文档核验日期 | 2026-10-18 |
+| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-> **记号约定**：主要考虑折扣无限时域 MDP，$\gamma\in[0,1)$；$J(\theta)$ 表示从初始状态分布出发的折扣回报。涉及实际 PPO 的时间步平均时，会明确说明与严格折扣占用分布之间的区别。$\hat A_t$ 是利用旧策略 Rollout 计算、在本轮策略更新中固定的 Advantage 估计。
+**核验边界：** 文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。 版本与固定源码引用见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
+<!-- course-meta:end -->
 
-# 第一部分　从预期回报到策略梯度
+<!-- course-toc:start -->
+## 目录
 
-## 1. 定义强化学习优化问题
+- [第一部分　从预期回报到策略梯度](#course-section-01)
+  - [1. 定义强化学习优化问题](#course-section-02)
+  - [2. 利用 Log-Derivative Trick 推导 Policy Gradient](#course-section-03)
+  - [3. 因果性与 Reward-to-Go](#course-section-04)
+- [第二部分　Baseline、Value 与 Advantage](#course-section-05)
+  - [4. 为什么可以减去 Baseline？](#course-section-06)
+  - [5. 为什么使用 Value Function 作为 Baseline？](#course-section-07)
+- [第三部分　性能差分、Surrogate Objective 与重要性采样](#course-section-08)
+  - [6. 旧数据为什么不能无限重复使用？](#course-section-09)
+  - [7. Performance Difference Lemma 的逐步证明](#course-section-10)
+  - [8. 将真实性能改进近似为 Surrogate Objective](#course-section-11)
+  - [9. Importance Sampling 推导 Probability Ratio](#course-section-12)
+- [第四部分　TRPO：用 Trust Region 控制更新](#course-section-13)
+  - [10. 直接最大化 CPI 为什么危险？](#course-section-14)
+  - [11. KL Divergence 与 TRPO 约束](#course-section-15)
+  - [12. TRPO 局部二阶近似与 Natural Gradient](#course-section-16)
+- [第五部分　PPO-Clip 的核心推导](#course-section-17)
+  - [13. 从 KL Penalty 到 Clipped Surrogate](#course-section-18)
+  - [14. 正 Advantage：好动作不能无限被奖励](#course-section-19)
+  - [15. 负 Advantage：坏动作也不能无限被压低](#course-section-20)
+  - [16. 为什么一定要有 `min`，而不是只用 `clip`？](#course-section-21)
+  - [17. 从梯度看 PPO 在何处停止更新](#course-section-22)
+  - [18. PPO 不能保证 Ratio 或 KL 被硬性约束](#course-section-23)
+- [第六部分　GAE：Advantage 究竟如何估计？](#course-section-24)
+  - [19. Monte Carlo Advantage 的动机与代价](#course-section-25)
+  - [20. 由 Bellman 方程得到 One-Step TD Advantage](#course-section-26)
+  - [21. 从 One-Step 推导 N-Step Advantage](#course-section-27)
+  - [22. GAE 的指数权重与求和交换推导](#course-section-28)
+  - [23. GAE 的 $O(T)$ 反向递推](#course-section-29)
+  - [24. 用 GAE 构造 Critic 训练目标](#course-section-30)
+- [第七部分　完整 Actor–Critic 损失](#course-section-31)
+  - [25. Actor Loss](#course-section-32)
+  - [26. Critic Loss](#course-section-33)
+  - [27. Entropy Bonus 的动机](#course-section-34)
+  - [28. PPO 的最终训练目标](#course-section-35)
+- [第八部分　连续动作 PPO 与机器人控制](#course-section-36)
+  - [29. Gaussian Policy 的对数概率与 Ratio](#course-section-37)
+  - [30. Gaussian Policy 的梯度如何推动动作均值？](#course-section-38)
+  - [31. 机器人 Residual PPO 示例](#course-section-39)
+- [第九部分　一次 PPO Iteration 的完整执行过程](#course-section-40)
+  - [32. 从采样到更新的十个步骤](#course-section-41)
+  - [33. 简洁且可直接改造的 PyTorch 实现](#course-section-42)
+- [第十部分　超参数与实际诊断](#course-section-43)
+  - [34. 常见起始超参数及其含义](#course-section-44)
+- [第十一部分　与 REINFORCE、Actor–Critic、TRPO 的关系](#course-section-45)
+  - [35. 算法演化：每一步解决一个问题](#course-section-46)
+- [第十二部分　最终公式总览与研究启示](#course-section-47)
+  - [参考文献与延伸阅读](#course-section-48)
+<!-- course-toc:end -->
+
+<a id="course-section-01"></a>
+
+## 第一部分　从预期回报到策略梯度
+
+<a id="course-section-02"></a>
+
+### 1. 定义强化学习优化问题
 
 考虑马尔可夫决策过程（MDP）：
 
@@ -42,7 +105,9 @@ $$\theta\longrightarrow a_0\longrightarrow s_1\longrightarrow a_1\longrightarrow
 
 对于碰撞、摩擦、接触切换和未知动力学，$R(\tau)$ 一般不能简单地通过环境对 $\theta$ 反向传播。因此需要一种**不要求环境动力学可微**的梯度估计方法。
 
-## 2. 利用 Log-Derivative Trick 推导 Policy Gradient
+<a id="course-section-03"></a>
+
+### 2. 利用 Log-Derivative Trick 推导 Policy Gradient
 
 对期望求梯度：
 
@@ -97,7 +162,9 @@ $$
 
 **这一转换解决了什么？** 我们只需要对策略网络的 $\log\pi_\theta(a_t\mid s_t)$ 求梯度。机器人动力学和奖励仍然只用于前向采样，不必可微。
 
-## 3. 因果性与 Reward-to-Go
+<a id="course-section-04"></a>
+
+### 3. 因果性与 Reward-to-Go
 
 式 (5) 的每个动作梯度都乘以整条轨迹回报。但 $a_t$ 不能影响发生在 $t$ 以前的奖励。利用 score function 的零均值性质，过去奖励对应的交叉项期望为零，于是可改写成
 
@@ -111,9 +178,13 @@ $$
 
 **动机**：对 $a_t$ 的更新应由它能够影响的未来后果决定。去除过去奖励通常可以降低估计方差，而不改变梯度期望。式中的 $\gamma^t$ 与原始折扣目标严格一致；实际 PPO 代码经常直接对采样时间步平均，属于相应采样分布下的优化约定，不应混为完全相同的无穷时域表达式。
 
-# 第二部分　Baseline、Value 与 Advantage
+<a id="course-section-05"></a>
 
-## 4. 为什么可以减去 Baseline？
+## 第二部分　Baseline、Value 与 Advantage
+
+<a id="course-section-06"></a>
+
+### 4. 为什么可以减去 Baseline？
 
 虽然使用 Reward-to-Go 比整条轨迹回报更合理，但 $G_t$ 仍会因未来随机性而显著波动。考虑引入只依赖状态的 Baseline $b(s_t)$：
 
@@ -142,7 +213,9 @@ $$
 
 **动机**：去除与“当前动作相对质量”无关的整体回报水平，从而减小随机波动。要注意：不是任何 Baseline 都能保证减小方差；严格的最优方差 Baseline 通常还与 score gradient 的平方范数有关。$V^\pi(s)$ 是实用而自然的选择。
 
-## 5. 为什么使用 Value Function 作为 Baseline？
+<a id="course-section-07"></a>
+
+### 5. 为什么使用 Value Function 作为 Baseline？
 
 定义状态价值、动作价值和优势函数：
 
@@ -173,15 +246,21 @@ $$
 
 从而引出 Actor–Critic：Actor $\pi_\theta$ 负责产生动作；Critic $V_\phi$ 近似状态价值；Advantage 连接二者。使用不准确的 Value Baseline 本身不会改变理想 score-function 公式的期望，但使用自举构造 Advantage 时会引入额外估计偏差。
 
-# 第三部分　性能差分、Surrogate Objective 与重要性采样
+<a id="course-section-08"></a>
 
-## 6. 旧数据为什么不能无限重复使用？
+## 第三部分　性能差分、Surrogate Objective 与重要性采样
+
+<a id="course-section-09"></a>
+
+### 6. 旧数据为什么不能无限重复使用？
 
 Policy Gradient 假设采样数据与当前策略一致。若使用 $\pi_{\theta_0}$ 采样后更新到 $\pi_{\theta_1}$、$\pi_{\theta_2}$，旧 Rollout 依然服从 $\pi_{\theta_0}$，并不服从新策略。每次梯度步都重新采样又非常昂贵。
 
 PPO 的目标之一是：**在一批由旧策略采集的数据上，进行多次相对安全的一阶更新**。要做到这一点，必须区分状态分布的变化和给定状态下动作分布的变化。
 
-## 7. Performance Difference Lemma 的逐步证明
+<a id="course-section-10"></a>
+
+### 7. Performance Difference Lemma 的逐步证明
 
 定义归一化折扣状态访问分布：
 
@@ -232,7 +311,9 @@ $$
 
 **重要直觉**：新策略的回报提升，等于它在自身将访问的状态、执行的动作上，取得的“相对于旧策略”的 Advantage 总和。
 
-## 8. 将真实性能改进近似为 Surrogate Objective
+<a id="course-section-11"></a>
+
+### 8. 将真实性能改进近似为 Surrogate Objective
 
 式 (12) 的困难在于，期望中的状态来自新策略：
 
@@ -254,7 +335,9 @@ $$
 
 **核心前提**：只有当 $\pi_\theta$ 不远离 $\pi_{\mathrm{old}}$ 时，这种状态分布替换才比较可信。这为后面的 Trust Region 和 Clipping 提供了动机。
 
-## 9. Importance Sampling 推导 Probability Ratio
+<a id="course-section-12"></a>
+
+### 9. Importance Sampling 推导 Probability Ratio
 
 式 (13) 仍然包含 $a\sim\pi_\theta$，而数据中的动作来自旧策略。给定状态 $s$，利用重要性采样：
 
@@ -289,15 +372,21 @@ $$
 
 **边界与限制**：上述重要性采样要求新策略对旧策略概率为零的动作不赋正概率（绝对连续性）；对于一般 Gaussian 分布，通常满足动作密度支持条件。重要性采样仅精确修正了**给定状态下的动作分布**，并未修正 $d_{\pi_\theta}$ 与 $d_{\pi_{\mathrm{old}}}$ 的差异。因此，它没有消除式 (13) 的状态分布近似误差。
 
-# 第四部分　TRPO：用 Trust Region 控制更新
+<a id="course-section-13"></a>
 
-## 10. 直接最大化 CPI 为什么危险？
+## 第四部分　TRPO：用 Trust Region 控制更新
+
+<a id="course-section-14"></a>
+
+### 10. 直接最大化 CPI 为什么危险？
 
 对于正 Advantage 样本，$r_t\hat A_t$ 随 $r_t$ 增长：若 $\hat A=5$，$r=1.2,2,10$ 对应 $6,10,50$。代理目标似乎鼓励无限放大好动作的概率。但这些 Advantage 是根据旧策略计算的；如果新策略改变很大，旧估计不一定再可信。
 
 尤其在机器人操作中，动作分布的一次较大改变可能引发接触切换、掉落甚至完全不同的未来状态访问。故 $L^{\mathrm{CPI}}$ 增大**不保证**真实 $J$ 增大。
 
-## 11. KL Divergence 与 TRPO 约束
+<a id="course-section-15"></a>
+
+### 11. KL Divergence 与 TRPO 约束
 
 使用 KL Divergence 衡量同一状态下两策略的分布差异：
 
@@ -330,7 +419,9 @@ $$
 
 其中 $C$ 依赖回报/Advantage 的界和 $\gamma$；具体常数以及 KL 方向取决于采用的界。**注意**：理论中的最坏状态差异控制，强于工程实现的平均 KL 约束；实际神经网络 TRPO 不能据此保证每次更新单调提升。
 
-## 12. TRPO 局部二阶近似与 Natural Gradient
+<a id="course-section-16"></a>
+
+### 12. TRPO 局部二阶近似与 Natural Gradient
 
 令 $\Delta\theta=\theta-\theta_{\mathrm{old}}$。在旧参数附近进行泰勒展开：
 
@@ -376,9 +467,13 @@ $$
 
 方向 $F^{-1}g$ 正是 Natural Policy Gradient 的核心形式。实际训练不能显式反演一个巨大矩阵，因此需要 Fisher-vector product、共轭梯度、线搜索等技术；非正定或病态情况下还需阻尼。**PPO 的设计动机**：保留保守策略更新的思想，但避免 TRPO 的复杂二阶/约束优化。
 
-# 第五部分　PPO-Clip 的核心推导
+<a id="course-section-17"></a>
 
-## 13. 从 KL Penalty 到 Clipped Surrogate
+## 第五部分　PPO-Clip 的核心推导
+
+<a id="course-section-18"></a>
+
+### 13. 从 KL Penalty 到 Clipped Surrogate
 
 最直接的一阶化方式是 PPO-Penalty：
 
@@ -406,7 +501,9 @@ $$
 
 常见起点为 $\epsilon=0.1\sim0.2$，但应当根据环境、动作维度和监测的 KL 调整。**这里的 `min` 与 `clip` 必须一起理解。**
 
-## 14. 正 Advantage：好动作不能无限被奖励
+<a id="course-section-19"></a>
+
+### 14. 正 Advantage：好动作不能无限被奖励
 
 若 $\hat A_t>0$，希望提高该动作概率，即使 $r_t>1$。式 (21) 化简为
 
@@ -431,7 +528,9 @@ $$
 
 当 $r_t>1.2$ 时，这个样本不再因为概率继续上升而增加代理目标，梯度在此方向上为零。**设计动机**：避免对看起来“好”的旧策略样本过度提高概率。
 
-## 15. 负 Advantage：坏动作也不能无限被压低
+<a id="course-section-20"></a>
+
+### 15. 负 Advantage：坏动作也不能无限被压低
 
 若 $\hat A_t<0$，希望降低动作概率，即降低 $r_t$。由于乘以负数会反转大小关系，
 
@@ -456,7 +555,9 @@ $$
 
 PPO 最大化目标，因此负 Advantage 时降低 $r$ 有利；但当 $r<0.8$ 时不再额外奖励进一步压低该动作的概率。
 
-## 16. 为什么一定要有 `min`，而不是只用 `clip`？
+<a id="course-section-21"></a>
+
+### 16. 为什么一定要有 `min`，而不是只用 `clip`？
 
 假设只有 $\operatorname{clip}(r,1-\epsilon,1+\epsilon)\hat A$。若 $\hat A>0$、$r=0.5$、$\epsilon=0.2$，说明好动作的概率已经被错误地大幅降低，但单独的 `clip` 会输出 $0.8\hat A$，在 $r<0.8$ 区域梯度为零，无法纠正错误方向。
 
@@ -471,7 +572,9 @@ $$
 
 而且由 $\min(x,y)\le x$，逐样本成立 $L^{\mathrm{CLIP}}\le L^{\mathrm{CPI}}$：这是对**未裁剪代理目标**的保守下界，**不等于对真实回报 $J$ 的严格下界**。
 
-## 17. 从梯度看 PPO 在何处停止更新
+<a id="course-section-22"></a>
+
+### 17. 从梯度看 PPO 在何处停止更新
 
 因为旧策略分母在本次优化中不变，
 
@@ -493,7 +596,9 @@ $$
 
 当 $\theta=\theta_{\mathrm{old}}$，$r_t=1$，因此初始局部梯度与 CPI/Advantage Policy Gradient 一致（差相应归一化常数）。**PPO 不改变初始策略改进方向，而是在重复更新、概率比逐渐偏离 1 时抑制过大更新收益。**
 
-## 18. PPO 不能保证 Ratio 或 KL 被硬性约束
+<a id="course-section-23"></a>
+
+### 18. PPO 不能保证 Ratio 或 KL 被硬性约束
 
 $\epsilon=0.2$ **不意味着**更新后始终有 $0.8\le r_t\le1.2$。Clipping 修改的是损失，而不是把策略投影到可行集合。共享神经网络参数会同时影响其他状态和样本；多个 Mini-batch Epoch 后，平均 KL 依然可能过大。
 
@@ -503,9 +608,13 @@ $$\bar D_{\mathrm{KL}}(\pi_{\mathrm{old}}\Vert\pi_\theta)$$
 
 并使用 Target-KL Early Stopping，必要时结合学习率调整、Gradient Clipping。需要分清三种裁剪：**Ratio Clipping** 控制代理收益；**Gradient Clipping** 控制梯度范数；**Action Clipping** 限制真实执行动作范围。三者不是一回事。
 
-# 第六部分　GAE：Advantage 究竟如何估计？
+<a id="course-section-24"></a>
 
-## 19. Monte Carlo Advantage 的动机与代价
+## 第六部分　GAE：Advantage 究竟如何估计？
+
+<a id="course-section-25"></a>
+
+### 19. Monte Carlo Advantage 的动机与代价
 
 PPO 中使用的 $\hat A_t$ 不是凭空给定。按定义 $A^\pi=Q^\pi-V^\pi$，最直接的方法是把样本回报 $G_t$ 作为 $Q^\pi$ 的样本估计：
 
@@ -518,7 +627,9 @@ $$
 
 **问题**：能否尽早利用较少步数的信息估计 Advantage，而不依赖整条未来轨迹？
 
-## 20. 由 Bellman 方程得到 One-Step TD Advantage
+<a id="course-section-26"></a>
+
+### 20. 由 Bellman 方程得到 One-Step TD Advantage
 
 Bellman 关系为
 
@@ -541,7 +652,9 @@ $$\boxed{\hat A_t^{(1)}=\delta_t}. \tag{28}$$
 | Monte Carlo | 减少未来价值自举偏差 | 长期回报导致高方差 |
 | One-Step TD | 方差较低、反馈及时 | 更依赖 Critic 的预测准确性 |
 
-## 21. 从 One-Step 推导 N-Step Advantage
+<a id="course-section-27"></a>
+
+### 21. 从 One-Step 推导 N-Step Advantage
 
 一步估计：
 
@@ -571,7 +684,9 @@ $$
 
 较小 $n$ 更多依赖 Value Bootstrap，较大 $n$ 更多依赖真实未来奖励。**GAE 的出发点**：不要在单一的 $n$ 上做硬选择，而是平滑组合多个 N-Step 估计器。
 
-## 22. GAE 的指数权重与求和交换推导
+<a id="course-section-28"></a>
+
+### 22. GAE 的指数权重与求和交换推导
 
 令 $0\le\lambda<1$，定义
 
@@ -611,7 +726,9 @@ $$
 
 GAE 并非数学上保证任何情况下方差都更低。它提供可调的偏差—方差折中：$\lambda$ 较小通常更依赖 Critic，$\lambda$ 较大通常更依赖长期采样回报。
 
-## 23. GAE 的 $O(T)$ 反向递推
+<a id="course-section-29"></a>
+
+### 23. GAE 的 $O(T)$ 反向递推
 
 式 (32) 具有递归结构：
 
@@ -630,7 +747,9 @@ $$
 
 这样从 $T-1$ 向前循环一次就能完成全部计算，复杂度为 $O(T)$。固定长度 Rollout 的最后一个状态若并未真正终止，应使用 $V(s_T)$ Bootstrap；而递归不能跨越一次 Episode Reset 错误地把下一条 Episode 的 Advantage 累加进来。实现时应区分 **terminated（真实终止）**、**truncated（外部时间限制）**和 **Rollout Boundary（采样段边界）**。
 
-## 24. 用 GAE 构造 Critic 训练目标
+<a id="course-section-30"></a>
+
+### 24. 用 GAE 构造 Critic 训练目标
 
 GAE 给出 Advantage 估计：
 
@@ -644,9 +763,13 @@ $$
 
 这里 $V_{\phi_{\mathrm{old}}}$ 是计算这一批 Rollout 目标时保存的旧 Value，整个 PPO 更新阶段必须视为常量。这一技巧让 Actor 的 Advantage 估计与 Critic 的回归目标保持一致。
 
-# 第七部分　完整 Actor–Critic 损失
+<a id="course-section-31"></a>
 
-## 25. Actor Loss
+## 第七部分　完整 Actor–Critic 损失
+
+<a id="course-section-32"></a>
+
+### 25. Actor Loss
 
 本轮旧策略 Rollout 上，先计算并固定 $\hat A_t$（实践中经常标准化）。Actor 最大化
 
@@ -664,7 +787,9 @@ $$\boxed{\mathcal L_{\mathrm{actor}}=-L^{\mathrm{CLIP}}}. \tag{36}$$
 
 如果 $\hat A_t$ 通过当前可训练 Critic 的计算图产生，应在 Actor Loss 中对其 `detach`，避免无意把 Actor 更新传播到 Advantage 目标。
 
-## 26. Critic Loss
+<a id="course-section-33"></a>
+
+### 26. Critic Loss
 
 Critic 通过回归 $\hat R_t^\lambda$ 学习状态价值：
 
@@ -675,7 +800,9 @@ $$
 
 也可以直接回归 Monte Carlo Return。某些实现另设 Value Clipping 或 $\tfrac12$ 系数，但它们不是 PPO-Clip 目标的必要组成。Critic 过差会导致 Advantage 的符号或量级不准确，因此 PPO 的训练稳定性很大程度依赖 Value Function 的估计质量。
 
-## 27. Entropy Bonus 的动机
+<a id="course-section-34"></a>
+
+### 27. Entropy Bonus 的动机
 
 策略可能过早收缩到狭窄动作分布，停止尝试其他抓取方式。使用策略熵
 
@@ -686,7 +813,9 @@ $$
 
 鼓励合理探索。其平均值记为 $L^{\mathrm{entropy}}=\mathbb E_t[H(\pi_\theta(\cdot\mid s_t))]$。高熵并不总是更好，尤其是机器人部署阶段；Entropy Coefficient 可能取零，也可能随训练退火。
 
-## 28. PPO 的最终训练目标
+<a id="course-section-35"></a>
+
+### 28. PPO 的最终训练目标
 
 把 Actor、Critic、Entropy 组合，得到一个常见的联合最大化目标：
 
@@ -711,9 +840,13 @@ $$
 
 常见实现对每个训练 Mini-batch 做多轮更新，但旧 Log Probability、Advantage 和 Return Target 在该 Rollout 的 PPO Epoch 内保持固定。
 
-# 第八部分　连续动作 PPO 与机器人控制
+<a id="course-section-36"></a>
 
-## 29. Gaussian Policy 的对数概率与 Ratio
+## 第八部分　连续动作 PPO 与机器人控制
+
+<a id="course-section-37"></a>
+
+### 29. Gaussian Policy 的对数概率与 Ratio
 
 机器人动作通常是连续向量，例如关节位置增量、目标速度或关节力矩。典型 Actor 使用对角 Gaussian：
 
@@ -743,7 +876,9 @@ $$
 
 **实现重点**：先把各动作维度的 Log Probability 求和，得到整个动作向量的联合 Log Probability，再指数化算 Ratio；不能对各维 Ratio 分别 Clip 后当作标准 PPO 联合策略目标。若使用 Tanh-Squashed Gaussian，需按变量变换计算正确的 Log Probability；若环境直接将采样动作截断到硬边界，也要审慎区分“采样动作”和“实际执行动作”的密度。
 
-## 30. Gaussian Policy 的梯度如何推动动作均值？
+<a id="course-section-38"></a>
+
+### 30. Gaussian Policy 的梯度如何推动动作均值？
 
 考虑一维固定方差模型：
 
@@ -765,7 +900,9 @@ $$
 
 当 $\hat A>0$，更新推动分布均值朝采样动作移动；当 $\hat A<0$，更新推动均值远离该动作。PPO 的 Clipping 再限制单个样本从此类概率变化中获得的额外收益。若 $\sigma$ 可训练，还有关于方差的梯度项。
 
-## 31. 机器人 Residual PPO 示例
+<a id="course-section-39"></a>
+
+### 31. 机器人 Residual PPO 示例
 
 假设有基础轨迹跟随控制器
 
@@ -792,9 +929,13 @@ $$
 
 如果残差经过缩放、非线性变换或安全过滤，必须明确哪些变量的密度用于策略优化、哪些是实际控制命令。PPO 不要求接触动力学可微，但需要可重复的环境 Rollout、合理奖励和足够准确的状态/价值估计。
 
-# 第九部分　一次 PPO Iteration 的完整执行过程
+<a id="course-section-40"></a>
 
-## 32. 从采样到更新的十个步骤
+## 第九部分　一次 PPO Iteration 的完整执行过程
+
+<a id="course-section-41"></a>
+
+### 32. 从采样到更新的十个步骤
 
 1. **冻结旧策略**：令 $\pi_{\mathrm{old}}=\pi_{\theta_k}$，用它采集若干 Episode 或定长 Rollout。
 2. **保存采样信息**：记录 $(s_t,a_t,r_t,s_{t+1})$、终止标记、$\log\pi_{\mathrm{old}}(a_t\mid s_t)$ 和 $V_{\mathrm{old}}(s_t)$。
@@ -807,7 +948,9 @@ $$
 9. **更新 Actor 与 Critic**：最小化联合损失或分别优化，在同一批数据上重复若干 Epoch，监测 KL、Clip Fraction、Value Loss。
 10. **重新采样**：更新完毕后，用新策略生成下一批数据；不把任意久远的旧数据当作标准 On-Policy PPO 的普通 Rollout 重复训练。
 
-## 33. 简洁且可直接改造的 PyTorch 实现
+<a id="course-section-42"></a>
+
+### 33. 简洁且可直接改造的 PyTorch 实现
 
 下面代码给出 PPO 核心 Actor Loss。输入 `new_log_prob`、`old_log_prob` 均为**动作向量的联合** Log Probability，且旧 Log Probability 和 Advantage 在本轮更新中固定。
 
@@ -873,9 +1016,13 @@ entropy = dist.entropy().sum(dim=-1)
 
 这段代码只展示核心公式；完整训练还需要 Rollout Buffer、环境步进、网络结构、优化器、正确的 `terminated/truncated` 处理与指标记录。
 
-# 第十部分　超参数与实际诊断
+<a id="course-section-43"></a>
 
-## 34. 常见起始超参数及其含义
+## 第十部分　超参数与实际诊断
+
+<a id="course-section-44"></a>
+
+### 34. 常见起始超参数及其含义
 
 | 参数 | 常见起点 | 控制什么 |
 |---|---|---|
@@ -894,9 +1041,13 @@ entropy = dist.entropy().sum(dim=-1)
 
 重要诊断量还包括 Episode Return、Success Rate、Value Loss、Explained Variance、Entropy、Approximate KL、Clip Fraction、梯度范数。出现“代理 Loss 看似改善、真实成功率下降”时，应重点检查数据分布漂移、Critic 误差、KL 过大和奖励设计。
 
-# 第十一部分　与 REINFORCE、Actor–Critic、TRPO 的关系
+<a id="course-section-45"></a>
 
-## 35. 算法演化：每一步解决一个问题
+## 第十一部分　与 REINFORCE、Actor–Critic、TRPO 的关系
+
+<a id="course-section-46"></a>
+
+### 35. 算法演化：每一步解决一个问题
 
 | 算法 | 关键公式 / 想法 | 主要动机 |
 |---|---|---|
@@ -910,7 +1061,9 @@ PPO 本质上依然是 **On-Policy Policy Gradient / Actor–Critic**。在每�
 
 PPO 在仿真机器人控制中常见，是因为可以并行采样许多环境、训练结构简单、不要求动力学可微，且天然支持 Gaussian 连续动作。但在真实机器人上，样本采集昂贵，SAC 等 Off-Policy 算法可能更具交互样本效率。对于 Diffusion / Flow Matching Action Policy，标准 PPO 需要的显式且可计算 Log Probability 往往不易获得，通常需要专门改造。
 
-# 第十二部分　最终公式总览与研究启示
+<a id="course-section-47"></a>
+
+## 第十二部分　最终公式总览与研究启示
 
 **核心公式 1：策略梯度**
 
@@ -963,7 +1116,9 @@ $$
 
 > **研究层面的核心结论**：PPO 并不是一个新的环境梯度计算方法。它使用 Policy Gradient 确定局部性能改进方向，用 Importance Sampling 在旧数据上构造代理目标，用 Clipping 抑制过度优化，并用 GAE 改善 Advantage 估计。GAE 主要解决**梯度估计质量**的问题；Clipping 主要解决**策略更新稳定性**的问题。二者功能不同、相互补充。
 
-## 参考文献与延伸阅读
+<a id="course-section-48"></a>
+
+### 参考文献与延伸阅读
 
 1. Schulman, J. et al. (2017). *Proximal Policy Optimization Algorithms*. arXiv:1707.06347. <https://arxiv.org/abs/1707.06347>
 2. Schulman, J. et al. (2015). *Trust Region Policy Optimization*. ICML. <https://arxiv.org/abs/1502.05477>

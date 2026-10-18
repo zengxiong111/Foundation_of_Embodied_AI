@@ -13,6 +13,9 @@ A public teaching-material repository for a future course titled “Foundation o
 - [Suggested learning path](#suggested-learning-path)
 - [Quick start](#quick-start)
 - [Repository structure](#repository-structure)
+- [Licensing](#licensing)
+- [Versions and verification scope](#versions-and-verification-scope)
+- [Build validation and publication](#build-validation-and-publication)
 - [Course development plan](#course-development-plan)
 - [Contributions and feedback](#contributions-and-feedback)
 - [Usage notes and limitations](#usage-notes-and-limitations)
@@ -81,10 +84,71 @@ Foundation_of_Embodied_AI/
 ├── README.md       # English course overview (default)
 ├── README.zh-CN.md # Chinese course overview
 ├── md/             # 22 Chinese and English Markdown tutorials
-└── pdf/            # 22 Chinese and English PDF materials
+├── pdf/            # 22 PDFs and current build manifest
+├── materials.json  # Material, version and website mapping
+├── VERSIONS.md     # English version notes (Chinese counterpart provided)
+├── scripts/        # Synchronization, build, validation and publication
+├── tests/          # Validator tests
+├── LICENSE         # Original teaching content: CC BY 4.0
+└── LICENSE-CODE    # Build tools: MIT
 ```
 
 The repository identifier is `Foundation_of_Embodied_AI`. The Chinese course title is “具身智能基础”, and the English display title is “Foundation of Embodied AI”. Existing filenames are preserved, including the `-1` suffix on some PDFs. All original files are included in full.
+
+## Licensing
+
+| Content | License and scope |
+|---|---|
+| Original teaching prose, equation explanations and course-created diagrams that this repository has the right to license; corresponding Markdown and PDFs | [CC BY 4.0](LICENSE); copying, adaptation, redistribution and commercial use are allowed with attribution, a license link and an indication of changes |
+| New build, validation, synchronization and publication tools (`scripts/`, `tests/` and build configuration) | [MIT](LICENSE-CODE); retain copyright and license notices |
+| Third-party papers, quoted passages, figures, code, models, data and trademarks | Retain their original terms; citation here does not automatically place them under CC BY or MIT |
+
+Suggested attribution: **Xiong Zeng and contributors, Foundation of Embodied AI**, with the [repository URL](https://github.com/zengxiong111/Foundation_of_Embodied_AI), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) and a description of changes. Preserve original paper or official-code attribution where applicable. Legal texts retain their standard English wording; this section explains scope. Contributions are welcome when you have the right to contribute under the applicable license; identify sources and third-party restrictions in your PR.
+
+## Versions and verification scope
+
+The [bilingual version matrix](VERSIONS.md) records applicability, the 2026-10-18 documentation review date and pinned upstream commits for each topic. Review covers documentation structure and reference snapshots; **it does not mean installation, training or real-robot execution passed**. Experiment reproduction still requires a locked environment, assets, configuration and checkpoint.
+
+`materials.json` is the single inventory for topics, language pairs, versions and website filenames. `npm run sync` uses it to update tutorial navigation, clickable contents and version notes. All 22 tutorials provide course-home, counterpart-language and PDF links. Existing direct personal-website URLs in the material table are preserved.
+
+## Build validation and publication
+
+### Environment and first build
+
+Run these commands from the repository root. Requirements are Node.js 24, npm, Python 3, Chromium, Poppler, Fontconfig and Noto CJK fonts. The build does not execute tutorial examples or training tasks.
+
+```bash
+sudo apt-get update
+sudo apt-get install -y poppler-utils fontconfig fonts-noto-cjk
+npm ci --no-audit --no-fund
+npx playwright install --with-deps chromium
+npm run sync
+npm test
+npm run build
+npm run check
+```
+
+To use an existing Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to its absolute path. `npm run build -- sac` rebuilds only the SAC language pair; topic IDs are listed in `materials.json`. Rebuild every topic after changing the renderer, stylesheet, dependency lockfile or inventory.
+
+### Routine edits and checks
+
+1. Update both language bodies together. Record version scope, review date and pinned commits in `materials.json` when they change.
+2. Run `npm run sync`, `npm test`, `npm run build` and `npm run check`. Checks require one title, a valid heading hierarchy, valid contents anchors, language pairing, material URLs and current PDF bindings.
+3. Visually inspect PDF contents, long equations, tables, diagrams and pagination. The renderer rejects math errors, display-equation overflows and unrendered Mermaid diagrams; automated checks do not imply manual review of every page.
+4. Commit Markdown, current PDFs, `pdf/build-manifest.json` and necessary build files. Keep installed dependencies, temporary HTML/images, backups and logs out of the repository.
+
+Dependencies are locked in `package-lock.json`; print styling lives in `scripts/print.css`. `pdf/build-manifest.json` records source/PDF hashes, the build-input fingerprint, browser version, font hashes and page count. It detects stale PDFs. Browser/font differences and internal PDF timestamps can affect binary output, so byte-for-byte reproduction across environments is not promised.
+
+### Website synchronization
+
+GitHub CLI must be authenticated with appropriate write access to the course and personal-website repositories. The publication command only updates manifest-listed personal-site materials; course repository changes still require the normal commit and push.
+
+```bash
+python3 scripts/publish.py --publish --wait
+python3 scripts/publish.py --verify-only
+```
+
+Publication uses a non-force atomic commit and preserves other website files. After the existing Pages workflow completes, it downloads and checks all 44 materials. A leading blank line is added to website Markdown copies containing YAML metadata so Jekyll serves them statically; body content is preserved. `npm run check` automatically checks committed PDF bindings; website updates require the explicit publication command.
 
 ## Course development plan
 
@@ -105,4 +169,4 @@ Everyone is welcome to download, modify, and submit pull requests! You can send 
 - Chinese and English materials are paired by topic. Paragraph-level consistency between PDF and Markdown has not been reviewed.
 - Software versions, device interfaces, and hardware parameters depend on each tutorial and the actual environment. Hardware experiments require separate equipment checks and safety validation.
 - Maintain Chinese and English content together when revising tutorials, and update the corresponding PDFs and this index.
-- No repository-wide open-source license is currently declared. Public access does not grant unrestricted redistribution or commercial-use rights. Credit sources and comply with licenses for third-party materials.
+- See Licensing above for scope; public access or source attribution does not automatically relicense third-party materials.

@@ -1,0 +1,346 @@
+{
+  "schema_version": 1,
+  "site_base": "https://zengxiong111.github.io/zengxiong.github.io/",
+  "repository": "zengxiong111/Foundation_of_Embodied_AI",
+  "website_repository": "zengxiong111/zengxiong.github.io",
+  "website_branch": "master",
+  "content_license": "CC-BY-4.0",
+  "tooling_license": "MIT",
+  "upstream_snapshots": [
+    {
+      "repo": "Physical-Intelligence/openpi",
+      "ref": "main",
+      "date": "2026-08-24T16:27:12Z",
+      "sha": "215abfb217dbac7d5f1273282331b9b1866c0479",
+      "url": "https://github.com/Physical-Intelligence/openpi/commit/215abfb217dbac7d5f1273282331b9b1866c0479"
+    },
+    {
+      "repo": "isaac-sim/IsaacLab",
+      "ref": "v2.3.2",
+      "date": "2026-01-29T18:16:56Z",
+      "sha": "37ddf626871758333d6ed89cf64ad702aef127d0",
+      "url": "https://github.com/isaac-sim/IsaacLab/commit/37ddf626871758333d6ed89cf64ad702aef127d0"
+    },
+    {
+      "repo": "isaac-sim/IsaacLab",
+      "ref": "release/3.0.0",
+      "date": "2026-10-18T01:57:22Z",
+      "sha": "1693d8539b2404892ad2e1128a5f6a74b56a7dbd",
+      "url": "https://github.com/isaac-sim/IsaacLab/commit/1693d8539b2404892ad2e1128a5f6a74b56a7dbd"
+    },
+    {
+      "repo": "NVIDIA/Isaac-GR00T",
+      "ref": "main",
+      "date": "2026-10-15T21:46:24Z",
+      "sha": "dac54b313160c201c450f97df0fd74ebd379c892",
+      "url": "https://github.com/NVIDIA/Isaac-GR00T/commit/dac54b313160c201c450f97df0fd74ebd379c892"
+    },
+    {
+      "repo": "NVlabs/GR00T-WholeBodyControl",
+      "ref": "main",
+      "date": "2026-10-13T20:34:46Z",
+      "sha": "45c03facbf848e0c743091b7d9c17952096ff908",
+      "url": "https://github.com/NVlabs/GR00T-WholeBodyControl/commit/45c03facbf848e0c743091b7d9c17952096ff908"
+    },
+    {
+      "repo": "ros2/ros2_documentation",
+      "ref": "jazzy",
+      "date": "2026-10-15T20:23:15Z",
+      "sha": "03f26be23292f1b8523b3e4f807f3f123ed5b12a",
+      "url": "https://github.com/ros2/ros2_documentation/commit/03f26be23292f1b8523b3e4f807f3f123ed5b12a"
+    }
+  ],
+  "topics": [
+    {
+      "id": "git",
+      "title_en": "Git Basics",
+      "title_zh": "Git 基础",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "Git 2.x; Ubuntu terminal; GitHub workflow examples",
+      "versions_zh": "Git 2.x；Ubuntu 终端；GitHub 协作示例",
+      "source_refs": [],
+      "documents": {
+        "zh": {
+          "md": "md/Git_使用教程_中文版.md",
+          "pdf": "pdf/Git_使用教程_中文版.pdf",
+          "site_md": "files/Git_Tutorial_CN.md",
+          "site_pdf": "files/Git_Tutorial_CN.pdf"
+        },
+        "en": {
+          "md": "md/Git_Tutorial_English.md",
+          "pdf": "pdf/Git_Tutorial_English-1.pdf",
+          "site_md": "files/Git_Tutorial_EN.md",
+          "site_pdf": "files/Git_Tutorial_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "ros2",
+      "title_en": "ROS 2 Basics",
+      "title_zh": "ROS 2 基础",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "Ubuntu 24.04; ROS 2 Jazzy; Python examples",
+      "versions_zh": "Ubuntu 24.04；ROS 2 Jazzy；Python 示例",
+      "source_refs": [
+        "ros2/ros2_documentation@jazzy"
+      ],
+      "documents": {
+        "zh": {
+          "md": "md/ROS2_Robot_Learning_Tutorial_ZH.md",
+          "pdf": "pdf/ROS2_Robot_Learning_Tutorial_ZH.pdf",
+          "site_md": "files/ROS2_Robot_Learning_Tutorial_ZH.md",
+          "site_pdf": "files/ROS2_Robot_Learning_Tutorial_ZH.pdf"
+        },
+        "en": {
+          "md": "md/ROS2_Robot_Learning_Tutorial_EN.md",
+          "pdf": "pdf/ROS2_Robot_Learning_Tutorial_EN-1.pdf",
+          "site_md": "files/ROS2_Robot_Learning_Tutorial_EN.md",
+          "site_pdf": "files/ROS2_Robot_Learning_Tutorial_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "calibration",
+      "title_en": "Camera Calibration",
+      "title_zh": "相机标定",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "OpenCV 4.x concepts; ROS 2 Jazzy; device SDK version must be selected separately",
+      "versions_zh": "OpenCV 4.x 概念；ROS 2 Jazzy；设备 SDK 版本需另行匹配",
+      "source_refs": [
+        "ros2/ros2_documentation@jazzy"
+      ],
+      "documents": {
+        "zh": {
+          "md": "md/Robot_Camera_Calibration_Tutorial_ZH.md",
+          "pdf": "pdf/Robot_Camera_Calibration_Tutorial_ZH-1.pdf",
+          "site_md": "files/Robot_Camera_Calibration_Tutorial_ZH.md",
+          "site_pdf": "files/Robot_Camera_Calibration_Tutorial_ZH.pdf"
+        },
+        "en": {
+          "md": "md/Robot_Camera_Calibration_Tutorial_EN.md",
+          "pdf": "pdf/Robot_Camera_Calibration_Tutorial_EN-1.pdf",
+          "site_md": "files/Robot_Camera_Calibration_Tutorial_EN.md",
+          "site_pdf": "files/Robot_Camera_Calibration_Tutorial_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "dynamics",
+      "title_en": "Robot Dynamics",
+      "title_zh": "机器人动力学",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "Rigid-body theory; MuJoCo and Isaac examples are conceptual, not a tested cross-engine pair",
+      "versions_zh": "刚体动力学理论；MuJoCo 与 Isaac 示例为概念说明，非已测试的跨引擎组合",
+      "source_refs": [
+        "isaac-sim/IsaacLab@v2.3.2"
+      ],
+      "documents": {
+        "zh": {
+          "md": "md/Robot_Dynamics_Embodied_CN.md",
+          "pdf": "pdf/Robot_Dynamics_Embodied_CN.pdf",
+          "site_md": "files/Robot_Dynamics_Embodied_CN.md",
+          "site_pdf": "files/Robot_Dynamics_Embodied_CN.pdf"
+        },
+        "en": {
+          "md": "md/Robot_Dynamics_Embodied_EN.md",
+          "pdf": "pdf/Robot_Dynamics_Embodied_EN.pdf",
+          "site_md": "files/Robot_Dynamics_Embodied_EN.md",
+          "site_pdf": "files/Robot_Dynamics_Embodied_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "simulation",
+      "title_en": "Isaac / MuJoCo Simulation",
+      "title_zh": "Isaac / MuJoCo 仿真",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "Documented tracks: Isaac Lab 2.3.2 / Isaac Sim 5.1; Lab 3.0 Early Access / Sim 6.1. MuJoCo, MJX and MJWarp releases must be selected per task",
+      "versions_zh": "文档路线：Isaac Lab 2.3.2 / Isaac Sim 5.1；Lab 3.0 Early Access / Sim 6.1。MuJoCo、MJX、MJWarp 需按任务选择版本",
+      "source_refs": [
+        "isaac-sim/IsaacLab@v2.3.2",
+        "isaac-sim/IsaacLab@release/3.0.0"
+      ],
+      "documents": {
+        "zh": {
+          "md": "md/Isaac_MuJoCo_RL_完整教程_中文.md",
+          "pdf": "pdf/Isaac_MuJoCo_RL_完整教程_中文.pdf",
+          "site_md": "files/Isaac_MuJoCo_RL_完整教程_中文.md",
+          "site_pdf": "files/Isaac_MuJoCo_RL_完整教程_中文.pdf"
+        },
+        "en": {
+          "md": "md/Isaac_MuJoCo_RL_Complete_Guide_EN.md",
+          "pdf": "pdf/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf",
+          "site_md": "files/Isaac_MuJoCo_RL_Complete_Guide_EN.md",
+          "site_pdf": "files/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "embodied-rl",
+      "title_en": "Embodied RL",
+      "title_zh": "具身强化学习",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "Algorithm and task taxonomy; no single framework environment is prescribed",
+      "versions_zh": "算法与任务分类；不规定统一框架运行环境",
+      "source_refs": [],
+      "documents": {
+        "zh": {
+          "md": "md/Embodied_RL_Tutorial_Full_ZH.md",
+          "pdf": "pdf/Embodied_RL_Tutorial_Full_ZH-1.pdf",
+          "site_md": "files/Embodied_RL_Tutorial_Full_ZH.md",
+          "site_pdf": "files/Embodied_RL_Tutorial_Full_ZH.pdf"
+        },
+        "en": {
+          "md": "md/Embodied_RL_Tutorial_Full_EN.md",
+          "pdf": "pdf/Embodied_RL_Tutorial_Full_EN-1.pdf",
+          "site_md": "files/Embodied_RL_Tutorial_Full_EN.md",
+          "site_pdf": "files/Embodied_RL_Tutorial_Full_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "motion-rl",
+      "title_en": "Motion Control RL",
+      "title_zh": "运动控制 RL",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "Isaac Lab / RSL-RL workflows are illustrative; task, trainer, asset and actuator versions must be bound together",
+      "versions_zh": "Isaac Lab / RSL-RL 工作流为说明性示例；任务、训练器、资产和执行器版本需一起绑定",
+      "source_refs": [
+        "isaac-sim/IsaacLab@v2.3.2"
+      ],
+      "documents": {
+        "zh": {
+          "md": "md/Embodied_Motion_Control_RL_Tutorial_ZH.md",
+          "pdf": "pdf/Embodied_Motion_Control_RL_Tutorial_ZH.pdf",
+          "site_md": "files/Embodied_Motion_Control_RL_Tutorial_ZH.md",
+          "site_pdf": "files/Embodied_Motion_Control_RL_Tutorial_ZH.pdf"
+        },
+        "en": {
+          "md": "md/Embodied_Motion_Control_RL_Tutorial_EN.md",
+          "pdf": "pdf/Embodied_Motion_Control_RL_Tutorial_EN.pdf",
+          "site_md": "files/Embodied_Motion_Control_RL_Tutorial_EN.md",
+          "site_pdf": "files/Embodied_Motion_Control_RL_Tutorial_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "ppo",
+      "title_en": "PPO",
+      "title_zh": "PPO",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "PPO-Clip / GAE theory; PyTorch-style examples are instructional, not a tested training package",
+      "versions_zh": "PPO-Clip / GAE 理论；PyTorch 风格示例为教学内容，非已测试训练包",
+      "source_refs": [],
+      "documents": {
+        "zh": {
+          "md": "md/PPO_完整推导与设计动机_中文.md",
+          "pdf": "pdf/PPO_完整推导与设计动机_中文.pdf",
+          "site_md": "files/PPO_Complete_Derivation_CN.md",
+          "site_pdf": "files/PPO_Complete_Derivation_CN.pdf"
+        },
+        "en": {
+          "md": "md/PPO_Complete_Derivation_and_Design_Motivations_English.md",
+          "pdf": "pdf/PPO_Complete_Derivation_and_Design_Motivations_English-1.pdf",
+          "site_md": "files/PPO_Complete_Derivation_EN.md",
+          "site_pdf": "files/PPO_Complete_Derivation_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "sac",
+      "title_en": "SAC",
+      "title_zh": "SAC",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "Modern continuous-action SAC; twin critics and automatic temperature tuning; pseudocode only",
+      "versions_zh": "现代连续动作 SAC；双 Critic 与自动温度调节；伪代码为主",
+      "source_refs": [],
+      "documents": {
+        "zh": {
+          "md": "md/SAC_Complete_Derivation_CN.md",
+          "pdf": "pdf/SAC_Complete_Derivation_CN-1.pdf",
+          "site_md": "files/SAC_Complete_Derivation_CN.md",
+          "site_pdf": "files/SAC_Complete_Derivation_CN.pdf"
+        },
+        "en": {
+          "md": "md/SAC_Complete_Derivation_EN.md",
+          "pdf": "pdf/SAC_Complete_Derivation_EN-1.pdf",
+          "site_md": "files/SAC_Complete_Derivation_EN.md",
+          "site_pdf": "files/SAC_Complete_Derivation_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "flow-matching",
+      "title_en": "Flow Matching",
+      "title_zh": "Flow Matching",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "CFM theory; OpenPI pi0.py code reference pinned below; examples are not a tested fine-tuning run",
+      "versions_zh": "CFM 理论；OpenPI pi0.py 代码引用固定如下；示例不代表已完成微调实验",
+      "source_refs": [
+        "Physical-Intelligence/openpi@main"
+      ],
+      "documents": {
+        "zh": {
+          "md": "md/Flow_Matching_详细推导_精简版.md",
+          "pdf": "pdf/Flow_Matching_详细推导_精简版.pdf",
+          "site_md": "files/Flow_Matching_CN.md",
+          "site_pdf": "files/Flow_Matching_CN.pdf"
+        },
+        "en": {
+          "md": "md/Flow_Matching_Step_by_Step_Derivation_EN.md",
+          "pdf": "pdf/Flow_Matching_Step_by_Step_Derivation_EN.pdf",
+          "site_md": "files/Flow_Matching_Step_by_Step_Derivation_EN.md",
+          "site_pdf": "files/Flow_Matching_Step_by_Step_Derivation_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "groot-sonic",
+      "title_en": "GR00T & SONIC",
+      "title_zh": "GR00T 与 SONIC",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
+      "versions_en": "SONIC paper integration: GR00T N1.5; documented G1 workflow: N1.7, 78-dim actions, 2.5 Hz inference / 50 Hz stream. Checkpoint and observation config must match",
+      "versions_zh": "SONIC 论文集成：GR00T N1.5；文档 G1 工作流：N1.7、78 维动作、2.5 Hz 推理 / 50 Hz 动作流。Checkpoint 与观测配置须匹配",
+      "source_refs": [
+        "NVIDIA/Isaac-GR00T@main",
+        "NVlabs/GR00T-WholeBodyControl@main"
+      ],
+      "documents": {
+        "zh": {
+          "md": "md/System1_System0_GR00T_SONIC_CN.md",
+          "pdf": "pdf/System1_System0_GR00T_SONIC_CN.pdf",
+          "site_md": "files/System1_System0_GR00T_SONIC_CN.md",
+          "site_pdf": "files/System1_System0_GR00T_SONIC_CN.pdf"
+        },
+        "en": {
+          "md": "md/System1_System0_GR00T_SONIC_EN.md",
+          "pdf": "pdf/System1_System0_GR00T_SONIC_EN.pdf",
+          "site_md": "files/System1_System0_GR00T_SONIC_EN.md",
+          "site_pdf": "files/System1_System0_GR00T_SONIC_EN.pdf"
+        }
+      }
+    }
+  ]
+}
