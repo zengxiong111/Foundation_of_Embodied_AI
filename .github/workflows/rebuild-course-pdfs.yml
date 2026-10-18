@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - release/rebuild-28-pdfs-and-bilingual-books-20261018
+      - course/add-advanced-imitation-vision-robot-agents-20261018
     paths:
       - 'md/**'
       - 'materials.json'
