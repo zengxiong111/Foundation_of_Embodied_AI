@@ -13,6 +13,7 @@ A public teaching-material repository for a future course titled “Foundation o
 - [Quick start](#quick-start)
 - [Repository structure](#repository-structure)
 - [Course development plan](#course-development-plan)
+- [Contributions and feedback](#contributions-and-feedback)
 - [Usage notes and limitations](#usage-notes-and-limitations)
 
 ## Course scope
@@ -92,6 +93,10 @@ The following items are planned and are not yet delivered:
 - Slides, reading lists, and classroom demonstrations.
 - Graded assignments, lab environments, and reproducible experiment code.
 - Integrated course projects, assessment criteria, and student contribution guidelines.
+
+## Contributions and feedback
+
+Everyone is welcome to download, modify, and submit pull requests! You can send feedback to my email: [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn).
 
 ## Usage notes and limitations
 
