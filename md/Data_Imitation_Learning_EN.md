@@ -193,13 +193,199 @@ Check timestamps, command/feedback confusion, camera extrinsics, action scale, l
 
 <a id="course-section-19"></a>
 
-## 7. Where This Fits and References
+
+## 7. Unified Data Model: From Demonstrations to Action Chunks
+
+### 7.1 Distinguish Latent State, Observations, and Commands
+
+In real manipulation the full world state $s_t$ (object motion, friction, contact modes) is usually not observed. We record images $o_t^{\mathrm{cam}}$, joint feedback $q_t$, actual actuator commands $a_t$, and a goal $g$. A demonstration may be represented as
+
+$
+\tau_i=\{g_i,(o_t^{\mathrm{cam}},q_t,a_t,r_t^{\mathrm{event}})_{t=0}^{T_i-1}\}.
+$
+
+The event label $r_t^{\mathrm{event}}$ may encode contact, slip, recovery, or completion; it need not be an RL reward. Ground-truth simulated object poses, future expert commands, or post-hoc outcome labels must not leak into the deployed policy observations. Keep issued commands distinct from delayed joint feedback.
+
+### 7.2 The Action-Chunk Prediction Problem
+
+Construct conditioning information $c_t=(o_{t-L+1:t},q_t,g)$ from an observation window, current proprioception and goal. The policy predicts an $H$-step sequence:
+
+$
+A_t=(a_t,a_{t+1},\ldots,a_{t+H-1}),\qquad
+p_\theta(A_t\mid c_t).
+$
+
+Prediction horizon $H$ is **not** the number of steps that must run open-loop. Execute only $h\le H$ steps, observe, then replan. Document control interval, inference call interval, queueing and interpolation. For example, 30-Hz vision and 100-Hz servo feedback do not imply that the large VLA must run at 100 Hz; it does require a safe interpolation, hold and timeout policy.
+
+### 7.3 Time Alignment, Frames, and Action Normalization
+
+At action time $t_k^a$, training inputs must already have been available. Accounting for acquisition/transport lag $\delta$, choose a historical frame satisfying $t_j^{\rm image}\le t_k^a-\delta$ rather than a future frame. For Cartesian pose commands, base-frame left-multiplied increments $T_{BE,t+1}=\Delta T_{B,t}T_{BE,t}$ differ from end-effector-frame right-multiplied increments $T_{BE,t+1}=T_{BE,t}\Delta T_{E,t}$.
+
+Estimate action normalization statistics only on the training set:
+
+$
+\tilde a=(a-\mu_D)/(\sigma_D+\varepsilon),\qquad
+a_{\rm deployed}=\tilde a(\sigma_D+\varepsilon)+\mu_D.
+$
+
+Different joints, gripper apertures, rotations and force commands require consistent units and independent safety limits. Never use test data to fit normalization parameters.
+
+## 8. Behavior Cloning: Objectives, Intuition, and Failure Modes
+
+### 8.1 Deterministic and Probabilistic BC
+
+Given expert samples $(c,a)\sim d_E$, a deterministic baseline minimizes
+
+$
+\mathcal L_{\rm BC}(\theta)=\mathbb E_{(c,a)\sim d_E}\|\pi_\theta(c)-a\|_2^2.
+$
+
+Under squared loss it converges toward the conditional mean $\mathbb E[a\mid c]$. This works for sufficiently unimodal behavior. If going left and going right around an obstacle are equally valid, the mean could collide with the obstacle. A probabilistic policy instead minimizes the negative log-likelihood
+
+$
+\mathcal L_{\rm NLL}(\theta)=-\mathbb E_{(c,a)\sim d_E}\log p_\theta(a\mid c).
+$
+
+For a Gaussian distribution with fixed isotropic variance, NLL is MSE up to scaling and constants. Mixtures or generative action distributions can represent multiple modes. **High dimensionality alone is not proof that ordinary BC is inadequate.**
+
+### 8.2 Covariate Shift and Compounding Error
+
+Offline BC learns on the expert occupancy $d_{\pi_E}$, while the deployed policy visits $d_{\pi_\theta}$:
+
+$
+\min_\theta\mathbb E_{s\sim d_{\pi_E}}\ell(\pi_\theta(s),\pi_E(s))
+\quad\not\Rightarrow\quad
+\min_\theta\mathbb E_{s\sim d_{\pi_\theta}}\ell(\pi_\theta(s),\pi_E(s)).
+$
+
+A small contact error may move the object to a state absent from expert training data. Collect intervention and recovery data; evaluate under deliberate safe perturbations, not solely on shuffled held-out action labels.
+
+### 8.3 Chunk Loss and Smoothness Trade-offs
+
+For variable-length episodes use a validity mask $m_{t,k}$ and optional horizon weight $w_k$:
+
+$
+\mathcal L_{\rm chunk}=
+\frac{\sum_{t,k}m_{t,k}w_k\|\hat a_{t+k\mid t}-a_{t+k}\|_1}
+{\sum_{t,k}m_{t,k}w_k}.
+$
+
+A smoothness penalty $\lambda_s\sum_k\|\hat a_{k+1}-\hat a_k\|^2$ may suppress unwanted oscillation, yet can also erase necessary changes at contact onset or release. Measure task success and contact-force peaks before choosing it based on visual smoothness.
+
+## 9. Interactive Imitation and Recovering from Failure
+
+### 9.1 DAgger: Expert Queries on Learner-Visited States
+
+DAgger gathers the states the current learner actually visits and requests safe expert labels. At iteration $i$, a mixture $\pi_i=\beta_i\pi_E+(1-\beta_i)\pi_{\theta_i}$ visits $s\sim d_{\pi_i}$; the expert supplies $\pi_E(s)$:
+
+$
+D_{i+1}=D_i\cup\{(s,\pi_E(s)):s\sim d_{\pi_i}\},\qquad
+\theta_{i+1}=\arg\min_\theta\sum_{(s,a)\in D_{i+1}}\ell(\pi_\theta(s),a).
+$
+
+The expert mixing probability $\beta_i$ is often decreased gradually. Hardware requires human intervention authority, velocity/force limits and emergency stops. Merely retraining from static offline trajectories is not DAgger.
+
+### 9.2 Failures, Recoveries, and Event-Biased Sampling
+
+Classify demonstrations as successful, recoverable failure, irrecoverable failure, or intervention. Annotate first contact, slip, drop, reacquisition and regrasp. Imitate only **safe and meaningful recovery actions**; unsafe failures may still be kept as negative outcome labels.
+
+Compare uniform time sampling against event-biased sampling. A weighted loss is $\mathcal L=\sum_tw_t\ell_t/\sum_tw_t$, but modified sampling changes the training distribution. Always report unbiased test performance as well.
+
+## 10. ACT, Diffusion Policy, and Flow Matching for Actions
+
+### 10.1 ACT: Conditional VAE and Transformer Chunks
+
+Action Chunking with Transformers (ACT) predicts a sequence of commands with a Transformer. Its original formulation uses a conditional variational autoencoder (CVAE) to represent variation in demonstrations. An encoder approximates $q_\phi(z\mid A,c)$, and a decoder models $p_\theta(A\mid z,c)$:
+
+$
+\mathcal L_{\rm ACT}=
+\mathbb E_{z\sim q_\phi}[-\log p_\theta(A\mid z,c)]
++\beta D_{\rm KL}(q_\phi(z\mid A,c)\|p(z)).
+$
+
+The KL term regularizes the posterior against the latent prior. At inference there is no future ground-truth action chunk $A$; use the declared prior or a deterministic representative. Large $\beta$ can cause posterior collapse; tiny $\beta$ can create a mismatch between training posterior and inference prior.
+
+### 10.2 Diffusion Policy: Predict Noise in Action Space
+
+Let $A_0$ be a demonstrated action chunk, $\epsilon\sim\mathcal N(0,I)$, and $k$ the diffusion step. Construct
+
+$
+A_k=\sqrt{\bar\alpha_k}A_0+\sqrt{1-\bar\alpha_k}\epsilon
+$
+
+and fit the conditional noise prediction objective
+
+$
+\mathcal L_{\rm diff}=
+\mathbb E_{A_0,c,k,\epsilon}\|\epsilon-\epsilon_\theta(A_k,k,c)\|_2^2.
+$
+
+At deployment, iterative denoising produces an action chunk. Execute a subset and replan from the next observation. The denoising step count, visual encoder and network architecture all affect latency; "generative" does not imply real-time.
+
+### 10.3 Flow Matching: Generative Velocity Is Not Joint Velocity
+
+Use data endpoint $A_1\sim p_{\rm data}(\cdot\mid c)$ and noise $A_0\sim\mathcal N(0,I)$. For a straight interpolation $A_\tau=(1-\tau)A_0+\tau A_1$, one possible training loss is
+
+$
+\mathcal L_{\rm FM}=
+\mathbb E_{c,A_0,A_1,\tau}
+\|v_\theta(A_\tau,\tau,c)-(A_1-A_0)\|_2^2.
+$
+
+Sample by solving $dA_\tau/d\tau=v_\theta(A_\tau,\tau,c)$. This vector field is a derivative in **generative time**, not the robot's physical $\dot q$. Path choices and time orientations vary by implementation. The continuity equation, conditional-expectation argument and OpenPI time convention are derived exclusively in the [Flow Matching tutorial](Flow_Matching_Step_by_Step_Derivation_EN.md); this chapter focuses on the imitation-learning interface.
+
+### 10.4 Fair Comparisons Against BC
+
+Use the same demonstrations, observation encoder, action representation, prediction/execution horizons and evaluation protocol for one-step BC, chunked BC, ACT, Diffusion Policy and Flow Matching. Record data volume, model calls, generation steps, inference latency and closed-loop success. Do not mistake the benefit of action chunking for the benefit of a Transformer, or of extra test-time computation for the learning algorithm itself.
+
+## 11. Human Video Retargeting, Contact, and Augmentation
+
+### 11.1 Human-to-Robot Is Not Pixel Imitation
+
+A realistic pipeline is hand/tool pose recovery → scale and frame calibration → embodiment-specific retargeting → contact event detection → short physics replay and trajectory repair → policy training. Humans and robot hands differ in kinematics, reachability and contact friction. One task-dependent objective is
+
+$
+\mathcal L_{\rm retarget}
+=w_p\|p_{\rm robot}-p_{\rm target}\|^2+
+w_R d_{SO(3)}(R_{\rm robot},R_{\rm target})^2+
+w_c\mathcal L_{\rm contact}+w_j\mathcal L_{\rm limits}.
+$
+
+Define $\mathcal L_{\rm contact}$ for the task, e.g. contact point error, surface normals, grasp maintenance or object slip. Mere proximity does not certify physical contact.
+
+### 11.2 Augmentation Must Preserve Geometry and Physics
+
+When perturbing object position, scale or orientation, transform task goals, observable geometry, trajectories and reference-frame-dependent labels consistently. Rotating an image without adjusting Cartesian action labels is typically invalid. Contact phases should be physically replayed to check penetration, limits, slip and unreasonable forces before accepting augmented episodes.
+
+## 12. Training and Evaluation Protocol
+
+### 12.1 Offline Metrics, Closed-Loop Success, and Recovery
+
+| Test | Report | Does not replace |
+|---|---|---|
+| Held-out demonstrations | NLL / action error and chunk alignment | Closed-loop task success |
+| Randomized starts | Success, completion time, collision/contact failures | Perturbation tests |
+| Drop or disturbance | Recovery success, recovery latency, regrasp count | Nominal performance |
+| Held-out objects/scenes | Generalization success with grouped splits | Data leakage checks |
+| Runtime | Policy p50/p95 latency, actuation latency | A bare GPU FPS number |
+
+For $k$ successes in $N$ independent episodes, report $\hat p=k/N$ and a confidence interval. The rough standard error is $\sqrt{\hat p(1-\hat p)/N}$; use a Wilson interval for small $N$ or near-boundary success rates. Frames from the same episode are not independent trials.
+
+### 12.2 A Shared Panda Tabletop Benchmark
+
+Use the same Panda arm, cube, and tabletop in simulation. First validate control labels, then compare one-step versus chunked BC, then ACT versus diffusion/flow, and finally add recovery demonstrations and contact perturbations. When transferring across Isaac and MuJoCo, disclose differences in contact solvers, actuator dynamics and timing.
+
+**Chapter ownership:** this tutorial owns demonstration quality, supervised imitation, distribution shift and action-policy comparisons. Complete PPO/SAC derivations belong to their respective chapters; formal FM derivations belong to the [Flow Matching tutorial](Flow_Matching_Step_by_Step_Derivation_EN.md); the visual model toolbox belongs to [Visual Perception and State Estimation](Visual_State_Estimation_EN.md).
+
+
+## 13. Where This Fits and References
 
 This chapter bridges [camera calibration](Robot_Camera_Calibration_Tutorial_EN.md), [visual state estimation](Visual_State_Estimation_EN.md), [Flow Matching](Flow_Matching_Step_by_Step_Derivation_EN.md), and [GR00T / SONIC](System1_System0_GR00T_SONIC_EN.md).
 
 - [ACT / ALOHA](https://arxiv.org/abs/2304.13705)
 - [Diffusion Policy](https://arxiv.org/abs/2303.04137)
 - [DAgger](https://arxiv.org/abs/1011.0686)
+- [Flow Matching for Generative Modeling](https://arxiv.org/abs/2210.02747)
 - [LeRobot](https://github.com/huggingface/lerobot)
 
 **Verification boundary:** this chapter is a methods and experiment-design primer, not a claim that those policies were reproduced in the shared Panda setup.
