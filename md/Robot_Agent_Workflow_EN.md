@@ -175,13 +175,13 @@ Define an independent postcondition $V_\omega(o_{0:t},q_{0:t},g)$ for each skill
 
 A conceptual skill-choice objective (not an asserted internal optimization of RAX/ER 2) is
 
-$
+$$
 \omega_t^\star=\arg\max_{\omega\in\Omega(b_t)}
 \left[
 \mathbb E[R_{\rm goal}\mid b_t,\omega]
 -\lambda_c C(\omega)-\lambda_r {\rm Risk}(b_t,\omega)
 \right].
-$
+$$
 
 Only skills satisfying their preconditions and safety permissions enter $\Omega(b_t)$. The actuator service, not the language model, must enforce hard workspace and motor limits; this formula is not a hardware safety certificate.
 

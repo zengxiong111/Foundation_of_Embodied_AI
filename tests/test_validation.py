@@ -19,6 +19,12 @@ class CourseValidationTests(unittest.TestCase):
     def test_duplicate_title_rejected(self):
         self.assertIn('exactly one H1 is required', check.document_errors(GOOD + '\n# Other title\n'))
 
+    def test_standalone_single_dollar_rejected(self):
+        self.assertTrue(any('single-dollar' in e for e in check.document_errors(GOOD + '\n$\nx^2\n$\n')))
+
+    def test_supported_math_and_literal_code_accepted(self):
+        self.assertEqual(check.document_errors(GOOD + '\nInline $x^2$.\n\n$$\nx^2\n$$\n\n```text\n$\n```\n\n~~~text\n$\n~~~\n'), [])
+
     def test_broken_toc_rejected(self):
         self.assertTrue(any('broken contents anchor' in e for e in check.document_errors(GOOD.replace('](#course-section-01)', '](#course-section-99)'))))
 

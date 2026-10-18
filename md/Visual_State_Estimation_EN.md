@@ -222,10 +222,10 @@ For a camera-frame point $P_C=(X,Y,Z)$, the ideal pinhole camera maps it to $u=f
 
 For synchronized, rectified stereo images, disparity $d=u_L-u_R$ yields the simplified metric depth and sensitivity
 
-$
+$$
 Z=\frac{f_xb}{d},\qquad
 \sigma_Z\approx\frac{f_xb}{d^2}\sigma_d,
-$
+$$
 
 where $b$ is the measured baseline. Small disparity at large distances amplifies depth error, while incorrect matching and reflections create invalid depth. **FoundationStereo** performs zero-shot dense disparity estimation from calibrated stereo; **Fast-FoundationStereo** (CVPR 2026) improves speed using distillation, architecture search and pruning. Neither is a single-image 6D object pose estimator.
 
@@ -235,10 +235,10 @@ where $b$ is the measured baseline. Small disparity at large distances amplifies
 
 Given mask $M(u,v)$ and valid depth $Z(u,v)$, back-project foreground pixels to
 
-$
+$$
 \mathcal P_O=\left\{Z(u,v)K^{-1}[u,v,1]^\top:
 M(u,v)=1,\;Z(u,v)>0\right\}.
-$
+$$
 
 Evaluate mask boundaries and background leakage separately from invalid/reflective depth, self-occlusion and segmentation identity failures. A point cloud in the camera frame is not automatically an SE(3) object pose in the robot base frame; it still requires geometry and timestamp-aligned transforms.
 
@@ -282,10 +282,10 @@ FoundationPose (CVPR 2024) supports model-based pose estimation (CAD provided) a
 
 With 3D model points $P_i$ and trusted image correspondences $u_i$, the geometric idea of reprojection consistency can be written
 
-$
+$$
 (\hat R,\hat t)=\arg\min_{R,t}\sum_i
 \rho\left(\left\|u_i-\pi(K(RP_i+t))\right\|_2^2\right).
-$
+$$
 
 This is a generic explanatory pose objective, **not a claim that FoundationPose exactly optimizes this loss**. Symmetry, texturelessness and occlusion can make rotations unobservable; evaluate using symmetry-aware pose errors or task-relevant keypoints.
 
@@ -346,11 +346,11 @@ A target tracking message should include frame_id, timestamp, track_id, mask/det
 
 For a local Euclidean state, let $x_t=f(x_{t-1},u_t)+w_t$ and $z_t=h(x_t)+v_t$ with covariances $Q_t,R_t$. Linearization gives the extended Kalman gain/update
 
-$
+$$
 K_t=P_t^-H_t^\top(H_tP_t^-H_t^\top+R_t)^{-1},
 \qquad
 \hat x_t=\hat x_t^-+K_t(z_t-h(\hat x_t^-)).
-$
+$$
 
 SE(3) poses are not ordinary vectors under large rotation changes. An error-state update can use $\hat T_t=\hat T_t^-\operatorname{Exp}(\delta\xi_t^\wedge)$. EKF will not fix a mistaken instance identity; robust gating, lost-track detection and reacquisition are separate design requirements.
 
