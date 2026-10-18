@@ -28,7 +28,7 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 | GR00T & SONIC | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.pdf" target="_blank">PDF</a> |
 | Robot Agents: RAX / ASPIRE | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.pdf" target="_blank">PDF</a> |
 
-Vision notes focus on foundation-model selection and composition; imitation notes cover BC/DAgger/ACT and RTC. Neither chapter includes experiments.
+Vision notes cover model mechanisms, comparison and four robotics workflows; imitation notes cover BC/DAgger/ACT and RTC. Neither chapter includes experiments.
 
 PPO materials include full derivations and Actor–Critic learning mechanisms.
 

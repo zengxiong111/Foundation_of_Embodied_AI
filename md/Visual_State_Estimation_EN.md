@@ -1,137 +1,260 @@
-# Foundation Vision Models for Robotics: Understand, Compare, and Use
+# Foundation Vision Models for Robotics: Understanding, Comparing, and Using Them
 
 [Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Visual_State_Estimation_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Visual_State_Estimation_EN.pdf)
 
-*Foundation of Embodied AI · Concise course notes · October 18, 2026*
+*Foundation of Embodied AI · Expanded course notes · October 2026*
 
-> **Three questions only:** What does each family of foundation vision models actually output? How do SAM, FoundationPose, FoundationStereo, and SAM 3D differ? How should a roboticist select and combine these existing tools?
+> **Learning outcomes:** identify what each vision-model family actually produces; understand the core ideas behind SAM 2, SAM 3, FoundationPose, FoundationStereo, and SAM 3D; and select the smallest useful combination for a robot task, given the sensors and object priors available.
 >
-> **Scope:** Concepts, model selection, system composition, and limitations. Camera-calibration derivations, SE(3) filtering mathematics, policy training, code, and laboratory exercises are intentionally out of scope.
+> **Scope:** conceptual mechanisms, inputs and outputs, usage workflows, model combinations, and limitations. Camera-calibration derivations, state-estimation filters, network training, code, and lab exercises are intentionally out of scope.
+
+**Reading map:** language or visual prompt → **find and segment the target** → **recover distance or shape** → (only when needed) **estimate a rigid object's 6D pose** → **robot policy or controller**. These are different capabilities, often supplied by different tools; no robot pipeline needs to run every model.
 
 ## Contents
 
-- [1. Start with the task: what visual output does the robot need?](#vision-section-01)
-- [2. Understand and distinguish the major models](#vision-section-02)
-- [3. Choose and combine models for a robot task](#vision-section-03)
-- [4. Practical usage: what must be checked?](#vision-section-04)
+- [1. Start with the robot's task, not the model name](#vision-section-01)
+- [2. Core models: what they do and how they work](#vision-section-02)
+- [3. Comparisons that matter when choosing a model](#vision-section-03)
+- [4. Four representative robotics workflows](#vision-section-04)
+- [5. Deployment: turning useful models into a reliable system](#vision-section-05)
+- [6. Frequent questions and the final takeaway](#vision-section-06)
+- [Official references](#vision-section-07)
 
 <a id="vision-section-01"></a>
 
-## 1. Start with the task: what visual output does the robot need?
+## 1. Start with the robot's task, not the model name
 
-A vision model is not an interchangeable perception black box. Select the **variable that the downstream robot needs** before comparing model size, benchmark ranks, or inference speed.
+### 1.1 Five different kinds of visual output
 
-| Task | Typical output | Question it answers | What it does not directly provide |
+| Question from the robot | Vision task | Typical output | What it does not establish |
 |:--|:--|:--|:--|
-| Detection | Class label, bounding box, confidence score | “Where is the target region?” | Accurate contour or 3D distance |
-| Instance segmentation / tracking | Pixel mask, object ID, temporal association | “Which pixels belong to this tool?” | Object depth or rigid 6D pose |
-| Depth estimation | Depth map or stereo disparity | “How far is the visible surface?” | Full object geometry or an object frame |
-| 3D reconstruction | Estimated mesh, shape, or texture | “What might the object look like in 3D?” | Guaranteed metric dimensions or graspability |
-| 6D pose estimation | 3D translation plus 3D rotation | “Where is the tool frame and how is it oriented?” | Contact force, friction, or grasp success |
+| “Where is the red screwdriver?” | Detection / open-vocabulary localization | Boxes, category, candidate instances | Precise contour or metric distance |
+| “Which pixels belong to it?” | Instance segmentation / video tracking | Mask and identities across frames | Full 3D orientation |
+| “How far is it from the camera?” | Depth / stereo matching | Depth or disparity map | The object's complete unseen surface |
+| “What does its shape look like?” | 3D reconstruction | Mesh, texture, spatial layout | Metrology-grade CAD, mass or inertia |
+| “Where is it, and how is it rotated?” | 6D pose estimation | 3D translation and 3D rotation | Contact force, stable grasp or slip |
 
-**Four distinctions are essential:** a mask is not depth; a depth map is not a complete 3D model; a shape model is not its current pose; and 6D pose is not contact state. The corresponding tools solve different problems.
+**Key distinctions:** a mask is not depth; depth is not a complete object model; a mesh is not the object's current pose; pose is not contact. Cameras primarily observe visible surfaces. Finger forces, occluded contacts, and material properties generally require additional sensing or physics-based inference.
 
-**Ask four questions first:** Is locating the object enough, or is orientation required? Do you have RGB-D or a calibrated stereo pair? Do you have CAD or reference images? Is the result offline, or must it participate in real-time control?
+### 1.2 Ask four questions before selecting a model
+
+1. **What geometric precision does the task require?** Object identity may only need boxes or masks; orientation-sensitive grasping and alignment often need explicit geometry.
+2. **Which sensors are available?** A monocular camera, a functioning RGB-D camera, and a synchronized, calibrated stereo pair enable different approaches.
+3. **Which object priors are available?** CAD, physical dimensions, and reference images change what a 6D pose estimator can do.
+4. **When must the result be ready?** Offline reconstruction can be slower; closed-loop robotics cares about the freshness of observations, throughput, latency, and recovery after failure.
 
 <a id="vision-section-02"></a>
 
-## 2. Understand and distinguish the major models
+## 2. Core models: what they do and how they work
 
-### 2.1 Core model comparison
+### 2.1 SAM 2: prompt a target, then propagate its mask with video memory
 
-| Model | Required inputs | Principal output | Best use and important boundary |
-|:--|:--|:--|:--|
-| **SAM 2** | Image/video, point/box/mask prompts | Instance masks propagated through video | **Track a specified object**; no 6D object pose. |
-| **SAM 3 / 3.1** | Image/video, short text concepts, exemplars, or visual prompts | Open-vocabulary detection, masks, video tracks | **Find objects by language**; 3.1 improves multi-object video efficiency, not a universal real-time guarantee. |
-| **FoundationStereo** | Calibrated, synchronized, rectified left/right images | Dense disparity convertible to metric depth | **Stereo geometry**; neither monocular depth nor object pose. |
-| **Fast-FoundationStereo** | Same stereo prerequisites | Lower-latency stereo disparity | **Stereo under tighter latency budgets**; profile on the deployment GPU. |
-| **FoundationPose** | Typically RGB-D, target mask, and CAD or reference images | Rigid-object 6D pose and tracking | **Initialize/update tool pose**; depends on geometry priors and good observations. |
-| **SAM 3D Objects** | Object region in a single image | Candidate 3D geometry, appearance, and layout | **Shape prior without CAD**; a generated mesh is not certified engineering geometry. |
-| **SAM 3D Body** | Human image, optional keypoints/masks | Human 3D body mesh and pose | **Human motion and shape**; not hand–object contact force. |
+**In one sentence:** SAM 2 addresses “I have indicated this object; continue telling me which pixels belong to it.” It is a **promptable image/video segmenter**, not a depth or 6D pose model. [Official repository](https://github.com/facebookresearch/sam2)
 
-### 2.2 Three distinctions that prevent most selection errors
+**Core idea.** On an initial frame, positive/negative points, a bounding box, or an existing mask specify an object. The model extracts image features and predicts its segmentation. On later frames, **streaming memory** preserves information about earlier appearances and predictions, allowing the mask to propagate through motion, deformation, and some occlusions. A user can add corrective prompts later; memory does not guarantee that the instance identity will always remain correct.
 
-**SAM 2 versus SAM 3: “track a specified instance” versus “find instances matching a concept.”** If a click or bounding box already specifies the target, SAM 2 can propagate its mask through a video. If the instruction is “find every red screwdriver,” SAM 3 can use a short textual concept or example. SAM 3.1 improves efficiency when processing multiple video objects. For long, compositional instructions, a VLM or agent may still need to reduce the request to a localizable concept.
+**Inputs and outputs.** Inputs are RGB images or video plus prompts such as points, boxes, or masks. Outputs include per-frame instance masks and an inference state or object IDs for handling video targets. Pixel membership alone says nothing about metric camera-to-object distance.
 
-**FoundationStereo versus monocular depth: their geometric scale comes from different sources.** FoundationStereo uses a **real, calibrated stereo pair** to estimate disparity and, with camera parameters, metric depth. Monocular approaches (including selected Depth Anything 3 variants) infer geometry from images, but relative-depth checkpoints must not be confused with specialized metric-depth checkpoints. Neither should be assumed accurate enough for close-tolerance manipulation without validation. A head camera and a moving wrist camera are not automatically a valid rectified stereo pair.
+**Practical workflow.** (1) Indicate the screwdriver on the first frame; (2) propagate the mask over subsequent frames; (3) check identity when hands occlude it, similar tools cross, or it leaves the view; (4) supply a new prompt or invoke global redetection if tracking drifts.
 
-**FoundationPose versus SAM 3D Objects: “where is the rigid object now?” versus “what might its shape be?”** FoundationPose uses a CAD model or reference imagery as an object prior to initialize and track pose from observations. SAM 3D Objects can produce plausible candidate geometry without existing CAD; its scale, coordinate frame, local shape, and suitability for precision tasks still need independent checks. It is not an automatic replacement for scanned, measured, or verified CAD.
+**Where it helps and fails.** SAM 2 is useful for known-target video segmentation, pseudo-label generation, and supplying object regions to downstream pose estimators. If the command is solely “find a red-handled tool,” a separate text-grounded localizer is usually needed. Heavy occlusion, motion blur, and visually similar objects can cause drift or ID switches. SAM 2.1 denotes updated checkpoints and implementation, not a new metric-depth capability.
 
-### 2.3 Two useful complementary tools
+### 2.2 SAM 3 / SAM 3.1: discover instances by concept, then segment and track them
 
-- **Grounding DINO** is text-conditioned open-vocabulary object detection, primarily returning boxes. It is useful when boxes suffice or when chaining a separate segmentation model; its interface differs from the masks returned by SAM 3.
-- **Depth Anything 3** supports several monocular and multi-view depth/geometry settings. The exact checkpoint matters: check whether the output is relative depth, metric depth, or multi-view geometry. It can provide a useful prior without a hardware depth sensor, but not an assumed substitute for calibrated, accurate RGB-D.
+**In one sentence:** SAM 3 can discover image or video instances from **short text concepts or visual exemplars**, output their masks, and track them over time. It does not require a person to point to the single target first. [Official paper](https://ai.meta.com/research/publications/sam-3-segment-anything-with-concepts/) · [Official repository](https://github.com/facebookresearch/sam3)
+
+**Core idea.** SAM 3 combines an image-level **detector** for presence and localization of a prompted concept with a **memory-based video tracker**. The components share visual representations. A concept can be a short noun phrase, such as “red-handled screwdriver,” or an image exemplar. The system can return **multiple instances matching the concept**, not necessarily the one a robot should pick. A downstream task selector must resolve duplicates and maintain the selected object's identity.
+
+**The substantive distinction from SAM 2.** SAM 2 is most naturally used when the **instance has already been specified** and its mask must be propagated. SAM 3 adds **concept-driven discovery, segmentation, and tracking**. SAM 3.1 further improves the computational organization of **multi-object video tracking** through object multiplexing. Neither SAM 3 nor 3.1 turns a 2D mask into a metric 6D pose. [Official SAM 3.1 update](https://ai.meta.com/blog/segment-anything-model-3/)
+
+**Inputs and outputs.** Inputs are images/video and a text concept, exemplar image, or interactive visual prompt. Outputs include candidate detections, masks, and tracked identities. A long instruction with complex relations may need an upstream VLM or agent to extract concise localizable concepts, followed by spatial and task-specific instance selection.
+
+**Practical workflow.** (1) Convert “pick up the red-handled screwdriver on the table” to a concise concept; (2) obtain all matching masks; (3) choose an instance from task and spatial constraints; (4) track it in video; (5) rerun concept-based detection if its identity becomes uncertain.
+
+**Where it helps and fails.** Useful for language-conditioned grasping, open-category target discovery, and semantic selection. Ambiguous phrases, tiny objects, severe occlusion, and near-duplicate items remain difficult. Outputs do not contain CAD, reliable metric depth, a canonical object frame, or contact state. Published video FPS depends on hardware, resolution, and object count, and should not be substituted for actual robot closed-loop frequency.
+
+### 2.3 FoundationPose: initialize, refine, and track the 6D pose of a rigid object
+
+**In one sentence:** SAM tells us **which pixels belong to the screwdriver**. FoundationPose estimates **where that rigid screwdriver is and how it is oriented relative to the camera**, provided suitable object information is available. [Official paper and code](https://github.com/NVlabs/FoundationPose)
+
+**What is 6D pose?** A 3D translation plus a 3D rotation (often represented as an `SE(3)` transform) is meaningful only relative to an object representation with a **defined scale, origin, and axes**. For an elongated tool, the tip, handle, and model origin are distinct: a small error at the model center can still become a consequential error at the tip.
+
+**Two operating conditions, neither fully unconditioned:**
+
+| Setup | What must be prepared | Correct interpretation |
+|:--|:--|:--|
+| **Model-based** | Known CAD/mesh, physical scale, object-frame convention | Use the known shape to explain current images; often the sensible choice for repeatedly manipulated tools. |
+| **Model-free** | A small set of reference views and an appropriate object representation derived from them | No pre-existing CAD is required, **but reference information is**; the released workflow may include construction of a neural object field, so this is not “single unknown image in, precision pose out.” |
+
+**Core idea.** The system first generates plausible pose **hypotheses** from the observed object region and an object prior. A learned **scorer** ranks their agreement with the observation, and a **refiner** improves promising candidates. On subsequent frames, **tracking** starts near the previous pose rather than searching the entire pose space again. This is generally more economical, but local tracking can perpetuate an earlier error. The unified formulation supports object priors obtained from CAD or reference-view reconstruction.
+
+**Inputs and outputs.** A representative workflow needs RGB-D observations, camera intrinsics, an object mask, and a CAD model or reference-view-based object representation. The output is a rigid 6D pose relative to a defined object coordinate frame; video tracking produces updated poses. To control in the robot base frame, the system must still combine the result with separately calibrated camera transforms and robot configuration at image-capture time; the calibration derivation belongs elsewhere.
+
+**Practical workflow.** (1) Ensure the model or reference views match the actual object's dimensions and frame; (2) obtain an object mask and usable RGB-D; (3) **initialize** candidate poses; (4) **score and refine** the best candidates; (5) **track** in nearby frames; (6) **reinitialize** after loss or large pose discontinuities instead of indefinitely consuming a stale estimate.
+
+**Where it helps and fails.** Appropriate for rigid tool grasping, tool orientation, and geometrically constrained alignment. Long occlusion, reflective or transparent materials, narrow rod-like shapes, missing depth, and inaccurate CAD can cause failure. **Symmetric geometry** may make some rotations visually indistinguishable. FoundationPose estimates pose, not grasp force, contact stability, or finger slip. Strongly deformable objects may not admit one useful rigid pose at all.
+
+### 2.4 FoundationStereo: use true stereo correspondence to recover distance
+
+**In one sentence:** FoundationStereo matches **the same scene locations in left and right cameras**, predicts a dense **disparity map**, and uses **calibrated stereo geometry** to recover metric depth. [Official repository](https://github.com/NVlabs/FoundationStereo)
+
+**Core idea.** For rectified left and right images, the model finds where a pixel in one view is located in the other. The horizontal offset is the **disparity**. With the same cameras and baseline, closer points generally have larger disparity. The geometric conversion is summarized by `Z = f × B / d`, for focal length `f`, camera baseline `B`, and disparity `d`. Learned features and context support robust stereo correspondences across different visual domains; the **metric scale still comes from the calibrated focal length and baseline**.
+
+**Inputs and outputs.** A synchronized and calibrated **rectified stereo pair** is required. The primary output is disparity, from which depth and a 3D point cloud can be calculated. The model does not perform text-grounded segmentation, identify a screwdriver's canonical frame, or directly solve its 6D pose.
+
+**Practical workflow.** (1) Confirm that the cameras form a real stereo pair with known geometry; (2) rectify their images and verify overlap; (3) estimate disparity; (4) convert it to depth; (5) optionally use a mask to isolate visible object surfaces; (6) add object-conditioned pose estimation only when orientation in an object frame is genuinely needed.
+
+**What changes in Fast-FoundationStereo?** Its goal is to reduce stereo inference cost while retaining much of the original model's cross-domain accuracy. The reported approach combines knowledge distillation, architecture search under latency budgets, and structured pruning. The core output remains **stereo disparity**, not a different vision task. [Official repository](https://github.com/NVlabs/Fast-FoundationStereo)
+
+**Where it helps and fails.** Valuable when a calibrated stereo rig exists and its depth quality can benefit from learned matching. A working RGB-D camera already providing sufficient depth does not automatically need an extra stereo network. Low texture, reflective or transparent surfaces, repetitive patterns, very small far-range disparity, and imperfect camera calibration can create errors. A head RGB-D camera and a moving wrist RGB camera **are not automatically a standard rectified stereo pair**. Reported inference speed must be rechecked with the actual GPU, resolution, and pipeline.
+
+### 2.5 SAM 3D Objects: reconstruct a plausible object-shape prior from one image
+
+**In one sentence:** SAM 3D Objects addresses “what might this object's **complete shape, appearance, and spatial layout** be?” It is not a metrology-grade CAD generator with guaranteed dimensions. [Official repository](https://github.com/facebookresearch/sam-3d-objects)
+
+**Core idea.** A single image reveals only some surfaces; hidden geometry is not directly measured. SAM 3D Objects uses learned shape and appearance priors to generate plausible complete 3D geometry, texture, and scene layout for a selected object, including in cluttered or occluded scenes. **Plausibility is not evidence that every invisible geometric detail is correct.**
+
+**Inputs and outputs.** A typical input is one RGB image with a target region or selection. Outputs include a candidate 3D shape, appearance, and related spatial information. Distinguish five different requirements: **renderable mesh, metric object dimensions, canonical object frame, collision geometry, and mass/inertia**. A single generated mesh does not automatically satisfy all of them.
+
+**Practical workflow.** (1) Select the image region representing the target; (2) obtain a candidate mesh and texture; (3) inspect scale, topology, surface normals, symmetry, and coordinate conventions; (4) validate critical grasp or contact surfaces using RGB-D, known dimensions, or additional views; (5) use only the checked geometry as a prior in simulation or pose estimation.
+
+**How does it relate to FoundationPose?** **SAM 3D Objects suggests what an object looks like; FoundationPose estimates where an object with a suitable prior is now.** They can conceptually be combined, but scale, coordinate frame, and mesh validity must first be checked. This is **not** an officially guaranteed plug-and-play precision-CAD interface. Rough geometry for a novel object is a more appropriate expectation than millimeter-accurate assembly geometry.
+
+### 2.6 Depth Anything 3: general geometric priors from one or multiple views
+
+**In one sentence:** Depth Anything 3 (DA3) is a model family for **depth and spatial geometry from one or multiple images**. A depth output must still be distinguished from **reliable metric depth**. [Official repository](https://github.com/ByteDance-Seed/Depth-Anything-3)
+
+**Core idea.** The models learn scene geometry from monocular or multiview observations. Depending on the configuration, they can predict depth, consistent multiview geometry, or camera-related quantities. **Different checkpoints are designed for different tasks**: the DA3 Main series covers multiple input configurations; `DA3Mono` targets relative monocular depth; `DA3Metric` targets metric monocular depth. The capabilities of one checkpoint should not be silently attributed to every model in the family.
+
+**How to use it.** When only an RGB image is available, DA3 can offer an approximate front-to-back geometric prior. With multiple views, geometric consistency becomes a central consideration. For centimeter- or millimeter-sensitive manipulation, validate metric scale, cross-frame stability, and viewpoint dependence. Even a metric-trained model does not necessarily outperform a well-calibrated depth sensor or a physical stereo rig on the relevant task.
+
+### 2.7 SAM 3D Body: human 3D shape, not physical contact force
+
+**In one sentence:** SAM 3D Body estimates a person's **3D body mesh and pose** from images, providing human-side geometry for motion understanding or imitation-learning pipelines. [Official repository](https://github.com/facebookresearch/sam-3d-body)
+
+**Use and limitations.** The model processes an image containing a person and predicts human geometry and pose. Turning demonstrations into robot trajectories also requires **temporal consistency, camera motion handling, scale, human-to-robot retargeting, and hand–object contact reasoning**. A human mesh is not a robot joint command, a grasp-pressure measurement, or a guarantee of object tracking under occlusion.
+
+### 2.8 Grounding DINO: a modular text-to-box detector
+
+**In one sentence:** Grounding DINO detects candidate **bounding boxes** from open-vocabulary text and is useful when language grounding should remain a separately replaceable component. [Official repository](https://github.com/IDEA-Research/GroundingDINO)
+
+**How to combine it.** “Red screwdriver” → Grounding DINO boxes → SAM 2 segmentation and video mask propagation. Compared with SAM 3's integrated concept-based segmentation, this is more modular, but it must manage box-to-mask association, multiple similar objects, and added inference time. **If a box is all the task needs, stop there rather than constructing a complete 3D pipeline.**
 
 <a id="vision-section-03"></a>
 
-## 3. Choose and combine models for a robot task
+## 3. Comparisons that matter when choosing a model
 
-### 3.1 A minimal selection procedure
+### 3.1 Five commonly confused pairs
 
-**Step 1 — Demand the minimum sufficient output.** Stop at a detection or mask if the task only needs target presence and tracking. Add depth when distance matters, and rigid 6D pose only when orientation or geometric alignment is necessary. A direct vision-action policy (VLA) may generate actions directly from images and proprioception without explicitly estimating pose.
+| Confusable choices | How to decide |
+|:--|:--|
+| **SAM 2 vs SAM 3** | Known instance; continue its mask → SAM 2. Discover targets from language/exemplars and track them → SAM 3. |
+| **SAM 3 vs Grounding DINO** | Integrated concept detection, masks and tracking → SAM 3. Text-conditioned boxes or a modular detector → Grounding DINO. |
+| **FoundationStereo vs DA3** | Calibrated, synchronized left/right cameras and correspondence-based depth → FoundationStereo. Monocular or arbitrary-view images and learned geometric priors → appropriate DA3 variant. |
+| **FoundationPose vs SAM 3D Objects** | Have an object prior; need its present rigid 6D pose → FoundationPose. Need a plausible object-shape prior first → SAM 3D Objects. |
+| **SAM 3D Body vs Objects** | Human pose/body mesh → Body. General-object shapes and appearance → Objects. Neither senses contact force. |
 
-**Step 2 — Check your sensors and object prior.** If reliable aligned RGB-D is available, use it before adding another depth estimator. If you have calibrated synchronized stereo, consider FoundationStereo or Fast-FoundationStereo. With monocular images alone, treat predicted geometry and scale cautiously. Use accurate CAD when available; otherwise consider multi-view reference images or SAM 3D Objects as a candidate shape source.
+### 3.2 A task-driven decision path
 
-**Step 3 — Build the smallest pipeline that meets the task.** Not every foundation model needs to run sequentially on every frame. Language-based localization may run once at initialization and again on failure; lighter tracking and pose updates can handle intermediate frames.
+1. **Only need object semantics and location?** Text grounding: SAM 3 or Grounding DINO. Manually specified object: SAM 2. Do not add depth by default.
+2. **Need a mask over time?** Track with SAM 2 or SAM 3, and specify what triggers global reacquisition.
+3. **Need metric distance?** Prefer functioning RGB-D. If a calibrated stereo pair exists, use FoundationStereo or Fast-FoundationStereo. With only monocular input, consider the relevant DA3 checkpoint while validating scale.
+4. **Need complete object shape?** Prefer trusted CAD when available; otherwise consider SAM 3D Objects and validate physical dimensions and important surfaces.
+5. **Need a rigid object's actual orientation?** Given RGB-D, an object mask, and CAD/reference views, consider FoundationPose. A mask or an unchecked generated mesh alone does not satisfy these prerequisites.
+6. **Need contact-rich manipulation?** Add robot proprioception, execution feedback, and force/tactile sensing when available. Vision describes only part of the state.
 
-### 3.2 Two representative robotics pipelines
-
-**Pipeline A — Explicit geometric state for tool grasping, orientation, and assembly.**
-
-> Language goal → **SAM 3** for localization and segmentation → **target mask + RGB-D + CAD/reference views** → **FoundationPose** for 6D pose initialization/tracking → robot controller; re-localize after tracking failure.
-
-Choose this pipeline when the controller needs an object coordinate frame or geometric alignment errors. **SAM 3 does not itself deliver 6D pose; FoundationPose cannot conjure accurate CAD or missing depth.**
-
-**Pipeline B — Direct visual policies for VLA and closed-loop manipulation.**
-
-> Task language + camera images + robot proprioception → **VLA / visual policy** → robot actions; optional **SAM 3, tracker, or geometric estimator** for object monitoring, task verification, and recovery.
-
-This pipeline need not include FoundationPose. The approaches can be hybridized: retain explicit geometry for supervision or safety checks while leaving the policy's primary action interface unchanged.
-
-### 3.3 Four practical situations
-
-| Robot question | Minimal suitable choice | When to extend it |
-|:--|:--|:--|
-| “Find the red screwdriver on the table.” | SAM 3 for a language-conditioned mask; keep tracking in video. | Add depth and pose estimation if grasp orientation matters. |
-| “Pick up a tool from arbitrary orientations and rotate it to a target pose.” | RGB-D + mask + CAD/reference imagery + FoundationPose. | Re-localize after occlusion/drop; use additional feedback for contact. |
-| “I have no CAD model for this unfamiliar object.” | SAM 3D Objects for a candidate mesh. | Verify scale, surface detail, and shape before precision control. |
-| “I have only monocular RGB but want scene distance.” | Appropriate Depth Anything 3 variant for a geometric prior. | Add scale constraints, RGB-D, or calibrated stereo for reliable metric control. |
+> **Minimal sufficient model principle:** needing grasp orientation does not imply a need for SAM 3D; already having reliable RGB-D does not imply a need for FoundationStereo; and a VLA that consumes images directly does not make explicit pose estimation useless. Choose by the required output and the available inputs.
 
 <a id="vision-section-04"></a>
 
-## 4. Practical usage: what must be checked?
+## 4. Four representative robotics workflows
 
-### 4.1 Six pre-deployment checks
+### 4.1 Tool grasping and orientation: a known target with a 6D pose
 
-1. **Input contract:** Does this specific model require RGB, RGB-D, stereo, CAD, reference images, text, boxes, or masks? Do you actually have them?
-2. **Scale and frames:** Is depth in meters? Are mask and depth registered? Is the reported pose in camera or robot-base coordinates? Camera extrinsics must be calibrated separately.
-3. **Time and identity:** Is the same object ID maintained across frames? What triggers re-localization after occlusion? Is the timestamp from image capture or inference completion?
-4. **Failure cases:** Which component will fail on transparency, reflections, weak texture, symmetry, high-speed motion, or a hand blocking the target?
-5. **Latency budget:** End-to-end delay includes sensing, inference, communication, and control. Paper-level FPS is not the robot's control rate.
-6. **Licenses and interfaces:** Check official code, weights, and commercial licenses; confirm data formats, output definitions, memory demands, and supported modes.
+**Task:** Pick up a screwdriver specified by language and orient its tip toward a desired direction.
 
-### 4.2 Tasks that vision foundation models do not solve alone
+**Recommended path:** task language → SAM 3 discovers candidates and selects the instance → mask + head-mounted RGB-D + the corresponding CAD/reference views → FoundationPose initializes a 6D pose → subsequent tracking and geometric feedback → robot controller. If the target and mask are already known, SAM 3 can be skipped; if pose tracking is reliable, fully rerunning the segmenter each frame may be unnecessary.
 
-**A confident mask does not establish an accurate pose; an accurate pose does not establish successful contact.** Dexterous grasping, tight-tolerance insertion, and tool rotation may need joint proprioception, tactile/force feedback, and corrective control. When tracking becomes unreliable or an object falls, the system should be able to pause, re-observe, and re-initialize instead of acting on stale poses.
+**Why these components?** SAM 3 resolves **which object**; depth describes **where visible surfaces are**; FoundationPose resolves **which way the rigid object faces**; the controller executes actions. Vision alone does not detect tip force. Slips or drops should trigger target verification and relocalization.
 
-**Evaluate the whole robot system, not only the model.** A paper demonstrates model capabilities; actual robotic reliability additionally depends on sensor data, latency, calibration, object priors, and downstream control. A visually symmetric orientation that is unobservable in the image cannot be recovered merely by increasing model size.
+### 4.2 A stereo robot: estimating depth without an RGB-D camera
 
-### 4.3 Seven-line selection cheat sheet
+**Task:** Obtain dense depth over a workbench from two calibrated, synchronized cameras.
 
-- **Find an object from language → SAM 3;** need only open-vocabulary boxes → Grounding DINO.
-- **Track an already identified object mask → SAM 2;** examine SAM 3.1 for multiple video objects.
-- **Already have reliable RGB-D → use that depth;** do not add a model without a reason.
-- **Calibrated synchronized stereo for depth → FoundationStereo;** tighter latency → Fast-FoundationStereo.
-- **Monocular RGB for rough geometry → Depth Anything 3;** verify the checkpoint's scale semantics.
-- **Have object CAD/reference views and need rigid 6D pose → FoundationPose.**
-- **Need a candidate object shape without CAD → SAM 3D Objects;** use SAM 3D Body for human 3D reconstruction.
+**Recommended path:** rectify the left/right pair → FoundationStereo (or assess Fast-FoundationStereo when latency matters) → convert disparity to depth → select the visible object surface with a mask. Add an object-specific pose estimator only if a canonical object orientation is required.
 
-### Official links and further reading
+**Decision point:** stereo has a physical baseline as its scale source; monocular depth draws much more heavily on learned priors. Both can fail, but for different reasons. A moving wrist camera and a head camera do not automatically form a standard stereo input.
 
-Capabilities and limitations above are based on the following official papers or repositories (all links are clickable):
+### 4.3 An unfamiliar object: obtain a shape hypothesis before planning
 
-[**SAM 2**](https://github.com/facebookresearch/sam2) · [**SAM 3 / 3.1**](https://ai.meta.com/research/sam3) · [**SAM 3.1 release**](https://ai.meta.com/blog/segment-anything-model-3/) · [**FoundationPose**](https://github.com/NVlabs/FoundationPose) · [**FoundationStereo**](https://github.com/NVlabs/FoundationStereo) · [**Fast-FoundationStereo**](https://github.com/NVlabs/Fast-FoundationStereo) · [**SAM 3D Objects**](https://github.com/facebookresearch/sam-3d-objects) · [**SAM 3D Body**](https://github.com/facebookresearch/sam-3d-body) · [**Grounding DINO**](https://github.com/IDEA-Research/GroundingDINO) · [**Depth Anything 3**](https://github.com/ByteDance-Seed/Depth-Anything-3)
+**Task:** Manipulate a tool for which no CAD model exists.
 
-**Related courses:** Camera intrinsics/extrinsics, transforms, and calibration → *Robot Camera Calibration*; demonstrations and action learning → *Imitation Learning*; visual closed-loop policies and control → *Embodied Reinforcement Learning* and *Advanced Robot Agents*. Those details are deliberately not repeated here.
+**Recommended path:** select the target with SAM 3 or SAM 2 → generate a candidate shape with SAM 3D Objects → use known dimensions, RGB-D, or additional views to check scale and geometry → choose either mask/point-cloud-based manipulation or construction of a suitable representation for later pose estimation.
 
-*Adapted from the [original course notes](https://zengxiong111.github.io/zengxiong.github.io/files/Visual_State_Estimation_ZH.pdf) by Xiong Zeng and contributors (CC BY 4.0). Third-party licenses still apply; hardware performance has not been verified.*
+**Decision point:** slots, back faces, and contact edges invisible to the camera can be hallucinated incorrectly. Precision insertion, force-fit assembly, and contact-rich rotation require further verification. For rough obstacle geometry, visualization, or object-level search, high-accuracy CAD may be unnecessary.
+
+### 4.4 Human demonstration and VLA: explicit 6D pose is optional
+
+**Task:** Interpret human-action video or execute manipulation using a vision-language-action policy.
+
+**Recommended path:** SAM 3D Body can supply a body mesh or pose for analyzing the demonstrator. Transferring that motion to a robot additionally requires trajectory consistency, kinematic correspondence, and contact information. A VLA may generate actions directly from camera images, task language, and robot proprioception without computing an explicit FoundationPose output for every object.
+
+**When explicit geometry still matters:** tip orientation, collision constraints, interpretable execution checks, and recovery after an object is dropped. SAM, depth, and 6D pose can serve as independent observation or safety-monitor interfaces. Explicit geometry and direct visual policies are **complementary approaches**, not an exclusive choice.
+
+<a id="vision-section-05"></a>
+
+## 5. Deployment: turning useful models into a reliable system
+
+### 5.1 Six interface checks
+
+| Concern | Question to answer | Common mistake |
+|:--|:--|:--|
+| Inputs | RGB, RGB-D, stereo, text, CAD, or reference views? | Treating one RGB frame as FoundationPose's complete input. |
+| Scale | Relative or metric depth? Is a generated mesh physically scaled? | Using unverified mesh size in precision assembly. |
+| Frames | Are masks, depths, cameras, and object frames aligned? | Treating a camera-frame pose as a robot-base pose. |
+| Timing | Is acquisition time distinguished from inference completion time? | Transforming an old image using the latest robot joint state. |
+| Identity | Is it still the same object? What triggers reacquisition? | Keeping a smooth mask that has switched to another object. |
+| Resources | Do memory, resolution, update rate, and licenses fit? | Equating a paper's single-model GPU FPS with robot control frequency. |
+
+### 5.2 Recovery matters more than an attractive single-frame result
+
+**Occlusion:** short predictions can be useful, but a long-invisible pose must not be labeled a precise fresh observation. **Symmetry:** some rotations are intrinsically ambiguous from the current view. **Thin, transparent, or reflective objects:** both depth and mask quality may degrade. **Abrupt motion or dropping:** local tracking can diverge; redetect, verify the instance, and reinitialize. **Precision contact:** even accurate 6D geometry does not reveal force, friction, or microslip.
+
+The robot should separately track whether the object is visible, the geometry is trustworthy, the observation is fresh, and the target ID is continuous. Slower action, active viewpoint adjustment, or halting contact are downstream system decisions—not automatic guarantees of a foundation model.
+
+### 5.3 When should the heavy models run?
+
+**Semantic search triggered by events** (task start or target loss) can run infrequently; **continuous mask or pose tracking** can process incoming camera frames; a **controller** often needs more timely proprioception and state predictions. Throughput, per-model latency, and the age of information when an action takes effect are different quantities. Do not automatically execute SAM 3, FoundationStereo, SAM 3D Objects, and FoundationPose sequentially on every frame.
+
+<a id="vision-section-06"></a>
+
+## 6. Frequent questions and the final takeaway
+
+**Q1: Can SAM 3 replace FoundationPose?** No. The former mainly provides semantic candidates and masks; the latter estimates an object-conditioned rigid 6D pose.
+
+**Q2: Is model-free FoundationPose truly prior-free?** No. It removes the need for pre-existing CAD but still requires reference views and, in the released workflow, preparation of an object representation.
+
+**Q3: If reliable RGB-D is available, do I need FoundationStereo?** Usually not. Add stereo only when actual sensors and task quality make it beneficial.
+
+**Q4: Can a SAM 3D Objects mesh be used immediately in FoundationPose?** Not without qualification. Validate physical scale, coordinate convention, geometry, and task precision before treating it as a prior.
+
+**Q5: Can a single RGB image give precise absolute depth?** Learned monocular models can estimate a prior, and metric-specific checkpoints target scale; neither justifies assuming unverified precision for robot manipulation.
+
+**Q6: Does accurate 6D pose mean a successful grasp?** No. Pose is geometric information; contact force, grip stability, and slip need other evidence.
+
+**Remember this map:** **SAM finds, segments, and tracks objects; FoundationStereo measures stereo disparity for depth; DA3 infers geometry from monocular/multiview images; SAM 3D proposes 3D shape; FoundationPose estimates a rigid object's current pose.** Start with the smallest necessary toolset, then add sensors, tracking, and recovery as the task demands.
+
+<a id="vision-section-07"></a>
+
+## Official references
+
+1. [SAM 2 — Segment Anything in Images and Videos (Meta, official repository)](https://github.com/facebookresearch/sam2); [paper](https://arxiv.org/abs/2408.00714).
+2. [SAM 3 — Segment Anything with Concepts (Meta, official paper)](https://ai.meta.com/research/publications/sam-3-segment-anything-with-concepts/); [official repository with SAM 3.1 updates](https://github.com/facebookresearch/sam3); [SAM 3.1 announcement](https://ai.meta.com/blog/segment-anything-model-3/).
+3. [FoundationPose (NVIDIA, CVPR 2024, official repository)](https://github.com/NVlabs/FoundationPose); [paper](https://arxiv.org/abs/2312.08344).
+4. [FoundationStereo (NVIDIA, CVPR 2025, official repository)](https://github.com/NVlabs/FoundationStereo).
+5. [Fast-FoundationStereo (NVIDIA, CVPR 2026, official repository)](https://github.com/NVlabs/Fast-FoundationStereo).
+6. [SAM 3D Objects (Meta, official repository)](https://github.com/facebookresearch/sam-3d-objects); [SAM 3D Body (Meta, official repository)](https://github.com/facebookresearch/sam-3d-body).
+7. [Depth Anything 3 (ByteDance Seed, official model-family repository)](https://github.com/ByteDance-Seed/Depth-Anything-3).
+8. [Grounding DINO (IDEA-Research, official repository)](https://github.com/IDEA-Research/GroundingDINO).
+
+*Provenance: adapted from the Foundation of Embodied AI course's Visual Perception and State Estimation notes (Xiong Zeng and contributors, CC BY 4.0). Third-party models, code, weights, and materials retain their own licenses. Revised October 2026; always check the specific model version's official interfaces, licenses, and performance conditions.*
