@@ -998,5 +998,3 @@ VS Code's Diff Editor clearly shows the removed and added lines. For RL experime
 ---
 
 **Conclusion:** Git's main contribution to research is not simply “uploading code to GitHub.” It is connecting **source-code versions, experimental changes, and reproducible results**. Start with small commits, separate experiment branches, review diffs, and keep large artifacts out of the main source repository. Add team collaboration practices as your projects grow.
-
-**Course takeaway:** Master “inspect status → review diffs → make small commits → push a branch” first; learn collaboration, recovery, and reproducibility when research tasks call for them.
