@@ -8,7 +8,7 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 
 ## Course materials
 
-14 topics, 28 Markdown files and 28 PDFs. Use the links below to read or download.
+15 topics (14 available, 1 TBD), 28 Markdown files and 28 PDFs. Use the links below to read or download.
 
 | Topic | Chinese Markdown | English Markdown | Chinese PDF | English PDF |
 |---|---|---|---|---|
@@ -24,6 +24,7 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 | Q-learning / SAC | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_EN.pdf" target="_blank">PDF</a> |
 | Data Collection and Imitation Learning | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Data_Imitation_Learning_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Data_Imitation_Learning_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Data_Imitation_Learning_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Data_Imitation_Learning_EN.pdf" target="_blank">PDF</a> |
 | Flow Matching | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Flow_Matching_Step_by_Step_Derivation_EN.pdf" target="_blank">PDF</a> |
+| RL Post-training | TBD | TBD | TBD | TBD |
 | GR00T & SONIC | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.pdf" target="_blank">PDF</a> |
 | Robot Agents: ASPIRE / RAX | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.pdf" target="_blank">PDF</a> |
 
