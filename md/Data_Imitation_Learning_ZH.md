@@ -5,11 +5,11 @@
 
 | 项目 | 说明 |
 |---|---|
-| 适用范围 | 概念与无代码实验设计；ACT / Diffusion Policy / Flow Matching 对比，不代表算法复现 |
+| 适用范围 | 示教数据、BC、DAgger、ACT、生成式动作块策略 |
 | 文档核验日期 | 2026-10-18 |
 | 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-**核验边界：** 文档整理与参考资料核对；尚未进行统一环境训练或真机验证。 版本说明见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方文献和代码保留原有许可。
+**核验边界：** 方法与实验设计，未实际复现训练。 版本与固定源码引用见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
 <!-- course-meta:end -->
 
 <!-- course-toc:start -->

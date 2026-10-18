@@ -5,11 +5,11 @@
 
 | Item | Details |
 |---|---|
-| Applicability | Concepts and code-free lab design; ACT / Diffusion Policy / Flow Matching comparison, not a validated reproduction |
+| Applicability | Demonstrations, BC, DAgger, ACT and generative chunk policies |
 | Documentation review date | 2026-10-18 |
 | License | CC BY 4.0 · Xiong Zeng and contributors |
 
-**Verification scope:** Documentation and reference check only; no unified training run or real-robot validation. See [version notes](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.md). Original materials use [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); cited third-party work retains its own license.
+**Verification scope:** Methods survey and proposed experiments; no validated training results. See [version notes](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.md) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
 <!-- course-meta:end -->
 
 <!-- course-toc:start -->
