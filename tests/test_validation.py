@@ -28,6 +28,17 @@ class CourseValidationTests(unittest.TestCase):
     def test_duplicate_explicit_anchor_rejected(self):
         self.assertIn('duplicate explicit anchor', check.document_errors(GOOD + '\n<a id="course-section-01"></a>'))
 
+    def test_bare_single_dollar_math_fence_rejected(self):
+        errors = check.document_errors(GOOD + '\n$\nx^2\n$\n')
+        self.assertTrue(any('standalone $' in e for e in errors))
+
+    def test_unpaired_display_math_rejected(self):
+        errors = check.document_errors(GOOD + '\n$$\nx^2\n')
+        self.assertTrue(any('unpaired $$' in e for e in errors))
+
+    def test_valid_display_math_accepted(self):
+        self.assertEqual(check.document_errors(GOOD + '\n$$\nx^2\n$$\n'), [])
+
     def test_stale_source_pdf_and_renderer_rejected(self):
         self.assertEqual(len(check.binding_errors({'math_errors': 0, 'equation_overflows': 0}, b'changed source', b'changed PDF', 'new renderer')), 3)
 

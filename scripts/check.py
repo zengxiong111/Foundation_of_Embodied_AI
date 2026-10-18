@@ -44,6 +44,11 @@ def document_errors(text):
     headings = [re.match(r'^(#{1,6}) (.+)$', l) for l in lines]
     headings = [m for m in headings if m]
     errors = []
+    # Reject raw display-math delimiters that the renderer may silently show as text.
+    if any(line.strip() == '$' for line in lines):
+        errors.append('standalone $ display math delimiter; use $$')
+    if sum(line.strip() == '$$' for line in lines) % 2:
+        errors.append('unpaired $$ display math delimiter')
     if sum(len(m[1]) == 1 for m in headings) != 1:
         errors.append('exactly one H1 is required')
     previous = 0

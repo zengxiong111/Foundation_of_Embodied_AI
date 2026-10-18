@@ -442,16 +442,16 @@ $$
 \widetilde v_\theta=
 v_\theta-\lambda_\tau\nabla_{A^\tau}
 \left[\frac12\|W^{1/2}\odot(\widehat A^1-Y)\|_2^2\right].
-$
+$$
 
 其中原论文的权重截断精确为
 
-$
+$$
 r_\tau^2=\frac{(1-\tau)^2}{\tau^2+(1-\tau)^2},\qquad
 \lambda_\tau=\min\!\left(\beta,\frac{1-\tau}{\tau\,r_\tau^2}\right).
-$
+$$
 
-$\beta$ 用于避免生成末期引导项数值过大；分母中的 $\tau$ 接近零时需采用实现规定的裁剪或数值保护。
+$\beta$ 用于避免生成末期引导项数值过大；分母中的 $\tau$ 接近 0 或 1 时需采用实现规定的裁剪或数值保护。
 更新 $A^{\tau+\Delta\tau}=A^\tau+\Delta\tau\,\widetilde v_\theta$，使生成动作块既兼容已经执行或承诺的前缀，又可更新未承诺的未来部分。梯度项需要在生成步骤计算向量–Jacobian 乘积，因此**Inference-time RTC 不必重新训练模型，但会增加推理计算**。该机制面向可做连续生成/引导的 Flow Matching 或 Diffusion Policy；对普通确定性 ACT 输出，不能直接假定同一 Inpainting 求解器可用。
 
 <a id="course-section-37"></a>

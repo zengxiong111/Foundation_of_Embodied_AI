@@ -439,16 +439,16 @@ $$
 \widetilde v_\theta=
 v_\theta-\lambda_\tau\nabla_{A^\tau}
 \left[\frac12\|W^{1/2}\odot(\widehat A^1-Y)\|_2^2\right].
-$
+$$
 
 The exact clipped guidance coefficient in the original paper is
 
-$
+$$
 r_\tau^2=\frac{(1-\tau)^2}{\tau^2+(1-\tau)^2},\qquad
 \lambda_\tau=\min\!\left(\beta,\frac{1-\tau}{\tau\,r_\tau^2}\right).
-$
+$$
 
-The clipping parameter $\beta$ prevents an overly large guidance correction. Implementations must protect numerical limits near $\tau=0$.
+The clipping parameter $\beta$ prevents an overly large guidance correction. Implementations must protect numerical limits near $\tau=0$ or $\tau=1$.
 Integrate $A^{\tau+\Delta\tau}=A^\tau+\Delta\tau\,\widetilde v_\theta$. This keeps the generated trajectory compatible with committed actions while still allowing future corrections. The correction involves a vector–Jacobian product during generative integration: **inference-time RTC does not require retraining, but adds inference computation.** The original method assumes a guidable continuous diffusion/flow sampler; an arbitrary deterministic ACT output cannot simply be passed through the same inpainting solver.
 
 <a id="course-section-37"></a>
