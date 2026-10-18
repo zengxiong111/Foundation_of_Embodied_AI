@@ -210,31 +210,6 @@
       }
     },
     {
-      "id": "embodied-rl",
-      "title_en": "Embodied RL",
-      "title_zh": "具身强化学习",
-      "reviewed_at": "2026-10-18",
-      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
-      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
-      "versions_en": "Algorithm and task taxonomy; no single framework environment is prescribed",
-      "versions_zh": "算法与任务分类；不规定统一框架运行环境",
-      "source_refs": [],
-      "documents": {
-        "zh": {
-          "md": "md/Embodied_RL_Tutorial_Full_ZH.md",
-          "pdf": "pdf/Embodied_RL_Tutorial_Full_ZH-1.pdf",
-          "site_md": "files/Embodied_RL_Tutorial_Full_ZH.md",
-          "site_pdf": "files/Embodied_RL_Tutorial_Full_ZH.pdf"
-        },
-        "en": {
-          "md": "md/Embodied_RL_Tutorial_Full_EN.md",
-          "pdf": "pdf/Embodied_RL_Tutorial_Full_EN-1.pdf",
-          "site_md": "files/Embodied_RL_Tutorial_Full_EN.md",
-          "site_pdf": "files/Embodied_RL_Tutorial_Full_EN.pdf"
-        }
-      }
-    },
-    {
       "id": "motion-rl",
       "title_en": "Motion Control RL",
       "title_zh": "运动控制 RL",
@@ -360,6 +335,31 @@
           "pdf": "pdf/Flow_Matching_Step_by_Step_Derivation_EN.pdf",
           "site_md": "files/Flow_Matching_Step_by_Step_Derivation_EN.md",
           "site_pdf": "files/Flow_Matching_Step_by_Step_Derivation_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "rl-post-training",
+      "title_en": "RL Post-training",
+      "title_zh": "RL Post-training",
+      "reviewed_at": "2026-10-19",
+      "review_scope_en": "Supplied bilingual Markdown and academic PDFs integrated; PDF bytes preserved without regeneration. No reproduced benchmarks, training runs or robot deployment.",
+      "review_scope_zh": "整合用户提供的中英文 Markdown 及学术排版 PDF，PDF 保持原始字节且未重新生成；未复现基准、运行训练或进行真机部署。",
+      "versions_en": "RL post-training of pretrained Diffusion, Flow Matching and VLA policies; updating generators versus frozen generators with trainable external modules; DPPO, OGPO, Q-VGM, DSRL, RL Token, Actor–Critic and online off-policy loops. No from-scratch controller training or coding exercises.",
+      "versions_zh": "预训练 Diffusion、Flow Matching 与 VLA 策略的 RL 后训练；更新生成器与冻结生成器、训练外部模块两条主线；DPPO、OGPO、Q-VGM、DSRL、RL Token、Actor–Critic 与在线离策略闭环。不讨论从零训练控制器或代码实验。",
+      "source_refs": [],
+      "documents": {
+        "zh": {
+          "md": "md/RL_Post_Training_ZH.md",
+          "pdf": "pdf/RL_Post_Training_ZH.pdf",
+          "site_md": "files/RL_Post_Training_ZH.md",
+          "site_pdf": "files/RL_Post_Training_ZH.pdf"
+        },
+        "en": {
+          "md": "md/RL_Post_Training_EN.md",
+          "pdf": "pdf/RL_Post_Training_EN.pdf",
+          "site_md": "files/RL_Post_Training_EN.md",
+          "site_pdf": "files/RL_Post_Training_EN.pdf"
         }
       }
     },

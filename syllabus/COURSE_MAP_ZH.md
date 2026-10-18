@@ -10,8 +10,9 @@
 - [贯穿课程的 Panda + 方块 + 桌面案例](#map-section-04)
 - [阅读与复现边界](#map-section-05)
 - [视觉基础模型：原理与工作流](#map-section-06)
-- [先进 Robot Agent 的系统集成](#map-section-07)
-- [跨章节职责：减少重复教学](#map-section-08)
+- [预训练策略的 RL Post-training](#map-section-07)
+- [先进 Robot Agent 的系统集成](#map-section-08)
+- [跨章节职责：减少重复教学](#map-section-09)
 
 <a id="map-section-01"></a>
 
@@ -22,8 +23,8 @@
 | 0. 导论 | 全栈知识地图与阅读说明 | 看懂感知—策略—控制—机器人闭环 |
 | 1. 工程工具 | Git、ROS 2 | 版本管理；理解 ROS 通信与 TF |
 | 2. 物理与视觉 | 机器人动力学、相机标定、视觉基础模型、Isaac / MuJoCo | 建立机器人物理、传感器和仿真模型 |
-| 3. 强化学习 | 具身 RL、运动控制 RL、PPO、SAC | 设计观测、动作、奖励及数据收集方式 |
-| 4. 演示与基础模型 | Imitation Learning、Flow Matching、GR00T / SONIC | 从演示生成动作块并理解分层控制 |
+| 3. 强化学习 | 运动控制 RL、PPO、SAC | 设计观测、动作、奖励及数据收集方式 |
+| 4. 演示与基础模型 | Imitation Learning、Flow Matching、RL Post-training、GR00T / SONIC | 从演示生成动作块并理解分层控制 |
 | 5. Robot Agent 集成 | Robot Agent：任务规划、工具调用、验证与恢复 | 编排视觉、策略和控制，完成长时任务闭环 |
 
 <a id="map-section-02"></a>
@@ -51,8 +52,8 @@ flowchart LR
 ## 推荐学习顺序与先修关系
 
 1. 初学者：先阅读本导论，跳读 Git / ROS 2 的必要部分，再学习动力学、标定、视觉基础模型与仿真。
-2. 运控方向：动力学 → 仿真 → 具身 RL → PPO / SAC → 运动控制 RL。
-3. VLA 方向：相机标定 → 视觉基础模型 → Imitation Learning → Flow Matching → GR00T / SONIC → Robot Agent。
+2. 运控方向：动力学 → 仿真 → PPO / SAC → 运动控制 RL。
+3. VLA 方向：相机标定 → 视觉基础模型 → Imitation Learning → Flow Matching → RL Post-training → GR00T / SONIC → Robot Agent。
 4. 深度推导：PPO、SAC、Flow Matching 的完整数学推导是独立深入阅读材料，并非先学完所有公式才能开始实践。
 
 <a id="map-section-04"></a>
@@ -81,11 +82,17 @@ flowchart LR
 
 <a id="map-section-07"></a>
 
+## 预训练策略的 RL Post-training
+
+在模仿学习与 Flow Matching 之后阅读 [RL Post-training](../md/RL_Post_Training_ZH.md)，以 PPO/SAC 为基础。比较更新预训练生成器和冻结生成器、训练外部模块两条主线，区分更新接口、经验复用、Actor–Critic 闭环与部署约束。本章面向预训练 Diffusion、Flow Matching 与 VLA 策略，不讨论从零训练控制器。
+
+<a id="map-section-08"></a>
+
 ## 先进 Robot Agent 的系统集成
 
 最终专题：[Robot Agent：规划、执行、验证与恢复](../md/Robot_Agent_Workflow_ZH.md)。内容涵盖 RAX 探索与编译、ASPIRE 执行轨迹诊断与修复、技能复用及灵巧手螺丝刀案例。融合工作流属于教学示例，不含代码或实验章节。
 
-<a id="map-section-08"></a>
+<a id="map-section-09"></a>
 
 ## 跨章节职责：减少重复教学
 
@@ -96,4 +103,5 @@ flowchart LR
 | Imitation Learning | BC/DAgger/ACT、生成式动作块与实时 RTC | GR00T 章节只讲自身训练/部署接口 |
 | Flow Matching | CFM 数学、速度场与 ODE 推导 | 模仿学习只讲条件动作生成的损失接口 |
 | PPO / SAC 与运控 RL | RL 优化原理、运控任务设计与 Sim-to-Real | 模仿学习不重复奖励优化推导 |
+| RL Post-training | 改进预训练生成器或训练冻结策略的外部模块；在线离策略闭环 | 使用 PPO/SAC 基础与预训练模仿策略 |
 | Robot Agent | 任务级规划、工具选择、执行结果验证、失败恢复与技能记忆 | GR00T/SONIC 保留 System 1/System 0 实际系统案例 |
