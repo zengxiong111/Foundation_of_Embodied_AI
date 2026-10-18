@@ -4,6 +4,7 @@
 
 A public teaching-material repository for a future course titled “Foundation of Embodied AI” (具身智能基础), collecting Chinese and English tutorials on robot learning, engineering tools, and core algorithms. The course is currently in preparation; a formal teaching schedule is not yet available.
 
+**Content provenance:** These materials are based on our project experience and were generated with the assistance of ChatGPT.
 
 ## Contents
 
