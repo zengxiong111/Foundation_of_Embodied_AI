@@ -384,6 +384,8 @@ $$
 
 注意 **0.8 s 是单次预测窗口，不是必须无反馈地执行 0.8 s**。例如每 0.4 s 更新一批新动作，上一批动作可被部分使用并由新动作接替。
 
+**跨章节说明：** 如果要解决高延迟推理导致的块间停顿或轨迹跳跃，可以评估 [Real-Time Chunking（RTC）](Data_Imitation_Learning_ZH.md) 的异步推理与前缀条件生成；这是一种需要额外集成和验证的方案，不表示当前 GR00T/SONIC 官方示例默认使用 RTC。
+
 ```mermaid
 flowchart LR
     A[Camera + Prompt] --> B[GR00T: 2.5 Hz]
