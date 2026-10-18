@@ -787,7 +787,7 @@ Head RGB-D
 | 仿真/真机相机几何对齐 | 需要 |
 | FoundationPose + IK | 需要 |
 
-端到端 VLA 可以隐式学习视觉—动作映射，但准确、统一的几何关系通常有助于跨相机、跨机器人和跨场景迁移。
+端到端 VLA 可以隐式学习视觉—动作映射，但准确、统一的几何关系通常有助于跨相机、跨机器人和跨场景迁移。本节只回答**何时需要显式外参**；BC/ACT 和示教数据处理见[模仿学习](Data_Imitation_Learning_ZH.md)，SAM/Foundation 系列、时序滤波与失踪恢复见[视觉状态估计](Visual_State_Estimation_ZH.md)。
 
 <a id="course-section-40"></a>
 
