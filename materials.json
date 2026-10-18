@@ -313,13 +313,13 @@
     },
     {
       "id": "data-imitation",
-      "title_en": "Data Collection and Imitation Learning",
-      "title_zh": "数据采集与模仿学习",
-      "reviewed_at": "2026-10-18",
-      "review_scope_en": "Document integration and rendering checks only; no tutorial runtime, training or hardware validation.",
-      "review_scope_zh": "仅进行文档整合与排版检查；未进行教程环境、训练或硬件验证。",
-      "versions_en": "Demonstrations, datasets, BC, DAgger, ACT, generative action chunks and RTC concepts; no single tested software environment is prescribed",
-      "versions_zh": "示教、数据集、BC、DAgger、ACT、生成式动作块与 RTC 概念；不规定统一且经过运行测试的软件环境",
+      "title_en": "Imitation Learning",
+      "title_zh": "Imitation Learning",
+      "reviewed_at": "2026-10-19",
+      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDF bytes preserved without regeneration. No tutorial runtime, training or hardware validation.",
+      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 保持原始字节且未重新生成；未进行教程环境、训练或硬件验证。",
+      "versions_en": "BC, DAgger, ACT, Diffusion Policy, Flow Matching, Temporal Ensembling, inference-time RTC and training-time RTC; no standalone data-collection, deployment or experimental chapters",
+      "versions_zh": "BC、DAgger、ACT、Diffusion Policy、Flow Matching、Temporal Ensembling、推理时 RTC 与训练时 RTC；不设独立数据采集、部署或实验章节",
       "source_refs": [],
       "documents": {
         "zh": {
