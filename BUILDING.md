@@ -41,7 +41,7 @@ Dependencies are locked in `package-lock.json`; print styling lives in `scripts/
 
 ## Whole-course PDFs
 
-After successful `npm run build` and `npm run check`, install the independent book generator once with `python3 -m pip install pymupdf==1.26.7 fonttools` and run `python3 scripts/merge_collections.py`. It generates `books/Foundation_of_Embodied_AI_Complete_Chinese.pdf` and `books/Foundation_of_Embodied_AI_Complete_English.pdf` with clickable contents and chapter bookmarks. Book PDFs are derived from the 26 validated per-topic chapter PDFs, not independently edited versions.
+After successful `npm run build` and `npm run check`, install the independent book generator once with `python3 -m pip install pymupdf==1.26.7` and run `python3 scripts/merge_collections.py`. It generates `books/Foundation_of_Embodied_AI_Complete_Chinese.pdf` and `books/Foundation_of_Embodied_AI_Complete_English.pdf` with clickable contents and chapter bookmarks. Book PDFs are derived from the 26 validated per-topic chapter PDFs, not independently edited versions.
 
 ## Website synchronization
 

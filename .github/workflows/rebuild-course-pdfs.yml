@@ -51,7 +51,7 @@ jobs:
           sudo apt-get install -y poppler-utils fontconfig fonts-noto-cjk
           npm ci --no-audit --no-fund
           npx playwright install --with-deps chromium
-          python -m pip install --disable-pip-version-check 'pymupdf==1.26.7' 'fonttools==4.60.1'
+          python -m pip install --disable-pip-version-check 'pymupdf==1.26.7' 
 
       - name: Synchronize bilingual source references
         run: npm run sync

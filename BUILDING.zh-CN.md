@@ -41,7 +41,7 @@ PDF 默认采用黑白为主的打印样式：黑色正文、标题、公式和�
 
 ## 课程合订本
 
-执行 `npm run build`、`npm run check` 成功后，安装构建依赖 `python3 -m pip install pymupdf==1.26.7 fonttools`，再运行 `python3 scripts/merge_collections.py`。它将生成 `books/Foundation_of_Embodied_AI_Complete_Chinese.pdf` 和 `books/Foundation_of_Embodied_AI_Complete_English.pdf`，包含可点击总目录与章节书签。合订本直接使用验证通过的 26 份独立章节 PDF。
+执行 `npm run build`、`npm run check` 成功后，安装构建依赖 `python3 -m pip install pymupdf==1.26.7`，再运行 `python3 scripts/merge_collections.py`。它将生成 `books/Foundation_of_Embodied_AI_Complete_Chinese.pdf` 和 `books/Foundation_of_Embodied_AI_Complete_English.pdf`，包含可点击总目录与章节书签。合订本直接使用验证通过的 26 份独立章节 PDF。
 
 ## 网站同步
 

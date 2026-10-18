@@ -7,45 +7,23 @@ The text, math, hyperlinks and illustrations in chapter PDFs are retained.
 import argparse
 import json
 import subprocess
-import tempfile
 from pathlib import Path
 
 import pymupdf as fitz
-from fontTools import subset
-from fontTools.ttLib import TTCollection, TTFont
 
 W, H = 595.28, 841.89
 INK, ACCENT, GRAY = (0.11, .17, .29), (.04, .43, .52), (.40, .44, .50)
 LIGHT = (.93, .97, .98)
 
 
-def font_subset(manifest, target):
+def select_font():
+    # Do not pre-subset a CJK TTC using fontTools: MuPDF may retain the
+    # original glyph IDs and render the subset using the wrong mappings.
     path = subprocess.check_output(
         ['fc-match', '-f', '%{file}', 'Noto Sans CJK SC'], text=True).strip()
-    if not Path(path).exists():
-        raise RuntimeError('Missing Noto Sans CJK SC font')
-    if path.lower().endswith('.ttc'):
-        fonts = TTCollection(path).fonts
-        font = next((f for f in fonts if (f['name'].getDebugName(1) or '').endswith('SC')), fonts[0])
-    else:
-        font = TTFont(path)
-    strings = [
-        'FOUNDATION OF EMBODIED AI', '中文课程讲义', 'English Course Reader',
-        '具身智能基础 · 全套课程讲义', 'Foundation of Embodied AI',
-        '个专题 chapters', '源文件以课程仓库的构建清单为准',
-        'Chapters follow the repository manifest', '目录 Contents',
-        '点击章节标题可跳转到正文。', 'Select a chapter to jump to the start.',
-        '各章保留原始公式、插图与引用；独立 PDF 页码与全书页码可能不同。',
-        'Original chapter math and links are preserved; local page numbers may differ.',
-        'zengxiong111 / Foundation_of_Embodied_AI', '0123456789',
-    ] + [t['title_zh'] for t in manifest['topics']] + [t['title_en'] for t in manifest['topics']]
-    opts = subset.Options()
-    opts.layout_features = ['*']
-    worker = subset.Subsetter(options=opts)
-    worker.populate(text=' '.join(strings))
-    worker.subset(font)
-    font.save(target)
-    return str(target)
+    if not Path(path).is_file():
+        raise RuntimeError('Noto Sans CJK SC is required to render cover and contents')
+    return path
 
 
 def write_line(page, x, y, value, size, color=INK):
@@ -153,10 +131,9 @@ def main():
     args = parser.parse_args()
     root = args.root.resolve()
     config = json.loads((root / 'materials.json').read_text(encoding='utf-8'))
-    with tempfile.TemporaryDirectory() as folder:
-        font = font_subset(config, Path(folder) / 'subset.otf')
-        for lang in ('zh', 'en'):
-            make_one(root, config, lang, font)
+    font = select_font()
+    for lang in ('zh', 'en'):
+        make_one(root, config, lang, font)
 
 
 if __name__ == '__main__':
