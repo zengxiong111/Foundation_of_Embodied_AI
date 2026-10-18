@@ -184,3 +184,63 @@ flowchart LR
 - [ROS 2 tf2](https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Tf2.html)
 
 **核验边界：** 内容以概念、方法选择及实验设计为主，并未验证某特定相机、GPU 或模型在机器人上的实时性能。
+
+
+## 8. 感知测量与状态估计公式
+
+### 8.1 RGB-D 与双目深度
+
+针孔相机满足 $u=f_xX/Z+c_x$、$v=f_yY/Z+c_y$。有可靠深度时，$P_C=ZK^{-1}[u,v,1]^\top$。对校正后的双目图像，$Z=fb/d$，其中 $b$ 是基线、$d$ 是视差；一阶误差传播为 $\sigma_Z\approx(fb/d^2)\sigma_d$。深度、分割、标定均有误差，机器人操作不能将所有观测视为精确几何真值。内参与手眼外参的估计与验收仍以[相机标定专章](Robot_Camera_Calibration_Tutorial_ZH.md)为准。
+
+### 8.2 递推估计与不确定性
+
+使用 $x_t=f(x_{t-1},u_{t-1})+w_t$、$y_t=h(x_t)+v_t$。以 EKF 为例：
+
+$$
+\hat x_t^-=f(\hat x_{t-1},u_{t-1}),\quad P_t^-=F_tP_{t-1}F_t^\top+Q_t.
+$$
+
+$$
+K_t=P_t^-H_t^\top(H_tP_t^-H_t^\top+R_t)^{-1},\quad
+\hat x_t=\hat x_t^-+K_t(y_t-h(\hat x_t^-)).
+$$
+
+对于 SE(3) 姿态，应在局部切空间更新姿态残差，而不是逐元素平均旋转矩阵；若目标存在几何对称性，必须使用对称性感知的姿态误差。遮挡阶段可预测但须提高不确定度，丢失后执行重定位而不是无限沿用旧值。
+
+## 9. 通用视觉模型的职责与选型
+
+### 9.1 FoundationPose、FoundationStereo、SAM 家族
+
+| 模型 | 核心输出 | 必要输入或条件 | 对机器人有用之处 | 不应误解为 |
+|---|---|---|---|---|
+| FoundationPose | 新物体 6D 位姿估计及跟踪 | 目标区域、RGB(-D)、CAD 模型或参考视图等 | 为抓取/操作提供显式位姿 | 无条件识别所有物体 |
+| FoundationStereo | 密集双目视差与深度 | 标定并整流的左右图像 | 获取几何点云及公制深度 | 语义分割或物体 6D 位姿 |
+| SAM 2 | 图像分割与视频 mask 跟踪 | 图像/视频、点/框/mask 提示 | 在遮挡前后维护物体目标区域 | 公制深度与物理接触 |
+| SAM 3 | 文本/示例提示的开放概念检测、分割和跟踪 | 图像/视频、文本或视觉示例 | 从语言指令定位任务目标 | 姿态、动力学、抓取成功率 |
+| SAM 3D Objects | 单图推断三维形状、纹理与布局 | 目标图像及对象区域等 | 候选几何模型或形状先验 | 经标定的高精度 CAD 或实时跟踪 |
+
+**SAM 3 ≠ SAM 3D ≠ FoundationPose。** SAM 3D 重建出的形状有单目歧义，不能直接作为机器人精准碰撞几何；应验证物体尺度、多视角一致性和可接触表面。FoundationStereo 在已有 RGB-D 相机的系统中是可选替代或补充，不是必须使用的串联模块。
+
+### 9.2 视觉基础模型的组合逻辑
+
+在一般工作流中，SAM 3 可通过文本找到目标，SAM 2/3 提供视频分割与目标 ID；RGB-D 或 FoundationStereo 提供几何深度；FoundationPose 或适当的位姿估计器输出 $T_C^O$；时序状态估计器输出带置信度的 $\hat T_B^O$；控制器根据目标物体位姿和估计可信度规划下一步动作。没有物体 CAD 时可用 SAM 3D 生成候选形状，但仍需检查尺度和位姿。部分任务只需要 mask + 深度关键点，不需要完整 6D 位姿。
+
+### 9.3 实时闭环不是只测单模型 FPS
+
+$$
+T_{\rm total}=T_{\rm capture}+T_{\rm segmentation}+T_{\rm depth}+T_{\rm pose}+T_{\rm filter}+T_{\rm policy}+T_{\rm communication}.
+$$
+
+分别记录初始化/跟踪时延、P95 和 P99 端到端延迟、遮挡恢复率、姿态误差、状态不确定度校准及真实任务成功率。低频识别与高频控制可异步运行，但状态预测须显式处理图像时间戳及执行延迟。
+
+## 10. 统一视觉闭环实验与参考资源
+
+先用 Oracle 物体位姿作为上限，再比较 RGB-D + mask + FoundationPose、SAM 2/3 不同初始化方式、以及有无双目深度替代或形状先验。保持 Panda 控制器、任务目标和训练/测试对象划分不变，并分别测试遮挡、目标旋转对称、物体丢失和机器人视角移动。Pose noise 可按 $\tilde T_t=T_t\exp(\hat \xi_t)$ 注入；应同时包含有偏、时序相关、漏检、延迟与重新定位跳变，避免只加独立高斯噪声。
+
+**知识边界：** 本章负责视觉测量、目标状态与不确定性输出；具体数据采集及 BC/ACT/Flow Policy 训练参见[模仿学习](Data_Imitation_Learning_ZH.md)；高层目标规划、工具调用和失败恢复参见[Robot Agent](Robot_Agent_Workflow_ZH.md)。
+
+- [FoundationPose](https://arxiv.org/abs/2312.08344)
+- [FoundationStereo](https://github.com/NVlabs/FoundationStereo)
+- [SAM 2](https://github.com/facebookresearch/sam2)
+- [SAM 3](https://ai.meta.com/research/sam3/)
+- [SAM 3D Objects](https://github.com/facebookresearch/sam-3d-objects)

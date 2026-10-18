@@ -184,3 +184,63 @@ This chapter follows [camera calibration](Robot_Camera_Calibration_Tutorial_EN.m
 - [ROS 2 tf2](https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Tf2.html)
 
 **Verification boundary:** this is a conceptual methods and experiment-design chapter. Real-time performance on any particular camera, GPU, or robot has not been measured.
+
+
+## 8. Measurement Models and State Estimation
+
+### 8.1 RGB-D and Stereo Depth
+
+Pinhole projection obeys $u=f_xX/Z+c_x$, $v=f_yY/Z+c_y$. With valid depth, $P_C=ZK^{-1}[u,v,1]^\top$. Rectified stereo gives $Z=fb/d$ with baseline $b$ and disparity $d$; approximate depth uncertainty is $\sigma_Z\approx(fb/d^2)\sigma_d$. Depth, segmentation and extrinsic calibration are all noisy. For intrinsic and hand–eye calibration methods, use the dedicated [Camera Calibration](Robot_Camera_Calibration_Tutorial_EN.md) chapter.
+
+### 8.2 Recursive Filtering and Confidence
+
+Use $x_t=f(x_{t-1},u_{t-1})+w_t$, $y_t=h(x_t)+v_t$. An EKF computes
+
+$$
+\hat x_t^-=f(\hat x_{t-1},u_{t-1}),\quad P_t^-=F_tP_{t-1}F_t^\top+Q_t,
+$$
+
+$$
+K_t=P_t^-H_t^\top(H_tP_t^-H_t^\top+R_t)^{-1},\quad
+\hat x_t=\hat x_t^-+K_t(y_t-h(\hat x_t^-)).
+$$
+
+SE(3) orientation updates should use a local tangent-space residual; evaluate symmetric objects with symmetry-aware metrics. During occlusion, uncertainty must grow, and lost tracks must reinitialize rather than silently reuse a stale pose.
+
+## 9. General-Purpose Vision Models
+
+### 9.1 Capability Comparison
+
+| Model | Primary output | Required or typical input | Robotics application | Not a guarantee of |
+|---|---|---|---|---|
+| FoundationPose | object 6D pose estimation/tracking | target region, RGB(-D), CAD or reference views as applicable | manipulation pose feedback | universal unconditional object recognition |
+| FoundationStereo | dense stereo disparity and depth | calibrated rectified stereo images | metric depth and point cloud | object semantics or 6D pose |
+| SAM 2 | image masks and video mask tracking | images/video plus click, box or mask prompts | maintain target identity in video | metric depth or physical contact |
+| SAM 3 | text/exemplar-prompted concept detection, masks and tracking | images/video and language or examples | referential object discovery | physical pose or task success |
+| SAM 3D Objects | estimated single-image 3D geometry, texture and layout | image/object region | candidate shape prior | metrology-grade CAD or real-time tracking |
+
+SAM 3 is not SAM 3D, and neither is FoundationPose. Monocular reconstruction is ambiguous in geometry and scale. Do not use unverified SAM 3D output as precision collision geometry. FoundationStereo is optional if RGB-D depth is already available.
+
+### 9.2 Composable Perception Stack
+
+SAM 3 locates a task referent from language; SAM 2/3 tracks object masks; RGB-D or FoundationStereo supplies depth; FoundationPose or another appropriate estimator generates camera-frame pose $T_C^O$; a temporal filter produces base-frame $\hat T_B^O$ and uncertainty for the policy. SAM 3D may generate a provisional object shape when CAD is missing, but scale and contact surfaces require validation. Some tasks need only segmentation and depth keypoints, not full object orientation.
+
+### 9.3 End-to-End Latency
+
+$$
+T_{\rm total}=T_{\rm capture}+T_{\rm segmentation}+T_{\rm depth}+T_{\rm pose}+T_{\rm filter}+T_{\rm policy}+T_{\rm communication}.
+$$
+
+Measure initialization/tracking time separately, P95/P99 latency, lost-track recovery, pose error, uncertainty calibration, and task success. A slow detector can coexist with a faster control loop only if timestamped state prediction and stale-state handling are explicit.
+
+## 10. Shared Experiments and References
+
+Compare oracle object state against RGB-D+mask+FoundationPose, SAM 2/SAM 3 mask initialization, and optional stereo/shape priors while holding the Panda task and controller fixed. Test occlusion, symmetries, camera movement, and reacquisition. Structured pose perturbations can use $\tilde T_t=T_t\exp(\hat \xi_t)$, but should include bias, correlation, missed observations and latency rather than independent Gaussian noise alone.
+
+**Division of responsibility:** visual measurements and uncertainty belong here; demonstration policy fitting lives in [Imitation Learning](Data_Imitation_Learning_EN.md), and tool orchestration/replanning in [Robot Agents](Robot_Agent_Workflow_EN.md).
+
+- [FoundationPose](https://arxiv.org/abs/2312.08344)
+- [FoundationStereo](https://github.com/NVlabs/FoundationStereo)
+- [SAM 2](https://github.com/facebookresearch/sam2)
+- [SAM 3](https://ai.meta.com/research/sam3/)
+- [SAM 3D Objects](https://github.com/facebookresearch/sam-3d-objects)
