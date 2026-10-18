@@ -393,7 +393,7 @@ Crucially, the **0.8 s prediction horizon is not necessarily an 0.8 s open-loop 
 **Cross-chapter note:** [Real-Time Chunking (RTC)](Data_Imitation_Learning_EN.md) is a candidate technique for latency-tolerant asynchronous chunk handoff, but it needs integration and validation; this is not a claim that the referenced GR00T/SONIC implementation already runs RTC by default.
 
 ```mermaid
-flowchart LR
+flowchart TD
     A[Camera + Prompt] --> B[GR00T: 2.5 Hz]
     B --> C[40-step x 78-D Action Chunk]
     C --> D[Action Stream: 50 Hz]

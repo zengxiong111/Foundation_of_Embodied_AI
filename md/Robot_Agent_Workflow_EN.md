@@ -136,7 +136,7 @@ Calling a large agent after every manipulation step offers flexibility but intro
 **[Original mechanism]** RAX uses a general-purpose coding agent, such as Codex CLI or Claude Code, with a frozen base model. The agent explores through robot perception and control tools. Experience accumulates in its workspace as notes, programs, and skills; the framework does not require a task-specific teleoperation corpus followed by policy training. A common harness interfaces with different simulation or robot backends. [R2, R3]
 
 ```mermaid
-flowchart LR
+flowchart TD
  A[Task and Tool Contract] --> B[Explore Online]
  B --> C[Record Actions, Effects, Failures]
  C --> D[Compile Closed-Loop Program]
@@ -308,6 +308,8 @@ A practical long-term memory design distinguishes two layers:
 
 **[Proposed architecture]** The two ideas can be combined as follows. This architecture is not a result already demonstrated by the original teams.
 
+**Skill preparation and review**
+
 ```mermaid
 flowchart TD
  G[Natural-Language Goal] --> M[Retrieve Repairs and Skills]
@@ -321,10 +323,16 @@ flowchart TD
  V -- Pass --> L[Versioned Programs and Repair Knowledge]
  V -- Fail --> A
  L --> R
- R --> S{Independent Goal Verification}
+```
+
+**Execution and recovery**
+
+```mermaid
+flowchart TD
+ R[Run Reviewed Program Under Constraints] --> S{Independent Goal Verification}
  S -- Success --> D[Finish and Archive Evidence]
  S -- Unknown or Failure --> F[Bounded Recovery or Escalation]
- F --> M
+ F --> M[Retrieve Repairs and Skills]
 ```
 
 Three conditions are essential: (i) reusing a known skill should not force fresh open-ended agent exploration; (ii) low-level safety and stop behavior must remain independent of the language model; and (iii) an accidental success during exploration does not license unsupervised deployment of an unreviewed program.

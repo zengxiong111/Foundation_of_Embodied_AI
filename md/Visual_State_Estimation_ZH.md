@@ -113,7 +113,7 @@ $$
 ### 1.3 感知系统的分层职责
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[RGB / Depth / Joint states] --> B[Time synchronization & calibration]
   B --> C[Detection, masks & geometric measurements]
   C --> D[Pose initialization & tracking]
@@ -223,7 +223,7 @@ $$
 对于固定外置相机：$^BT_O={}^BT_C\,{}^CT_O$；对于安装在可动云台上的头部相机，$^BT_C(t)$ 需要根据云台关节角计算，**不能当成常量**。
 
 ```mermaid
-flowchart LR
+flowchart TD
   B[Robot base B] -- FK at image time --> E[End effector E]
   E -- Hand-eye extrinsic --> C[Camera C]
   C -- Vision-estimated pose --> O[Object O]

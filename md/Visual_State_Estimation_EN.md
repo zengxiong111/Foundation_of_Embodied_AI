@@ -113,7 +113,7 @@ where $q_t$ denotes joint state, $u_t$ an action, and $\Sigma_t$ local uncertain
 ### 1.3 A layered perception architecture
 
 ```mermaid
-flowchart LR
+flowchart TD
   A[RGB / Depth / Joint states] --> B[Time synchronization & calibration]
   B --> C[Detection, masks & geometric measurements]
   C --> D[Pose initialization & tracking]
@@ -223,7 +223,7 @@ $$
 For a fixed external camera, $^BT_O={}^BT_C\,^CT_O$. A pan–tilt head has a time-dependent $^BT_C(t)$ computed from the head joints; its extrinsic transform **must not be treated as fixed**.
 
 ```mermaid
-flowchart LR
+flowchart TD
   B[Robot base B] -- FK at image time --> E[End effector E]
   E -- Hand-eye extrinsic --> C[Camera C]
   C -- Vision-estimated pose --> O[Object O]
