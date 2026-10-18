@@ -19,7 +19,7 @@
 | Git 基础 | Git 2.x；Ubuntu 终端；GitHub 协作示例 | 2026-10-18 |
 | ROS 2 基础 | Ubuntu 24.04；ROS 2 Jazzy；Python 示例 | 2026-10-18 |
 | 相机标定 | OpenCV 4.x 概念；ROS 2 Jazzy；设备 SDK 版本需另行匹配 | 2026-10-18 |
-| 视觉感知与状态估计 | RGB-D、六维位姿、时序跟踪与恢复方法 | 2026-10-18 |
+| 视觉感知与状态估计 | 相机几何、RGB-D/双目、分割、FoundationPose、SE(3) 滤波、不确定性、异步执行与恢复概念 | 2026-10-18 |
 | 机器人动力学 | 刚体动力学理论；MuJoCo 与 Isaac 示例为概念说明，非已测试的跨引擎组合 | 2026-10-18 |
 | Isaac / MuJoCo 仿真 | 文档路线：Isaac Lab 2.3.2 / Isaac Sim 5.1；Lab 3.0 Early Access / Sim 6.1。MuJoCo、MJX、MJWarp 需按任务选择版本 | 2026-10-18 |
 | 具身强化学习 | 算法与任务分类；不规定统一框架运行环境 | 2026-10-18 |

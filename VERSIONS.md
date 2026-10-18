@@ -19,7 +19,7 @@ Record the current materials’ applicability and upstream source snapshots. Rev
 | Git Basics | Git 2.x; Ubuntu terminal; GitHub workflow examples | 2026-10-18 |
 | ROS 2 Basics | Ubuntu 24.04; ROS 2 Jazzy; Python examples | 2026-10-18 |
 | Camera Calibration | OpenCV 4.x concepts; ROS 2 Jazzy; device SDK version must be selected separately | 2026-10-18 |
-| Visual Perception and State Estimation | RGB-D, 6D pose, temporal tracking and recovery concepts | 2026-10-18 |
+| Visual Perception and State Estimation | Camera geometry, RGB-D/stereo, segmentation, FoundationPose, SE(3) filtering, uncertainty, asynchronous execution and recovery concepts | 2026-10-18 |
 | Robot Dynamics | Rigid-body theory; MuJoCo and Isaac examples are conceptual, not a tested cross-engine pair | 2026-10-18 |
 | Isaac / MuJoCo Simulation | Documented tracks: Isaac Lab 2.3.2 / Isaac Sim 5.1; Lab 3.0 Early Access / Sim 6.1. MuJoCo, MJX and MJWarp releases must be selected per task | 2026-10-18 |
 | Embodied RL | Algorithm and task taxonomy; no single framework environment is prescribed | 2026-10-18 |

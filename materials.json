@@ -135,10 +135,10 @@
       "title_en": "Visual Perception and State Estimation",
       "title_zh": "视觉感知与状态估计",
       "reviewed_at": "2026-10-18",
-      "review_scope_en": "Conceptual methods and experiment design; no robot or accuracy validation.",
-      "review_scope_zh": "概念方法与实验设计；没有真机或精度验证。",
-      "versions_en": "RGB-D, 6D pose, temporal tracking and recovery concepts",
-      "versions_zh": "RGB-D、六维位姿、时序跟踪与恢复方法",
+      "review_scope_en": "Document integration and rendering checks only; no robot, accuracy or runtime validation. No experimental chapter is included.",
+      "review_scope_zh": "仅进行文档整合与排版检查；未进行真机、精度或运行验证。不包含实验章节。",
+      "versions_en": "Camera geometry, RGB-D/stereo, segmentation, FoundationPose, SE(3) filtering, uncertainty, asynchronous execution and recovery concepts",
+      "versions_zh": "相机几何、RGB-D/双目、分割、FoundationPose、SE(3) 滤波、不确定性、异步执行与恢复概念",
       "source_refs": [],
       "documents": {
         "zh": {
