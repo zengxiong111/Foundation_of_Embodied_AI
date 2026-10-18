@@ -397,7 +397,7 @@ $$
 d\approx\left\lceil\frac{\delta}{\Delta t}\right\rceil,\qquad
 A_t=(a_t,\ldots,a_{t+H-1}).
 $$
-The ceiling is a **conservative engineering approximation**; the original RTC derivation uses $\lfloor\delta/\Delta t\rfloor$ and estimates future delay from a rolling history. Seamless asynchronous handoff requires sufficient remaining actions to cover inference, in particular $d\le H-s$, with additional margin for jitter. At 50 Hz ($\Delta t=20$ ms), a measured 140 ms latency is roughly seven steps. Choosing $H=50$ and $s=20$ can leave enough old-chunk actions to cover inference, but does not replace timeout, packet-loss handling or emergency-stop logic.
+The ceiling is a **conservative engineering approximation**; the original RTC derivation uses $\lfloor\delta/\Delta t\rfloor$ and estimates future delay from a rolling history. For the asynchronous schedule in the original paper, require $d\le s\le H-d$: $d\le s$ permits inference to complete before the next handoff, and $d\le H-s$ leaves sufficient actions in the previous chunk to cover the inference delay. Leave additional margin for jitter, initialization, and timeouts. At 50 Hz ($\Delta t=20$ ms), a measured 140 ms latency is roughly seven steps. Choosing $H=50$ and $s=20$ can leave enough old-chunk actions to cover inference, but does not replace timeout, packet-loss handling or emergency-stop logic.
 
 ~~~mermaid
 flowchart LR
@@ -433,13 +433,22 @@ For a noise-to-data flow policy, a local fully-denoised endpoint prediction is
 $$
 \widehat A^1=A^\tau+(1-\tau)v_\theta(A^\tau,\tau,c).
 $$
-The following equivalent negative-gradient form captures the intuition of the paper's pseudoinverse guidance (see the original Eq. 2–4 for its exact scaling factor):
+The original paper's pseudoinverse guidance (Eq. 2–4) can be written equivalently as a negative gradient of a weighted endpoint error:
 
 $$
 \widetilde v_\theta=
 v_\theta-\lambda_\tau\nabla_{A^\tau}
 \left[\frac12\|W^{1/2}\odot(\widehat A^1-Y)\|_2^2\right].
-$$
+$
+
+The exact clipped guidance coefficient in the original paper is
+
+$
+r_\tau^2=\frac{(1-\tau)^2}{\tau^2+(1-\tau)^2},\qquad
+\lambda_\tau=\min\!\left(\beta,\frac{1-\tau}{\tau\,r_\tau^2}\right).
+$
+
+The clipping parameter $\beta$ prevents an overly large guidance correction. Implementations must protect numerical limits near $\tau=0$.
 Integrate $A^{\tau+\Delta\tau}=A^\tau+\Delta\tau\,\widetilde v_\theta$. This keeps the generated trajectory compatible with committed actions while still allowing future corrections. The correction involves a vector–Jacobian product during generative integration: **inference-time RTC does not require retraining, but adds inference computation.** The original method assumes a guidable continuous diffusion/flow sampler; an arbitrary deterministic ACT output cannot simply be passed through the same inpainting solver.
 
 <a id="course-section-37"></a>

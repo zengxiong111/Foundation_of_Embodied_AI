@@ -400,7 +400,7 @@ $$
 d\approx\left\lceil\frac{\delta}{\Delta t}\right\rceil,\qquad
 A_t=(a_t,\ldots,a_{t+H-1}).
 $$
-这里的向上取整是**工程调度中的保守近似**；原始 RTC 论文为便于分析使用 $\lfloor\delta/\Delta t\rfloor$，并通过近期观测延迟估计下一次 $d$。对无停顿的异步切换，要求预测长度留出覆盖推理延迟的动作，即 $d\le H-s$；还应留有延迟抖动余量。例如 50 Hz 控制对应 $\Delta t=20$ ms，实测延迟 140 ms 对应约 $d=7$ 步，若 $H=50$、$s=20$，则可提前启动下一块推理，而旧块继续提供控制命令。这个条件不替代丢包、超时与急停机制。
+这里的向上取整是**工程调度中的保守近似**；原始 RTC 论文为便于分析使用 $\lfloor\delta/\Delta t\rfloor$，并通过近期观测延迟估计下一次 $d$。对原论文的异步调度，需要同时满足 $d\le s\le H-d$：$d\le s$ 确保能够在下一次切换前启动并完成推理，$d\le H-s$ 确保旧动作块覆盖生成延迟。还应为延迟抖动、初始化及超时预留余量。例如 50 Hz 控制对应 $\Delta t=20$ ms，实测延迟 140 ms 对应约 $d=7$ 步，若 $H=50$、$s=20$，则可提前启动下一块推理，而旧块继续提供控制命令。这个条件不替代丢包、超时与急停机制。
 
 ~~~mermaid
 flowchart LR
@@ -436,13 +436,22 @@ $W_i=1$ 的区间是已经决定执行的动作前缀；中间区间权重逐渐
 $$
 \widehat A^1=A^\tau+(1-\tau)v_\theta(A^\tau,\tau,c).
 $$
-可以用以下等价的“加权误差负梯度”形式理解论文的 Pseudoinverse Guidance（精确的缩放系数见原论文 Eq. 2–4）：
+论文的 Pseudoinverse Guidance（Eq. 2–4）可等价写成加权误差负梯度形式：
 
 $$
 \widetilde v_\theta=
 v_\theta-\lambda_\tau\nabla_{A^\tau}
 \left[\frac12\|W^{1/2}\odot(\widehat A^1-Y)\|_2^2\right].
-$$
+$
+
+其中原论文的权重截断精确为
+
+$
+r_\tau^2=\frac{(1-\tau)^2}{\tau^2+(1-\tau)^2},\qquad
+\lambda_\tau=\min\!\left(\beta,\frac{1-\tau}{\tau\,r_\tau^2}\right).
+$
+
+$\beta$ 用于避免生成末期引导项数值过大；分母中的 $\tau$ 接近零时需采用实现规定的裁剪或数值保护。
 更新 $A^{\tau+\Delta\tau}=A^\tau+\Delta\tau\,\widetilde v_\theta$，使生成动作块既兼容已经执行或承诺的前缀，又可更新未承诺的未来部分。梯度项需要在生成步骤计算向量–Jacobian 乘积，因此**Inference-time RTC 不必重新训练模型，但会增加推理计算**。该机制面向可做连续生成/引导的 Flow Matching 或 Diffusion Policy；对普通确定性 ACT 输出，不能直接假定同一 Inpainting 求解器可用。
 
 <a id="course-section-37"></a>
