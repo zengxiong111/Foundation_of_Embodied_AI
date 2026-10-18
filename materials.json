@@ -5,7 +5,6 @@
   "website_repository": "zengxiong111/zengxiong.github.io",
   "website_branch": "master",
   "content_license": "CC-BY-4.0",
-  "tooling_license": "MIT",
   "upstream_snapshots": [
     {
       "repo": "Physical-Intelligence/openpi",

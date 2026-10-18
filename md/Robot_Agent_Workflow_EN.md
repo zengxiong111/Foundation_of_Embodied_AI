@@ -17,7 +17,7 @@ lang: en-US
 | Documentation review date | 2026-10-18 |
 | License | CC BY 4.0 · Xiong Zeng and contributors |
 
-**Verification scope:** Document integration and rendering checks only; no reproduced success rates, transfer results or robot deployment. No experimental chapter is included. See [version notes](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.md) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
+**Verification scope:** Document integration and rendering checks only; no reproduced success rates, transfer results or robot deployment. No experimental chapter is included. See the [materials manifest](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/materials.json) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
 <!-- course-meta:end -->
 
 <!-- course-toc:start -->

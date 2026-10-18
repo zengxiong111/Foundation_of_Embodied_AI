@@ -33,6 +33,4 @@ Revised vision and imitation notes cover geometry, SE(3) state estimation, BC/DA
 
 Everyone is welcome to download, modify and submit pull requests! Send feedback to [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn).
 
-Original teaching materials use [CC BY 4.0](LICENSE); build tools use [MIT](LICENSE-CODE). Third-party materials retain their original licenses. When sharing or adapting the materials, provide attribution, a license link and an indication of changes.
-
-[Version notes](VERSIONS.md) · [Build and maintenance](BUILDING.md)
+Original teaching materials use [CC BY 4.0](LICENSE). Third-party materials retain their original licenses. When sharing or adapting the materials, provide attribution, a license link and an indication of changes.

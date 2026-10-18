@@ -33,6 +33,4 @@
 
 欢迎大家下载、修改和提交 PR！反馈请发送至 [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn)。
 
-原创教材采用 [CC BY 4.0](LICENSE)，构建工具采用 [MIT](LICENSE-CODE)；第三方材料保留原许可。转载或修改教材时请署名、附许可链接并注明改动。
-
-[版本说明](VERSIONS.zh-CN.md) · [构建与维护](BUILDING.zh-CN.md)
+原创教材采用 [CC BY 4.0](LICENSE)；第三方材料保留原许可。转载或修改教材时请署名、附许可链接并注明改动。

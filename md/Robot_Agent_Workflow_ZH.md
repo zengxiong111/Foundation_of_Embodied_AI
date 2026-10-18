@@ -17,7 +17,7 @@ lang: zh-CN
 | 文档核验日期 | 2026-10-18 |
 | 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-**核验边界：** 仅进行文档整合与排版检查；未复现成功率、迁移结果或真机部署。不包含实验章节。 版本与固定源码引用见[版本说明](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/VERSIONS.zh-CN.md)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
+**核验边界：** 仅进行文档整合与排版检查；未复现成功率、迁移结果或真机部署。不包含实验章节。 固定源码引用见[资料清单](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/materials.json)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
 <!-- course-meta:end -->
 
 <!-- course-toc:start -->
