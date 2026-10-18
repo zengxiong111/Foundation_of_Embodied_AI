@@ -39,6 +39,10 @@ PDFs use a print-friendly monochrome style: black text, headings, equations and 
 
 Dependencies are locked in `package-lock.json`; print styling lives in `scripts/print.css`. `pdf/build-manifest.json` records source/PDF hashes, the build-input fingerprint, browser version, font hashes and page count. It detects stale PDFs. Browser/font differences and internal PDF timestamps can affect binary output, so byte-for-byte reproduction across environments is not promised.
 
+## Whole-course PDFs
+
+After successful `npm run build` and `npm run check`, install the independent book generator once with `python3 -m pip install pymupdf==1.26.7 fonttools` and run `python3 scripts/merge_collections.py`. It generates `books/Foundation_of_Embodied_AI_Complete_Chinese.pdf` and `books/Foundation_of_Embodied_AI_Complete_English.pdf` with clickable contents and chapter bookmarks. Book PDFs are derived from the 26 validated per-topic chapter PDFs, not independently edited versions.
+
 ## Website synchronization
 
 GitHub CLI must be authenticated with appropriate write access to the course and personal-website repositories. The publication command only updates manifest-listed personal-site materials; course repository changes still require the normal commit and push.
@@ -48,7 +52,7 @@ python3 scripts/publish.py --publish --wait
 python3 scripts/publish.py --verify-only
 ```
 
-Publication uses a non-force atomic commit and preserves other website files. After the existing Pages workflow completes, it downloads and checks all 44 materials. A leading blank line is added to website Markdown copies containing YAML metadata so Jekyll serves them statically; body content is preserved. `npm run check` automatically checks committed PDF bindings; website updates require the explicit publication command.
+Publication uses a non-force atomic commit and preserves other website files. After the existing Pages workflow completes, it downloads and checks all 52 chapter materials. A leading blank line is added to website Markdown copies containing YAML metadata so Jekyll serves them statically; body content is preserved. `npm run check` automatically checks committed PDF bindings; website updates require the explicit publication command.
 
 ## Licensing and contribution scope
 
