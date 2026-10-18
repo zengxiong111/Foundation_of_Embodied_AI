@@ -99,6 +99,20 @@ lang: en-US
 - [Appendix B. Notation, reading route, and references](#course-section-74)
 <!-- course-toc:end -->
 
+<!-- course-visual:start -->
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A0["Robot command"]
+  A1["Actuator"]
+  A2["Rigid-body physics"]
+  A3["Contact friction"]
+  A4["State feedback"]
+  A0 --> A1 --> A2 --> A3 --> A4
+```
+<!-- course-visual:end -->
+
 <a id="course-section-01"></a>
 
 ## Reading guide: follow the physical chain, not a collection of formulas

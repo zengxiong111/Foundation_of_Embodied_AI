@@ -71,6 +71,20 @@ toc-depth: 2
   - [13.2 Three ideas to remember](#course-section-44)
 <!-- course-toc:end -->
 
+<!-- course-visual:start -->
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A0["Observations and goal"]
+  A1["Gaussian noise"]
+  A2["Conditional flow field"]
+  A3["ODE inference"]
+  A4["Action chunk"]
+  A0 --> A1 --> A2 --> A3 --> A4
+```
+<!-- course-visual:end -->
+
 <a id="course-section-01"></a>
 
 ## Step 1 — Why do we need Flow Matching?
