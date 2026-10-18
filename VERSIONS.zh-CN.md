@@ -19,12 +19,14 @@
 | Git 基础 | Git 2.x；Ubuntu 终端；GitHub 协作示例 | 2026-10-18 |
 | ROS 2 基础 | Ubuntu 24.04；ROS 2 Jazzy；Python 示例 | 2026-10-18 |
 | 相机标定 | OpenCV 4.x 概念；ROS 2 Jazzy；设备 SDK 版本需另行匹配 | 2026-10-18 |
+| 视觉感知与状态估计 | RGB-D、六维位姿、时序跟踪与恢复方法 | 2026-10-18 |
 | 机器人动力学 | 刚体动力学理论；MuJoCo 与 Isaac 示例为概念说明，非已测试的跨引擎组合 | 2026-10-18 |
 | Isaac / MuJoCo 仿真 | 文档路线：Isaac Lab 2.3.2 / Isaac Sim 5.1；Lab 3.0 Early Access / Sim 6.1。MuJoCo、MJX、MJWarp 需按任务选择版本 | 2026-10-18 |
 | 具身强化学习 | 算法与任务分类；不规定统一框架运行环境 | 2026-10-18 |
 | 运动控制 RL | Isaac Lab / RSL-RL 工作流为说明性示例；任务、训练器、资产和执行器版本需一起绑定 | 2026-10-18 |
 | PPO | PPO-Clip / GAE 理论；PyTorch 风格示例为教学内容，非已测试训练包 | 2026-10-18 |
 | SAC | 现代连续动作 SAC；双 Critic 与自动温度调节；伪代码为主 | 2026-10-18 |
+| 数据采集与模仿学习 | 示教数据、BC、DAgger、ACT、生成式动作块策略 | 2026-10-18 |
 | Flow Matching | CFM 理论；OpenPI pi0.py 代码引用固定如下；示例不代表已完成微调实验 | 2026-10-18 |
 | GR00T 与 SONIC | SONIC 论文集成：GR00T N1.5；文档 G1 工作流：N1.7、78 维动作、2.5 Hz 推理 / 50 Hz 动作流。Checkpoint 与观测配置须匹配 | 2026-10-18 |
 
