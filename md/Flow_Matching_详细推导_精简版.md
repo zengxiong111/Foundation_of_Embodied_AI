@@ -1115,6 +1115,8 @@ $$
 
 这表示网络学习：在给定观察和任务要求时，如何将高斯噪声变成合理的动作块。
 
+**部署衔接：** Flow Matching 的生成目标与机器人推理时的动作块切换是不同问题。异步执行、前缀 Inpainting、Training-time RTC 以及延迟评估集中见[数据采集与模仿学习的 RTC 小节](Data_Imitation_Learning_ZH.md)。
+
 <a id="course-section-36"></a>
 
 ### 11.3 重要实现细节：OpenPI 使用相反的时间方向

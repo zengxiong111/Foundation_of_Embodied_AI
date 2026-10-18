@@ -46,6 +46,8 @@ def document_errors(text):
     errors = []
     if any(line.strip() == '$' for line in lines):
         errors.append('standalone single-dollar delimiter: use $$ for display math')
+    if sum(line.strip() == '$$' for line in lines) % 2:
+        errors.append('unpaired $$ display math delimiter')
     if sum(len(m[1]) == 1 for m in headings) != 1:
         errors.append('exactly one H1 is required')
     previous = 0

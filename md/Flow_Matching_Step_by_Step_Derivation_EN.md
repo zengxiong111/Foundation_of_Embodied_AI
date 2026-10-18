@@ -1120,6 +1120,8 @@ $$
 
 The network therefore learns how to convert Gaussian noise into plausible robot action chunks **given the current observation and task**.
 
+**Deployment connection:** Learning the generative velocity field is separate from handling chunk-handoff latency. See [Real-Time Chunking in Data and Imitation Learning](Data_Imitation_Learning_EN.md) for asynchronous execution, prefix inpainting, training-time conditioning, and timing metrics.
+
 <a id="course-section-36"></a>
 
 ### 11.3 Important implementation detail: OpenPI reverses the time direction

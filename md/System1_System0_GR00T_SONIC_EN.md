@@ -390,6 +390,8 @@ The official N1.7 workflow specifies the following example rates: [R4–R5]
 
 Crucially, the **0.8 s prediction horizon is not necessarily an 0.8 s open-loop execution period**. The system can replace an in-progress chunk with new predictions after the next camera update.
 
+**Cross-chapter note:** [Real-Time Chunking (RTC)](Data_Imitation_Learning_EN.md) is a candidate technique for latency-tolerant asynchronous chunk handoff, but it needs integration and validation; this is not a claim that the referenced GR00T/SONIC implementation already runs RTC by default.
+
 ```mermaid
 flowchart LR
     A[Camera + Prompt] --> B[GR00T: 2.5 Hz]

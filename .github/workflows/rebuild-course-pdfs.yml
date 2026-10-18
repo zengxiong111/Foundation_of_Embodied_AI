@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - course/rtc-action-chunking-20261018
     paths:
       - 'md/**'
       - 'materials.json'

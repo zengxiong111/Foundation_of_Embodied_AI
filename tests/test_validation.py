@@ -25,6 +25,10 @@ class CourseValidationTests(unittest.TestCase):
     def test_supported_math_and_literal_code_accepted(self):
         self.assertEqual(check.document_errors(GOOD + '\nInline $x^2$.\n\n$$\nx^2\n$$\n\n```text\n$\n```\n\n~~~text\n$\n~~~\n'), [])
 
+    def test_unpaired_math_delimiter_rejected(self):
+        errors = check.document_errors(GOOD + '\n$$\nx^2\n')
+        self.assertTrue(any('unpaired $$' in e for e in errors))
+
     def test_broken_toc_rejected(self):
         self.assertTrue(any('broken contents anchor' in e for e in check.document_errors(GOOD.replace('](#course-section-01)', '](#course-section-99)'))))
 
