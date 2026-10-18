@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - course/rtc-action-chunking-20261018
+      - docs/git-two-track-2026-10-18
     paths:
       - 'md/**'
       - 'materials.json'
@@ -59,8 +60,8 @@ jobs:
       - name: Unit tests
         run: npm test
 
-      - name: Rebuild all 28 chapter PDFs
-        run: npm run build
+      - name: Rebuild changed Git chapter PDFs
+        run: npm run build -- git
 
       - name: Validate PDFs, mathematical layout and manifest hashes
         run: npm run check
