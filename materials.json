@@ -391,6 +391,31 @@
           "site_pdf": "files/System1_System0_GR00T_SONIC_EN.pdf"
         }
       }
+    },
+    {
+      "id": "robot-agent",
+      "title_en": "Advanced Robot Agents",
+      "title_zh": "先进 Robot Agent",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Research workflow and methodology discussion; no robot deployment validated.",
+      "review_scope_zh": "公开研究工作流与方法综述；未进行真机部署验证。",
+      "versions_en": "RAX, Gemini Robotics ER, SayCan, Code as Policies: conceptual comparison",
+      "versions_zh": "RAX、Gemini Robotics ER、SayCan、Code as Policies：概念比较",
+      "source_refs": [],
+      "documents": {
+        "zh": {
+          "md": "md/Robot_Agent_Workflow_ZH.md",
+          "pdf": "pdf/Robot_Agent_Workflow_ZH.pdf",
+          "site_md": "files/Robot_Agent_Workflow_ZH.md",
+          "site_pdf": "files/Robot_Agent_Workflow_ZH.pdf"
+        },
+        "en": {
+          "md": "md/Robot_Agent_Workflow_EN.md",
+          "pdf": "pdf/Robot_Agent_Workflow_EN.pdf",
+          "site_md": "files/Robot_Agent_Workflow_EN.md",
+          "site_pdf": "files/Robot_Agent_Workflow_EN.pdf"
+        }
+      }
     }
   ]
 }

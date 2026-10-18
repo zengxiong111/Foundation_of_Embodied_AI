@@ -1,6 +1,6 @@
 # Foundation of Embodied AI: Course Map
 
-Thirteen topics are organized as tools → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
+Fourteen topics are organized as tools → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
 
 ## Five learning modules
 
@@ -46,3 +46,8 @@ flowchart LR
 ## Validation boundary
 
 Documentation, formulae, references and proposed experiments **do not establish that every experiment was run and verified in a common environment**. Record versions, camera calibration error, servo rates, safety logic and test outcomes when deploying hardware.
+
+
+## Advanced Robot Agents for System Integration
+
+Final topic: [Robot Agents: planning, execution, verification and recovery](../md/Robot_Agent_Workflow_EN.md). Its scope is task orchestration, not repeating perception, BC or Flow Matching derivations.
