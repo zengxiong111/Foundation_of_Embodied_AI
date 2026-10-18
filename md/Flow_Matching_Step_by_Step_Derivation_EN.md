@@ -1047,6 +1047,9 @@ $$
 
 ### 11.1 The generated object is an action chunk
 
+This chapter treats action chunks as high-dimensional random variables for generative modelling. Demonstration datasets, chunk execution horizons, temporal alignment and replanning belong in [Data and Imitation Learning](Data_Imitation_Learning_EN.md).
+
+
 A robot action model aims to learn
 
 $$
