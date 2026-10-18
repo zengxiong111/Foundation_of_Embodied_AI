@@ -222,10 +222,10 @@ flowchart LR
 
 对同步且完成立体校正的左右图像，简化双目深度为
 
-$
+$$
 Z=\frac{f_xb}{d},\qquad
 \sigma_Z\approx\frac{f_xb}{d^2}\sigma_d,
-$
+$$
 
 其中 $b$ 为真实基线，$d=u_L-u_R$ 为视差。远处小视差使深度不确定性放大，错误匹配和反光区域应标为无效深度，而不是假装深度连续可靠。**FoundationStereo** 从校准双目图像估计稠密视差；**Fast-FoundationStereo**（CVPR 2026）通过蒸馏、架构搜索和剪枝降低在线计算成本。它们都不是单张 RGB 的直接六维位姿求解器。
 
@@ -235,10 +235,10 @@ $
 
 对分割 Mask $M(u,v)$ 和深度 $Z(u,v)$，用内参 $K$ 反投影得到
 
-$
+$$
 \mathcal P_O=\left\{Z(u,v)K^{-1}[u,v,1]^\top:
 M(u,v)=1,\;Z(u,v)>0\right\}.
-$
+$$
 
 应单独报告 Mask 错误、深度无效点比例、背景泄漏、遮挡与机器人自身像素。相机系点云不等于基座系物体位姿，仍需时间匹配的外参与物体几何对应。
 
@@ -282,10 +282,10 @@ FoundationPose（CVPR 2024）支持 model-based（提供 CAD）和 model-free（
 
 已知几何点 $P_i$ 与可靠图像对应点 $u_i$ 时，可用通用位姿重投影目标解释几何一致性：
 
-$
+$$
 (\hat R,\hat t)=\arg\min_{R,t}\sum_i
 \rho\left(\left\|u_i-\pi(K(RP_i+t))\right\|_2^2\right).
-$
+$$
 
 该式用于解释 6D 位姿估计，**不表示 FoundationPose 内部恰好优化了这个目标**。无纹理、强对称或被遮挡的物体朝向可能不唯一，需对称性感知的评测或任务关键点。
 
@@ -346,11 +346,11 @@ flowchart TD
 
 设 $x_t=f(x_{t-1},u_t)+w_t$，$z_t=h(x_t)+v_t$，噪声协方差分别为 $Q_t,R_t$。扩展 Kalman 滤波器使用局部线性化与增益
 
-$
+$$
 K_t=P_t^-H_t^\top(H_tP_t^-H_t^\top+R_t)^{-1},
 \qquad
 \hat x_t=\hat x_t^-+K_t(z_t-h(\hat x_t^-)).
-$
+$$
 
 对于 $SE(3)$ 姿态不要直接把欧氏加法施加到完整旋转矩阵，可用局部李代数扰动 $\hat T_t=\hat T_t^-\operatorname{Exp}(\delta\xi_t^\wedge)$。若 Mask 身份本身错误，滤波器也会稳定地跟错物体，所以 gating、异常检测和重新初始化同样重要。
 

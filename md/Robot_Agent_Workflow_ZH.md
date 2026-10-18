@@ -175,13 +175,13 @@ RAX 发布的示例涵盖不同机械形态及仿真/真机，研究报告探索
 
 用以下概念性目标表达 Agent 的选择（非 RAX 或 ER 2 内部优化公式）：
 
-$
+$$
 \omega_t^\star=\arg\max_{\omega\in\Omega(b_t)}
 \left[
 \mathbb E[R_{\rm goal}\mid b_t,\omega]
 -\lambda_c C(\omega)-\lambda_r {\rm Risk}(b_t,\omega)
 \right].
-$
+$$
 
 $\Omega(b_t)$ 必须先满足技能前置条件和机器人安全许可。执行层可进行动作限制、禁区判定及安全停止；语言模型建议不构成安全认证。
 
