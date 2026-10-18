@@ -30,6 +30,8 @@
 
 视觉与模仿学习资料已更新，涵盖几何、SE(3) 状态估计、BC/DAgger/ACT 与 RTC；两章均不含实验章节。
 
+PPO 资料包含完整推导与 Actor–Critic 学习机制。
+
 ## 使用与反馈
 
 欢迎大家下载、修改和提交 PR！反馈请发送至 [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn)。

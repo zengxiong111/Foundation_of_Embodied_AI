@@ -1,8 +1,9 @@
+
 ---
 title: "PPO: A Complete Derivation and Its Design Motivations"
 subtitle: "Including How Actors and Critics Learn: From Policy Gradients, PPO-Clip, and GAE to Robot Control"
 author: "Reinforcement Learning Research Tutorial"
-date: "October 18, 2026 (Actor–Critic Expanded Edition)"
+date: "October 18, 2026"
 lang: en-US
 ---
 
@@ -70,10 +71,7 @@ lang: en-US
 
 > **Notation.** We mainly consider a discounted infinite-horizon MDP with $\gamma\in[0,1)$, and $J(\theta)$ is the discounted return from the initial-state distribution. We explicitly distinguish the rigorous discounted-state-occupancy formulation from the time-step averages commonly used in PPO implementations. Within each PPO optimization phase, the advantage estimates $\hat A_t$ are held fixed after being computed from an old-policy rollout.
 
-
-> **Expanded edition (2026-10-18).** This edition preserves all 12 parts and 35 numbered sections of the original derivation, and expands Sections 24–28, 30, and 32–34 with Bellman/TD($\lambda$) regression targets, semi-gradient value learning, advantage-weighted actor updates, Gaussian mean/log-standard-deviation learning, gradient separation, shared encoders, asymmetric actor–critic for robotics, and diagnostics. Original tutorial: [online Chinese PDF](https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_CN.pdf); course repository: [Foundation of Embodied AI](https://github.com/zengxiong111/Foundation_of_Embodied_AI). Original tutorial credits: Xiong Zeng and contributors, CC BY 4.0. Code snippets are illustrative and have not been validated as complete training systems.
-
-**New learning thread:** The critic learns to predict long-term return from fixed bootstrapped/GAE targets $\rightarrow$ TD errors and GAE estimate the relative quality of old actions $\rightarrow$ the actor changes action probabilities through advantage-weighted policy gradients $\rightarrow$ PPO-Clip discourages overly large policy changes $\rightarrow$ the updated policy collects new samples. **The critic performs regression; the actor optimizes a clipped surrogate over action distributions. Fixed advantage estimates connect them.**
+**Learning thread:** The critic learns to predict long-term return from fixed bootstrapped/GAE targets $\rightarrow$ TD errors and GAE estimate the relative quality of old actions $\rightarrow$ the actor changes action probabilities through advantage-weighted policy gradients $\rightarrow$ PPO-Clip discourages overly large policy changes $\rightarrow$ the updated policy collects new samples. **The critic performs regression; the actor optimizes a clipped surrogate over action distributions. Fixed advantage estimates connect them.**
 
 <a id="course-section-01"></a>
 
@@ -761,8 +759,6 @@ $$
 
 $V_{\phi_{\mathrm{old}}}$ denotes the critic values saved when targets for the rollout were calculated. Hold these values fixed during the PPO epochs. The construction aligns the actor's advantage estimates with the critic's regression target.
 
-
-
 #### 24.1 Where do critic labels come from? Bellman targets and semi-gradients
 
 The critic does not know the true $V^{\pi_{\mathrm{old}}}(s)$. Instead, samples $(s_t,a_t,r_t,s_{t+1})$ collected under the behavior policy provide approximate regression targets. For a nonterminal transition, the one-step target and temporal-difference error are
@@ -831,8 +827,6 @@ $$\boxed{\mathcal L_{\mathrm{actor}}=-L^{\mathrm{CLIP}}}. \tag{36}$$
 
 If the advantage estimates were produced by a differentiable critic currently inside the computational graph, detach them from the actor objective to avoid unintentionally backpropagating through the advantage targets.
 
-
-
 #### 25.1 How can the actor learn without labeled optimal actions?
 
 Behavior cloning needs expert labels $a_t^*$; PPO does not. Its own sampled actions are weighted by their **relative quality**, $\hat A_t$. Begin with the unclipped surrogate,
@@ -874,8 +868,6 @@ $$
 $$
 
 Direct Monte Carlo return targets are another option. Some PPO implementations use value-function clipping or multiply the squared error by $1/2$; neither is essential to the basic PPO-Clip objective. An inaccurate critic can corrupt the sign or magnitude of advantages, so policy-update stability depends strongly on value estimation quality.
-
-
 
 #### 26.1 How a critic prediction error changes network parameters
 
@@ -923,8 +915,6 @@ $$
 
 to encourage sufficient exploration. Let $L^{\mathrm{entropy}}=\mathbb E_t[H(\pi_\theta(\cdot\mid s_t))]$. Higher entropy is not always preferable, particularly near robot deployment. The entropy coefficient may be zero or annealed during training.
 
-
-
 #### 27.1 How does entropy regularization affect Gaussian standard deviation?
 
 The entropy of an unsquashed one-dimensional Gaussian $\mathcal N(\mu,\sigma^2)$ is
@@ -963,8 +953,6 @@ $$
 - With separate actor and critic parameters, the two networks can have separate updates; with shared parameters, their gradients interact.
 
 A PPO optimization phase typically uses several mini-batch epochs over a fixed rollout, keeping the stored old log probabilities, advantages, and return targets constant during that phase.
-
-
 
 #### 28.1 The gradient graph: which loss trains which network?
 
@@ -1059,8 +1047,6 @@ $$
 
 For $\hat A>0$, this tends to move the mean toward the sampled action; for $\hat A<0$, it tends to move the mean away. PPO clipping limits further *surrogate benefit* from excessive probability changes. If $\sigma$ is learned, there are additional gradient terms associated with variance.
 
-
-
 #### 30.1 Learning log standard deviation as well as the mean
 
 Let the Gaussian standard deviation be trainable and define $\eta_\theta(s)=\log\sigma_\theta(s)$. In one dimension,
@@ -1137,8 +1123,6 @@ When residuals are scaled, transformed nonlinearly, or filtered through a safety
 9. **Optimize actor and critic.** Minimize the joint objective or separate losses for multiple epochs, monitoring KL, clip fraction, and value prediction.
 10. **Collect new on-policy data.** Use the updated policy for the next rollout rather than treating arbitrarily old replay data as ordinary PPO training data.
 
-
-
 #### 32.1 When do the actor and critic parameters actually change?
 
 Interpret the ten steps above as distinct phases:
@@ -1157,7 +1141,6 @@ The following function implements the central PPO actor loss. Both `new_log_prob
 
 ```python
 import torch
-
 
 def ppo_actor_loss(new_log_prob, old_log_prob,
                    advantages, clip_eps=0.2):
@@ -1182,7 +1165,6 @@ A minimal backward GAE calculation is shown next. The `bootstrap_mask[t]` determ
 
 ```python
 import torch
-
 
 def compute_gae(rewards, values, next_values,
                 bootstrap_mask, continue_mask,
@@ -1217,15 +1199,12 @@ entropy = dist.entropy().sum(dim=-1)
 
 These examples implement the essential formulas; a complete training program still needs a rollout buffer, environment interaction, network definitions, optimizers, correct `terminated/truncated` handling, and metric logging.
 
-
-
 #### 33.1 Combining the three losses into one differentiable minibatch update
 
 The following addition illustrates the three losses for an **already prepared, fixed rollout minibatch**. It does not replace the GAE/termination-mask handling above, and it is not a complete training package.
 
 ```python
 import torch
-
 
 def ppo_joint_losses(actor, critic, obs, actions,
                      old_log_prob, advantages, returns,
@@ -1274,8 +1253,6 @@ These are experimental starting points, not universal optima. Large-scale parall
 **The distinction between $\gamma$ and $\lambda$:** The discount factor $\gamma$ defines how the learning objective values distant rewards; $\lambda$ determines how much an advantage estimator incorporates distant sampled TD information. Both appear through $(\gamma\lambda)^l$ in GAE, but their conceptual roles are different.
 
 Useful diagnostics include episode return, task success rate, value loss, explained variance, policy entropy, approximate KL, clip fraction, and gradient norm. If a surrogate improves while actual robot success decreases, investigate distribution shift, critic error, excessive KL, and reward design.
-
-
 
 #### 34.1 Reading diagnostics as actual actor–critic learning problems
 
@@ -1370,8 +1347,8 @@ $$
 2. Schulman, J., et al. (2015). *Trust Region Policy Optimization*. ICML. <https://arxiv.org/abs/1502.05477>
 3. Schulman, J., et al. (2015). *High-Dimensional Continuous Control Using Generalized Advantage Estimation*. ICLR 2016. <https://arxiv.org/abs/1506.02438>
 4. OpenAI Spinning Up. *PPO Documentation*. <https://spinningup.openai.com/en/latest/algorithms/ppo.html>
-5. Zeng, X. and contributors. *PPO: Complete Derivation and Design Motivations* (original course tutorial). <https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_CN.pdf>
 
 ---
 
-*Editorial note: This document expands the preceding PPO derivation with explicit support assumptions for importance sampling, precise discounted occupancy notation, the fact that PPO-Clip does not impose a hard constraint, and the difference between true episode termination and rollout truncation.*
+**Copyright and license:** Xiong Zeng and contributors. CC BY 4.0.  
+**Code note:** Code fragments illustrate algorithmic mechanisms; they have not been validated as end-to-end training scripts.

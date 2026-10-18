@@ -30,6 +30,8 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 
 Revised vision and imitation notes cover geometry, SE(3) state estimation, BC/DAgger/ACT and RTC; neither chapter includes experiments.
 
+PPO materials include full derivations and Actor–Critic learning mechanisms.
+
 ## Usage and feedback
 
 Everyone is welcome to download, modify and submit pull requests! Send feedback to [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn).
