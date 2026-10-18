@@ -77,6 +77,14 @@ lang: en-US
 - [16. Summary and Deployment Checklist](#course-section-53)
 <!-- course-toc:end -->
 
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A["Pixels and depth"] --> B["Camera frame"] --> C["Robot TF"] --> D["Base object pose"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. Types of Camera Calibration and Their Uses

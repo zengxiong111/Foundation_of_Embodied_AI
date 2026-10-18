@@ -98,6 +98,14 @@ updated: 2026-10-15
   - [16.5 官方参考资料](#course-section-74)
 <!-- course-toc:end -->
 
+**章节概念图**
+
+```mermaid
+flowchart LR
+  A["本地改动"] --> B["Stage"] --> C["Commit"] --> D["Review"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. Git 是什么：概念与工作区模型

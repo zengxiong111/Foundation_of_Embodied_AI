@@ -59,6 +59,14 @@
   - [8.2 参考论文与官方资源](#course-section-42)
 <!-- course-toc:end -->
 
+**章节知识地图**
+
+```mermaid
+flowchart LR
+  A["语言与图像"] --> B["GR00T / VLA"] --> C["SONIC / System 0"] --> D["机器人"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. 整体架构：两个系统分别解决什么问题

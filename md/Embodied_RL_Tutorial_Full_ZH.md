@@ -42,6 +42,14 @@
 - [八、最后总结](#course-section-25)
 <!-- course-toc:end -->
 
+**章节知识地图**
+
+```mermaid
+flowchart LR
+  A["任务与观测"] --> B["PPO / SAC"] --> C["策略表达"] --> D["评估指标"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 一、具身强化学习的总体分类

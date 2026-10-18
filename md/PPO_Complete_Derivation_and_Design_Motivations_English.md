@@ -73,6 +73,14 @@ lang: en-US
   - [References and further reading](#course-section-48)
 <!-- course-toc:end -->
 
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A["Fresh rollout"] --> B["GAE"] --> C["Clipped objective"] --> D["Policy update"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## Part I. From Expected Return to Policy Gradients

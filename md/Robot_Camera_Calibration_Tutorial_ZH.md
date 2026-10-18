@@ -77,6 +77,14 @@ lang: zh-CN
 - [十六、总结与检查清单](#course-section-53)
 <!-- course-toc:end -->
 
+**章节概念图**
+
+```mermaid
+flowchart LR
+  A["像素与深度"] --> B["相机坐标系"] --> C["机器人 TF"] --> D["基座物体位姿"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 一、相机标定的分类与用途

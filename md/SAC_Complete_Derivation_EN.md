@@ -75,6 +75,14 @@ toc-depth: 2
 - [References](#course-section-48)
 <!-- course-toc:end -->
 
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A["Interaction"] --> B["Replay buffer"] --> C["Twin Q + entropy"] --> D["Actor update"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. Starting from Standard Reinforcement Learning

@@ -94,6 +94,14 @@ lang: en-US
 - [References and Open-Source Links](#course-section-69)
 <!-- course-toc:end -->
 
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A["State command"] --> B["RL policy"] --> C["Actuator"] --> D["Robot feedback"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## Chapter 1: What Is Motion-Control Reinforcement Learning?

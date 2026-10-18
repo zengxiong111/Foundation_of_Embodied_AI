@@ -88,6 +88,14 @@
 - [Official references and further reading](#course-section-71)
 <!-- course-toc:end -->
 
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A["Robot model"] --> B["Simulator"] --> C["Training"] --> D["Deployment checks"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. What are these platforms, and how do they differ?

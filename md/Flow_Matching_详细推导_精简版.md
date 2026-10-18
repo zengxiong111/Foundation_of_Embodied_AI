@@ -69,6 +69,20 @@ lang: zh-CN
   - [13.2 三个最重要的理解](#course-section-44)
 <!-- course-toc:end -->
 
+<!-- course-visual:start -->
+**本章知识地图**
+
+```mermaid
+flowchart LR
+  A0["观察与目标"]
+  A1["高斯噪声"]
+  A2["条件速度场"]
+  A3["ODE 推理"]
+  A4["机器人动作块"]
+  A0 --> A1 --> A2 --> A3 --> A4
+```
+<!-- course-visual:end -->
+
 <a id="course-section-01"></a>
 
 ## 一、第一步：为什么需要 Flow Matching？

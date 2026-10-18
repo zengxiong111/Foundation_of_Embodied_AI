@@ -59,6 +59,14 @@
   - [8.2 Papers and official resources](#course-section-42)
 <!-- course-toc:end -->
 
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A["Language and vision"] --> B["GR00T / VLA"] --> C["SONIC / System 0"] --> D["Robot"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. Overall architecture: the two distinct problems

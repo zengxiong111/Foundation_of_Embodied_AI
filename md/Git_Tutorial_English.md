@@ -98,6 +98,14 @@ updated: 2026-10-15
   - [16.5 Official references](#course-section-74)
 <!-- course-toc:end -->
 
+**Chapter concept map**
+
+```mermaid
+flowchart LR
+  A["Edit"] --> B["Stage"] --> C["Commit"] --> D["Review"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. What Git Is: Concepts and the Four Areas

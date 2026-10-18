@@ -99,6 +99,20 @@ lang: zh-CN
 - [附录 B：符号、阅读建议与参考资料](#course-section-74)
 <!-- course-toc:end -->
 
+<!-- course-visual:start -->
+**本章知识地图**
+
+```mermaid
+flowchart LR
+  A0["机器人动作"]
+  A1["执行器"]
+  A2["刚体动力学"]
+  A3["接触与摩擦"]
+  A4["状态反馈"]
+  A0 --> A1 --> A2 --> A3 --> A4
+```
+<!-- course-visual:end -->
+
 <a id="course-section-01"></a>
 
 ## 阅读指南：先理解物理链，再学习公式

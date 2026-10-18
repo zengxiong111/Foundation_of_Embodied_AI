@@ -75,6 +75,14 @@ toc-depth: 2
 - [参考资料](#course-section-48)
 <!-- course-toc:end -->
 
+**章节知识地图**
+
+```mermaid
+flowchart LR
+  A["环境交互"] --> B["Replay Buffer"] --> C["双 Q 和熵"] --> D["Actor 更新"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 1. 从标准强化学习开始

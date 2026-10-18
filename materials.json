@@ -131,6 +131,31 @@
       }
     },
     {
+      "id": "visual-state",
+      "title_en": "Visual Perception and State Estimation",
+      "title_zh": "视觉感知与状态估计",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Conceptual methods and experiment design; no robot or accuracy validation.",
+      "review_scope_zh": "概念方法与实验设计；没有真机或精度验证。",
+      "versions_en": "RGB-D, 6D pose, temporal tracking and recovery concepts",
+      "versions_zh": "RGB-D、六维位姿、时序跟踪与恢复方法",
+      "source_refs": [],
+      "documents": {
+        "zh": {
+          "md": "md/Visual_State_Estimation_ZH.md",
+          "pdf": "pdf/Visual_State_Estimation_ZH.pdf",
+          "site_md": "files/Visual_State_Estimation_ZH.md",
+          "site_pdf": "files/Visual_State_Estimation_ZH.pdf"
+        },
+        "en": {
+          "md": "md/Visual_State_Estimation_EN.md",
+          "pdf": "pdf/Visual_State_Estimation_EN.pdf",
+          "site_md": "files/Visual_State_Estimation_EN.md",
+          "site_pdf": "files/Visual_State_Estimation_EN.pdf"
+        }
+      }
+    },
+    {
       "id": "dynamics",
       "title_en": "Robot Dynamics",
       "title_zh": "机器人动力学",
@@ -284,6 +309,31 @@
           "pdf": "pdf/SAC_Complete_Derivation_EN-1.pdf",
           "site_md": "files/SAC_Complete_Derivation_EN.md",
           "site_pdf": "files/SAC_Complete_Derivation_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "data-imitation",
+      "title_en": "Data Collection and Imitation Learning",
+      "title_zh": "数据采集与模仿学习",
+      "reviewed_at": "2026-10-18",
+      "review_scope_en": "Methods survey and proposed experiments; no validated training results.",
+      "review_scope_zh": "方法与实验设计，未实际复现训练。",
+      "versions_en": "Demonstrations, BC, DAgger, ACT and generative chunk policies",
+      "versions_zh": "示教数据、BC、DAgger、ACT、生成式动作块策略",
+      "source_refs": [],
+      "documents": {
+        "zh": {
+          "md": "md/Data_Imitation_Learning_ZH.md",
+          "pdf": "pdf/Data_Imitation_Learning_ZH.pdf",
+          "site_md": "files/Data_Imitation_Learning_ZH.md",
+          "site_pdf": "files/Data_Imitation_Learning_ZH.pdf"
+        },
+        "en": {
+          "md": "md/Data_Imitation_Learning_EN.md",
+          "pdf": "pdf/Data_Imitation_Learning_EN.pdf",
+          "site_md": "files/Data_Imitation_Learning_EN.md",
+          "site_pdf": "files/Data_Imitation_Learning_EN.pdf"
         }
       }
     },

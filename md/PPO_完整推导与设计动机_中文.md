@@ -74,6 +74,14 @@ toc-title: "目录"
   - [参考文献与延伸阅读](#course-section-48)
 <!-- course-toc:end -->
 
+**章节知识地图**
+
+```mermaid
+flowchart LR
+  A["新轨迹采样"] --> B["GAE 估计"] --> C["Clipped 目标"] --> D["策略更新"]
+```
+
+
 <a id="course-section-01"></a>
 
 ## 第一部分　从预期回报到策略梯度
