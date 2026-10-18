@@ -227,10 +227,9 @@ Check timestamps, command/feedback confusion, camera extrinsics, action scale, l
 
 In real manipulation the full world state $s_t$ (object motion, friction, contact modes) is usually not observed. We record images $o_t^{\mathrm{cam}}$, joint feedback $q_t$, actual actuator commands $a_t$, and a goal $g$. A demonstration may be represented as
 
-$
+$$
 \tau_i=\{g_i,(o_t^{\mathrm{cam}},q_t,a_t,r_t^{\mathrm{event}})_{t=0}^{T_i-1}\}.
-$
-
+$$
 The event label $r_t^{\mathrm{event}}$ may encode contact, slip, recovery, or completion; it need not be an RL reward. Ground-truth simulated object poses, future expert commands, or post-hoc outcome labels must not leak into the deployed policy observations. Keep issued commands distinct from delayed joint feedback.
 
 <a id="course-section-21"></a>
@@ -239,11 +238,10 @@ The event label $r_t^{\mathrm{event}}$ may encode contact, slip, recovery, or co
 
 Construct conditioning information $c_t=(o_{t-L+1:t},q_t,g)$ from an observation window, current proprioception and goal. The policy predicts an $H$-step sequence:
 
-$
+$$
 A_t=(a_t,a_{t+1},\ldots,a_{t+H-1}),\qquad
 p_\theta(A_t\mid c_t).
-$
-
+$$
 Prediction horizon $H$ is **not** the number of steps that must run open-loop. Execute only $h\le H$ steps, observe, then replan. Document control interval, inference call interval, queueing and interpolation. For example, 30-Hz vision and 100-Hz servo feedback do not imply that the large VLA must run at 100 Hz; it does require a safe interpolation, hold and timeout policy.
 
 <a id="course-section-22"></a>
@@ -254,11 +252,10 @@ At action time $t_k^a$, training inputs must already have been available. Accoun
 
 Estimate action normalization statistics only on the training set:
 
-$
+$$
 \tilde a=(a-\mu_D)/(\sigma_D+\varepsilon),\qquad
 a_{\rm deployed}=\tilde a(\sigma_D+\varepsilon)+\mu_D.
-$
-
+$$
 Different joints, gripper apertures, rotations and force commands require consistent units and independent safety limits. Never use test data to fit normalization parameters.
 
 <a id="course-section-23"></a>
@@ -271,16 +268,14 @@ Different joints, gripper apertures, rotations and force commands require consis
 
 Given expert samples $(c,a)\sim d_E$, a deterministic baseline minimizes
 
-$
+$$
 \mathcal L_{\rm BC}(\theta)=\mathbb E_{(c,a)\sim d_E}\|\pi_\theta(c)-a\|_2^2.
-$
-
+$$
 Under squared loss it converges toward the conditional mean $\mathbb E[a\mid c]$. This works for sufficiently unimodal behavior. If going left and going right around an obstacle are equally valid, the mean could collide with the obstacle. A probabilistic policy instead minimizes the negative log-likelihood
 
-$
+$$
 \mathcal L_{\rm NLL}(\theta)=-\mathbb E_{(c,a)\sim d_E}\log p_\theta(a\mid c).
-$
-
+$$
 For general Gaussian $p_\theta(a\mid c)=\mathcal N(\mu_\theta(c),\Sigma_\theta(c))$, the NLL includes $\frac12(a-\mu_\theta)^\top\Sigma_\theta^{-1}(a-\mu_\theta)$ and $\frac12\log|\Sigma_\theta|$; it reduces to a weighted MSE only when the covariance is fixed.
 
 For a Gaussian distribution with fixed isotropic variance, NLL is MSE up to scaling and constants. Mixtures or generative action distributions can represent multiple modes. **High dimensionality alone is not proof that ordinary BC is inadequate.**
@@ -291,12 +286,11 @@ For a Gaussian distribution with fixed isotropic variance, NLL is MSE up to scal
 
 Offline BC learns on the expert occupancy $d_{\pi_E}$, while the deployed policy visits $d_{\pi_\theta}$:
 
-$
+$$
 \min_\theta\mathbb E_{s\sim d_{\pi_E}}\ell(\pi_\theta(s),\pi_E(s))
 \quad\not\Rightarrow\quad
 \min_\theta\mathbb E_{s\sim d_{\pi_\theta}}\ell(\pi_\theta(s),\pi_E(s)).
-$
-
+$$
 A small contact error may move the object to a state absent from expert training data. Collect intervention and recovery data; evaluate under deliberate safe perturbations, not solely on shuffled held-out action labels.
 
 <a id="course-section-26"></a>
@@ -305,12 +299,11 @@ A small contact error may move the object to a state absent from expert training
 
 For variable-length episodes use a validity mask $m_{t,k}$ and optional horizon weight $w_k$:
 
-$
+$$
 \mathcal L_{\rm chunk}=
 \frac{\sum_{t,k}m_{t,k}w_k\|\hat a_{t+k\mid t}-a_{t+k}\|_1}
 {\sum_{t,k}m_{t,k}w_k}.
-$
-
+$$
 A smoothness penalty $\lambda_s\sum_k\|\hat a_{k+1}-\hat a_k\|^2$ may suppress unwanted oscillation, yet can also erase necessary changes at contact onset or release. Measure task success and contact-force peaks before choosing it based on visual smoothness.
 
 <a id="course-section-27"></a>
@@ -323,11 +316,10 @@ A smoothness penalty $\lambda_s\sum_k\|\hat a_{k+1}-\hat a_k\|^2$ may suppress u
 
 DAgger gathers the states the current learner actually visits and requests safe expert labels. At iteration $i$, a mixture $\pi_i=\beta_i\pi_E+(1-\beta_i)\pi_{\theta_i}$ visits $s\sim d_{\pi_i}$; the expert supplies $\pi_E(s)$:
 
-$
+$$
 D_{i+1}=D_i\cup\{(s,\pi_E(s)):s\sim d_{\pi_i}\},\qquad
 \theta_{i+1}=\arg\min_\theta\sum_{(s,a)\in D_{i+1}}\ell(\pi_\theta(s),a).
-$
-
+$$
 The expert mixing probability $\beta_i$ is often decreased gradually. Hardware requires human intervention authority, velocity/force limits and emergency stops. Merely retraining from static offline trajectories is not DAgger.
 
 <a id="course-section-29"></a>
@@ -350,12 +342,11 @@ Compare uniform time sampling against event-biased sampling. A weighted loss is 
 
 Action Chunking with Transformers (ACT) predicts a sequence of commands with a Transformer. Its original formulation uses a conditional variational autoencoder (CVAE) to represent variation in demonstrations. An encoder approximates $q_\phi(z\mid A,c)$, and a decoder models $p_\theta(A\mid z,c)$:
 
-$
+$$
 \mathcal L_{\rm ACT}=
 \mathbb E_{z\sim q_\phi}[-\log p_\theta(A\mid z,c)]
 +\beta D_{\rm KL}(q_\phi(z\mid A,c)\|p(z)).
-$
-
+$$
 The KL term regularizes the posterior against the latent prior. At inference there is no future ground-truth action chunk $A$; use the declared prior or a deterministic representative. Large $\beta$ can cause posterior collapse; tiny $\beta$ can create a mismatch between training posterior and inference prior.
 
 <a id="course-section-32"></a>
@@ -364,17 +355,15 @@ The KL term regularizes the posterior against the latent prior. At inference the
 
 Let $A_0$ be a demonstrated action chunk, $\epsilon\sim\mathcal N(0,I)$, and $k$ the diffusion step. Construct
 
-$
+$$
 A_k=\sqrt{\bar\alpha_k}A_0+\sqrt{1-\bar\alpha_k}\epsilon
-$
-
+$$
 and fit the conditional noise prediction objective
 
-$
+$$
 \mathcal L_{\rm diff}=
 \mathbb E_{A_0,c,k,\epsilon}\|\epsilon-\epsilon_\theta(A_k,k,c)\|_2^2.
-$
-
+$$
 At deployment, iterative denoising produces an action chunk. Execute a subset and replan from the next observation. The denoising step count, visual encoder and network architecture all affect latency; "generative" does not imply real-time.
 
 <a id="course-section-33"></a>
@@ -383,12 +372,11 @@ At deployment, iterative denoising produces an action chunk. Execute a subset an
 
 Use data endpoint $A_1\sim p_{\rm data}(\cdot\mid c)$ and noise $A_0\sim\mathcal N(0,I)$. For a straight interpolation $A_\tau=(1-\tau)A_0+\tau A_1$, one possible training loss is
 
-$
+$$
 \mathcal L_{\rm FM}=
 \mathbb E_{c,A_0,A_1,\tau}
 \|v_\theta(A_\tau,\tau,c)-(A_1-A_0)\|_2^2.
-$
-
+$$
 Sample by solving $dA_\tau/d\tau=v_\theta(A_\tau,\tau,c)$. This vector field is a derivative in **generative time**, not the robot's physical $\dot q$. Path choices and time orientations vary by implementation. The continuity equation, conditional-expectation argument and OpenPI time convention are derived exclusively in the [Flow Matching tutorial](Flow_Matching_Step_by_Step_Derivation_EN.md); this chapter focuses on the imitation-learning interface.
 
 <a id="course-section-34"></a>
@@ -405,11 +393,10 @@ Use the same demonstrations, observation encoder, action representation, predict
 
 Let $H$ be the prediction horizon, $s\le H$ the execution horizon, $\Delta t$ the servo timestep, and $\delta$ the end-to-end latency from observation to available chunk. Measure inference delay in servo steps:
 
-$
+$$
 d\approx\left\lceil\frac{\delta}{\Delta t}\right\rceil,\qquad
 A_t=(a_t,\ldots,a_{t+H-1}).
-$
-
+$$
 The ceiling is a **conservative engineering approximation**; the original RTC derivation uses $\lfloor\delta/\Delta t\rfloor$ and estimates future delay from a rolling history. Seamless asynchronous handoff requires sufficient remaining actions to cover inference, in particular $d\le H-s$, with additional margin for jitter. At 50 Hz ($\Delta t=20$ ms), a measured 140 ms latency is roughly seven steps. Choosing $H=50$ and $s=20$ can leave enough old-chunk actions to cover inference, but does not replace timeout, packet-loss handling or emergency-stop logic.
 
 ~~~mermaid
@@ -428,35 +415,31 @@ flowchart LR
 
 Let $Y$ be the old planned actions **aligned with the new chunk by absolute controller time**, and $A^\tau$ the new generated chunk at generative time $\tau\in[0,1]$. The first $d$ new-chunk actions correspond to time already committed to the old plan, so they must not change. Beyond that, some actions overlap the old plan but may be updated using new observations. The original RTC soft mask uses
 
-$
+$$
 W_i=
 \begin{cases}
 1,&0\le i<d,\\
 c_i(e^{c_i}-1)/(e-1),&d\le i<H-s,\\
 0,&H-s\le i<H,
 \end{cases}
-$
-
-$
+$$
+$$
 c_i=\frac{H-s-i}{H-s-d+1}.
-$
-
+$$
 The committed prefix receives weight one; the middle overlap decays; the last $s$ actions are newly planned. **These are guidance weights inside generation, not post-hoc averaging of two action sequences.**
 
 For a noise-to-data flow policy, a local fully-denoised endpoint prediction is
 
-$
+$$
 \widehat A^1=A^\tau+(1-\tau)v_\theta(A^\tau,\tau,c).
-$
-
+$$
 The following equivalent negative-gradient form captures the intuition of the paper's pseudoinverse guidance (see the original Eq. 2–4 for its exact scaling factor):
 
-$
+$$
 \widetilde v_\theta=
 v_\theta-\lambda_\tau\nabla_{A^\tau}
 \left[\frac12\|W^{1/2}\odot(\widehat A^1-Y)\|_2^2\right].
-$
-
+$$
 Integrate $A^{\tau+\Delta\tau}=A^\tau+\Delta\tau\,\widetilde v_\theta$. This keeps the generated trajectory compatible with committed actions while still allowing future corrections. The correction involves a vector–Jacobian product during generative integration: **inference-time RTC does not require retraining, but adds inference computation.** The original method assumes a guidable continuous diffusion/flow sampler; an arbitrary deterministic ACT output cannot simply be passed through the same inpainting solver.
 
 <a id="course-section-37"></a>
@@ -465,32 +448,29 @@ Integrate $A^{\tau+\Delta\tau}=A^\tau+\Delta\tau\,\widetilde v_\theta$. This kee
 
 [Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964) incorporates the committed prefix into the imitation-learning objective. It learns
 
-$
+$$
 p_\theta(A_{d:H}\mid c,A_{0:d}),
-$
-
+$$
 where $A_{0:d}$ comprises indices $0,\ldots,d-1$ and the postfix $A_{d:H}$ comprises indices $d,\ldots,H-1$ (half-open interval notation). Given an expert chunk $A$, sample deployment-like delay $0\le d<H$, flow time $\tau$, and Gaussian noise $\epsilon$. Use per-action flow times and inputs
 
-$
+$$
 \bar\tau_i=
 \begin{cases}
 1,&i<d,\\ \tau,&i\ge d,
 \end{cases}
 \qquad
 \widetilde A_i=\bar\tau_i A_i+(1-\bar\tau_i)\epsilon_i.
-$
-
+$$
 The first $d$ tokens are **clean ground-truth prefix actions**, while the remaining tokens learn to denoise. A compatible action transformer must support token-wise flow-time conditioning. Mask the loss so that only the postfix is supervised:
 
-$
+$$
 \mathcal L_{\mathrm{RTC-train}}=
 \mathbb E_{A,c,d,\tau,\epsilon}\left[
 \frac{1}{H-d}\sum_{i=d}^{H-1}
 \|v_\theta(\widetilde A,\bar{\boldsymbol\tau},c)_i
 -(A_i-\epsilon_i)\|_2^2
 \right].
-$
-
+$$
 At deployment, supply the previously committed actions as a hard prefix and generate **only the editable suffix**. This avoids inference-time gradient guidance, but requires training/fine-tuning for a distribution of delays and does not support the original method's flexible soft overlap in exactly the same way. Training prefixes come from expert demonstrations; deployed prefixes come from previous model predictions, so rollout evaluation must cover this distribution shift.
 
 This method belongs naturally in imitation learning because it changes **sample construction, token conditioning, and loss masking**. The full flow-matching mathematical derivation remains in [Flow Matching](Flow_Matching_Step_by_Step_Derivation_EN.md). Sample $d$ from measured latency statistics rather than assuming an arbitrary universal delay range; the cited $\pi_{0.6}$ experiments evaluate randomly sampled prefix lengths at both training and inference time.
@@ -522,13 +502,12 @@ This method belongs naturally in imitation learning because it changes **sample 
 
 A realistic pipeline is hand/tool pose recovery → scale and frame calibration → embodiment-specific retargeting → contact event detection → short physics replay and trajectory repair → policy training. Humans and robot hands differ in kinematics, reachability and contact friction. One task-dependent objective is
 
-$
+$$
 \mathcal L_{\rm retarget}
 =w_p\|p_{\rm robot}-p_{\rm target}\|^2+
 w_R d_{SO(3)}(R_{\rm robot},R_{\rm target})^2+
 w_c\mathcal L_{\rm contact}+w_j\mathcal L_{\rm limits}.
-$
-
+$$
 Define $\mathcal L_{\rm contact}$ for the task, e.g. contact point error, surface normals, grasp maintenance or object slip. Mere proximity does not certify physical contact.
 
 <a id="course-section-41"></a>

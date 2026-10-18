@@ -227,10 +227,9 @@ flowchart LR
 
 在机器人控制中，真实世界状态 $s_t$（物体速度、摩擦系数、接触模式等）一般无法被完整观测。机器人可以记录图像 $o_t^{\mathrm{cam}}$、关节反馈 $q_t$、实际发送的控制命令 $a_t$ 和任务目标 $g$。将一条示教定义为
 
-$
+$$
 \tau_i=\{g_i,(o_t^{\mathrm{cam}},q_t,a_t,r_t^{\mathrm{event}})_{t=0}^{T_i-1}\}.
-$
-
+$$
 事件标注 $r_t^{\mathrm{event}}$ 可以表示接触、滑落、恢复与任务完成，**不是必须使用的强化学习奖励**。不要把仿真器的真实物体位姿、示教者未来的动作或后处理的成功标签偷放到部署策略输入。若监督信号来自动作命令而观测来自延迟的反馈，应明确这一时序关系。
 
 <a id="course-section-21"></a>
@@ -239,11 +238,10 @@ $
 
 策略从最近 $L$ 帧观测、当前本体状态和目标构造条件 $c_t=(o_{t-L+1:t},q_t,g)$，预测长度为 $H$ 的动作块
 
-$
+$$
 A_t=(a_t,a_{t+1},\ldots,a_{t+H-1}),\qquad
 p_\theta(A_t\mid c_t).
-$
-
+$$
 $H$ 是**预测长度**，不是必须开环执行的步数。实际执行 $h\le H$ 步后重新观测，构成滚动时域控制。策略查询周期、机器人低层控制周期、动作块执行长度必须分别记录。例如视觉为 30 Hz、低层伺服为 100 Hz 时，策略可以低于伺服频率运行，但中间的插值和超时机制不可省略。
 
 <a id="course-section-22"></a>
@@ -254,11 +252,10 @@ $H$ 是**预测长度**，不是必须开环执行的步数。实际执行 $h\le
 
 对训练集中的动作分量计算 $\mu_D,\sigma_D$ 后归一化：
 
-$
+$$
 \tilde a=(a-\mu_D)/(\sigma_D+\varepsilon),\qquad
 a_{\rm deployed}=\tilde a(\sigma_D+\varepsilon)+\mu_D .
-$
-
+$$
 不同关节角、夹爪开合或末端旋转需要正确的单位与限幅。检查归一化统计是否意外使用测试集数据。
 
 <a id="course-section-23"></a>
@@ -271,18 +268,16 @@ $
 
 给定示教数据分布 $d_E(c,a)$，最简单的确定性 BC 优化
 
-$
+$$
 \mathcal L_{\rm BC}(\theta)=\mathbb E_{(c,a)\sim d_E}\|\pi_\theta(c)-a\|_2^2.
-$
-
+$$
 它在均方损失下趋向条件均值 $\mathbb E[a\mid c]$。当专家行为近似单峰时，它是低成本、值得保留的强基线；当同一条件下“从左绕开”和“从右绕开”都是合理动作时，平均行为可能撞上障碍物。
 
 用概率模型更一般地写为最大似然：
 
-$
+$$
 \mathcal L_{\rm NLL}(\theta)=-\mathbb E_{(c,a)\sim d_E}\log p_\theta(a\mid c).
-$
-
+$$
 对于一般高斯 $p_\theta(a\mid c)=\mathcal N(\mu_\theta(c),\Sigma_\theta(c))$，NLL 包含 $\frac12(a-\mu_\theta)^\top\Sigma_\theta^{-1}(a-\mu_\theta)$ 和 $\frac12\log|\Sigma_\theta|$；因此只有协方差固定时才退化为加权 MSE。
 
 若 $p_\theta$ 为方差固定的各向同性高斯分布，NLL 与带常数系数的 MSE 等价。多峰分布需要混合密度模型或生成式动作策略，**不能只因为动作维度高就认定 BC 必然失败**。
@@ -293,12 +288,11 @@ $
 
 离线 BC 在专家访问的状态分布 $d_{\pi_E}$ 上训练，但部署后的数据来自 $d_{\pi_\theta}$，两者可能不同：
 
-$
+$$
 \min_\theta\,\mathbb E_{s\sim d_{\pi_E}}\ell(\pi_\theta(s),\pi_E(s))
 \quad\not\Rightarrow\quad
 \min_\theta\,\mathbb E_{s\sim d_{\pi_\theta}}\ell(\pi_\theta(s),\pi_E(s)).
-$
-
+$$
 一个小的接触误差可能触发物体滑动，使后续观察脱离训练分布。专家示教集中在成功轨迹时，模型可能根本没有见过“物体掉落后重新抓取”的状态。这解释了为什么测试需要扰动恢复回合，而不仅是随机抽样的动作回归误差。
 
 <a id="course-section-26"></a>
@@ -307,12 +301,11 @@ $
 
 在带掩码的变长轨迹中，动作块回归可以写为
 
-$
+$$
 \mathcal L_{\rm chunk}=
 \frac{\sum_{t,k}m_{t,k}w_k\|\hat a_{t+k\mid t}-a_{t+k}\|_1}
 {\sum_{t,k}m_{t,k}w_k},
-$
-
+$$
 其中 $m_{t,k}\in\{0,1\}$ 排除越界步，$w_k$ 可以减小远期预测权重。可选的动作平滑正则为 $\lambda_s\sum_k\|\hat a_{k+1}-\hat a_k\|^2$，但精密插装、接触切换时动作变化可能是必要的，**过度平滑会抹掉真实接触事件**。比较正则前后成功率和力/速度峰值，而不是只看曲线是否光滑。
 
 <a id="course-section-27"></a>
@@ -325,11 +318,10 @@ $
 
 DAgger 的要点不是简单再训练，而是让当前策略暴露它自己会遇到的状态，专家再标注这些状态。第 $i$ 轮执行混合策略 $\pi_i=\beta_i\pi_E+(1-\beta_i)\pi_{\theta_i}$，采集 $s\sim d_{\pi_i}$，专家提供动作 $\pi_E(s)$，然后更新
 
-$
+$$
 D_{i+1}=D_i\cup\{(s,\pi_E(s)):s\sim d_{\pi_i}\},\qquad
 \theta_{i+1}=\arg\min_\theta\sum_{(s,a)\in D_{i+1}}\ell(\pi_\theta(s),a).
-$
-
+$$
 $\beta_i$ 通常逐步降低。真实机器人上必须给专家接管、安全停止和强制限幅预留控制权；不能直接让未经审查的探索命令在硬件上自由执行。
 
 <a id="course-section-29"></a>
@@ -352,12 +344,11 @@ $\beta_i$ 通常逐步降低。真实机器人上必须给专家接管、安全�
 
 Action Chunking with Transformers（ACT）通过 Transformer 预测整段关节命令，原始方案还使用条件变分自编码器处理示教的风格差异。训练时编码器近似 $q_\phi(z\mid A,c)$，解码器给出 $p_\theta(A\mid z,c)$，常见的损失为
 
-$
+$$
 \mathcal L_{\rm ACT}=
 \mathbb E_{z\sim q_\phi}\big[-\log p_\theta(A\mid z,c)\big]
 +\beta\,D_{\rm KL}(q_\phi(z\mid A,c)\|p(z)).
-$
-
+$$
 第二项把示教编码分布约束到先验 $p(z)$；推理阶段没有真实未来动作块 $A$ 可用，应从约定先验采样或使用其确定性代表。$\beta$ 过大可能造成后验塌缩，过小则易使训练与推理潜变量分布不一致。
 
 <a id="course-section-32"></a>
@@ -366,18 +357,16 @@ $
 
 令 $A_0$ 为真实动作块、$\epsilon\sim\mathcal N(0,I)$、扩散时间 $k$，构造
 
-$
+$$
 A_k=\sqrt{\bar\alpha_k}A_0+\sqrt{1-\bar\alpha_k}\epsilon.
-$
-
+$$
 一个常见的条件噪声预测目标为
 
-$
+$$
 \mathcal L_{\rm diff}=
 \mathbb E_{A_0,c,k,\epsilon}
 \|\epsilon-\epsilon_\theta(A_k,k,c)\|_2^2.
-$
-
+$$
 推理时从高斯噪声迭代去噪得到动作块，并只执行其中一部分，再基于新观测重规划。计算量由去噪步数、动作维度和视觉编码器共同决定；“生成式”本身不保证实时。
 
 <a id="course-section-33"></a>
@@ -386,12 +375,11 @@ $
 
 为便于解释，设数据端点 $A_1\sim p_{\rm data}(\cdot\mid c)$、噪声 $A_0\sim\mathcal N(0,I)$，选择直线路径 $A_\tau=(1-\tau)A_0+\tau A_1$。一个条件速度回归目标为
 
-$
+$$
 \mathcal L_{\rm FM}=
 \mathbb E_{c,A_0,A_1,\tau}
 \|v_\theta(A_\tau,\tau,c)-(A_1-A_0)\|_2^2.
-$
-
+$$
 采样时求解生成空间 ODE：$dA_\tau/d\tau=v_\theta(A_\tau,\tau,c)$。其中 $v_\theta$ 是**动作样本在生成时间 $\tau$ 上的变化方向**，不是机械臂关节速度 $\dot q$。不同论文的时间方向和路径不同；严格的连续性方程、条件期望推导及 OpenPI 的时间约定统一放在 [Flow Matching 专题](Flow_Matching_详细推导_精简版.md)，本章只说明与模仿学习的接口。
 
 <a id="course-section-34"></a>
@@ -408,11 +396,10 @@ $
 
 设动作块长度为 $H$，每次实际执行 $s\le H$ 步，低层控制周期为 $\Delta t$，从观测采集到下一动作块可用的总推理延迟为 $\delta$。用控制步数表示延迟：
 
-$
+$$
 d\approx\left\lceil\frac{\delta}{\Delta t}\right\rceil,\qquad
 A_t=(a_t,\ldots,a_{t+H-1}).
-$
-
+$$
 这里的向上取整是**工程调度中的保守近似**；原始 RTC 论文为便于分析使用 $\lfloor\delta/\Delta t\rfloor$，并通过近期观测延迟估计下一次 $d$。对无停顿的异步切换，要求预测长度留出覆盖推理延迟的动作，即 $d\le H-s$；还应留有延迟抖动余量。例如 50 Hz 控制对应 $\Delta t=20$ ms，实测延迟 140 ms 对应约 $d=7$ 步，若 $H=50$、$s=20$，则可提前启动下一块推理，而旧块继续提供控制命令。这个条件不替代丢包、超时与急停机制。
 
 ~~~mermaid
@@ -431,35 +418,31 @@ flowchart LR
 
 令 $\mathbf Y$ 表示**上一动作块中与新动作块的绝对时间索引对齐**的动作计划，$A^\tau$ 为新动作块生成过程在生成时间 $\tau\in[0,1]$ 的变量。由于前 $d$ 步已由上一块承诺执行，新块的前缀不能改变；其后仍与旧块重叠的动作可以软约束，以允许新观测修正计划。论文中的 Soft Mask 可以写为
 
-$
+$$
 W_i=
 \begin{cases}
 1,& 0\le i<d,\\
 c_i(e^{c_i}-1)/(e-1),&d\le i<H-s,\\
 0,&H-s\le i<H,
 \end{cases}
-$
-
-$
+$$
+$$
 c_i=\frac{H-s-i}{H-s-d+1}.
-$
-
+$$
 $W_i=1$ 的区间是已经决定执行的动作前缀；中间区间权重逐渐下降；最后 $s$ 步没有旧计划约束。这是**生成时的约束权重**，不能理解为对两个完整轨迹做后处理加权平均。
 
 对于噪声到数据方向的 Flow Matching，一个局部的终点预测是
 
-$
+$$
 \widehat A^1=A^\tau+(1-\tau)v_\theta(A^\tau,\tau,c).
-$
-
+$$
 可以用以下等价的“加权误差负梯度”形式理解论文的 Pseudoinverse Guidance（精确的缩放系数见原论文 Eq. 2–4）：
 
-$
+$$
 \widetilde v_\theta=
 v_\theta-\lambda_\tau\nabla_{A^\tau}
 \left[\frac12\|W^{1/2}\odot(\widehat A^1-Y)\|_2^2\right].
-$
-
+$$
 更新 $A^{\tau+\Delta\tau}=A^\tau+\Delta\tau\,\widetilde v_\theta$，使生成动作块既兼容已经执行或承诺的前缀，又可更新未承诺的未来部分。梯度项需要在生成步骤计算向量–Jacobian 乘积，因此**Inference-time RTC 不必重新训练模型，但会增加推理计算**。该机制面向可做连续生成/引导的 Flow Matching 或 Diffusion Policy；对普通确定性 ACT 输出，不能直接假定同一 Inpainting 求解器可用。
 
 <a id="course-section-37"></a>
@@ -468,30 +451,27 @@ $
 
 [Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964) 进一步把“固定动作前缀”纳入监督训练。它直接学习：
 
-$
+$$
 p_\theta(A_{d:H}\mid c,A_{0:d}),
-$
-
+$$
 其中 $A_{0:d}$ 表示索引 $0,\ldots,d-1$ 的已承诺动作，$A_{d:H}$ 表示尚需生成的后缀（区间均采用左闭右开约定）。对一条完整专家动作块 $A$，随机采样部署延迟步数 $0\le d<H$、生成时间 $\tau$ 与噪声 $\epsilon$，构造逐动作的时间与输入：
 
-$
+$$
 \bar\tau_i=
 \begin{cases}1,&i<d,\\ \tau,&i\ge d,\end{cases}
 \qquad
 \widetilde A_i=\bar\tau_i A_i+(1-\bar\tau_i)\epsilon_i.
-$
-
+$$
 因此前 $d$ 个动作是**未加噪的真值前缀**，后续动作才学习去噪；网络需要支持每个 action token 不同的生成时间条件。只对后缀计算条件 Flow Matching 损失：
 
-$
+$$
 \mathcal L_{\mathrm{RTC-train}}=
 \mathbb E_{A,c,d,\tau,\epsilon}\left[
 \frac{1}{H-d}\sum_{i=d}^{H-1}
 \|v_\theta(\widetilde A,\bar{\boldsymbol\tau},c)_i
 -(A_i-\epsilon_i)\|_2^2
 \right].
-$
-
+$$
 部署时把上一块中已经确定的动作作为前缀传给生成器，固定其值，**仅生成未来后缀**。这样不需要 Inference-time RTC 每步额外的梯度引导，但需要针对延迟分布重新训练或微调，并可能丧失前述软重叠约束的灵活性。训练用的前缀来自专家示教，部署前缀可能来自模型自身计划；仍需用受控 rollout 测试这种分布偏移。
 
 这一方法特别适合本章，因为它直接改变**模仿学习的训练样本构造、token 条件与损失掩码**；严格的速度场与 ODE 数学推导依旧留在 [Flow Matching 专章](Flow_Matching_详细推导_精简版.md)。训练时应从实测延迟分布采样 $d$，而不是无依据地指定统一延迟；例如论文在 $\pi_{0.6}$ 实验中训练了随机延迟前缀，并比较了模型延迟与任务性能。
@@ -523,13 +503,12 @@ $
 
 可采用“视频中的手/工具位姿估计 → 相机与尺度对齐 → 目标机器人运动学重定向 → 接触时间段识别 → 物理回放与不可达轨迹修复 → 学习”的链条。人类手与灵巧手的自由度、连杆长度及摩擦条件不同，简单的关节角映射通常不足以复现接触。重定向的目标可包含手部追踪、接触位置和约束软惩罚：
 
-$
+$$
 \mathcal L_{\rm retarget}
 =w_p\|p_{\rm robot}-p_{\rm target}\|^2
 +w_R\,d_{SO(3)}(R_{\rm robot},R_{\rm target})^2
 +w_c\mathcal L_{\rm contact}+w_j\mathcal L_{\rm limits}.
-$
-
+$$
 这里 $\mathcal L_{\rm contact}$ 必须针对具体任务定义，例如接触点距离、接触法线、抓握保持或物体相对滑移；不等于“两个物体距离近”就保证存在力学接触。
 
 <a id="course-section-41"></a>
