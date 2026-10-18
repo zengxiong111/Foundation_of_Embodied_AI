@@ -67,7 +67,17 @@ try {
     if (diagrams) {
       await page.addScriptTag({ path: path.resolve('node_modules/mermaid/dist/mermaid.min.js') });
       await page.evaluate(async () => {
-        mermaid.initialize({ startOnLoad: false, securityLevel: 'strict', theme: 'neutral', deterministicIds: true });
+        mermaid.initialize({
+          startOnLoad: false, securityLevel: 'strict', theme: 'base', deterministicIds: true,
+          themeVariables: {
+            primaryColor: '#f2f2f2', primaryTextColor: '#000000', primaryBorderColor: '#555555',
+            secondaryColor: '#ffffff', secondaryTextColor: '#000000', secondaryBorderColor: '#555555',
+            tertiaryColor: '#e6e6e6', tertiaryTextColor: '#000000', tertiaryBorderColor: '#555555',
+            lineColor: '#444444', textColor: '#000000', mainBkg: '#f2f2f2',
+            nodeBorder: '#555555', clusterBkg: '#f7f7f7', clusterBorder: '#999999',
+            edgeLabelBackground: '#ffffff',
+          },
+        });
         await mermaid.run({ querySelector: '.mermaid' });
       });
     }

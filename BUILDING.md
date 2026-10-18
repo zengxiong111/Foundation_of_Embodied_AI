@@ -35,6 +35,8 @@ To use an existing Chromium, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH` to its ab
 3. Visually inspect PDF contents, long equations, tables, diagrams and pagination. The renderer rejects math errors, display-equation overflows and unrendered Mermaid diagrams; automated checks do not imply manual review of every page.
 4. Commit Markdown, current PDFs, `pdf/build-manifest.json` and necessary build files. Keep installed dependencies, temporary HTML/images, backups and logs out of the repository.
 
+PDFs use a print-friendly monochrome style: black text, headings, equations and underlined links, light-gray table headers, and grayscale diagrams. Text remains searchable and links remain clickable.
+
 Dependencies are locked in `package-lock.json`; print styling lives in `scripts/print.css`. `pdf/build-manifest.json` records source/PDF hashes, the build-input fingerprint, browser version, font hashes and page count. It detects stale PDFs. Browser/font differences and internal PDF timestamps can affect binary output, so byte-for-byte reproduction across environments is not promised.
 
 ## Website synchronization
