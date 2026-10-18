@@ -29,6 +29,7 @@ Record the current materials’ applicability and upstream source snapshots. Rev
 | Data Collection and Imitation Learning | Demonstrations, BC, DAgger, ACT and generative chunk policies | 2026-10-18 |
 | Flow Matching | CFM theory; OpenPI pi0.py code reference pinned below; examples are not a tested fine-tuning run | 2026-10-18 |
 | GR00T & SONIC | SONIC paper integration: GR00T N1.5; documented G1 workflow: N1.7, 78-dim actions, 2.5 Hz inference / 50 Hz stream. Checkpoint and observation config must match | 2026-10-18 |
+| Advanced Robot Agents | RAX, Gemini Robotics ER, SayCan, Code as Policies: conceptual comparison | 2026-10-18 |
 
 <a id="snapshots"></a>
 

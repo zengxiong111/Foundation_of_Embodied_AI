@@ -773,6 +773,9 @@ Distinguish **pose-estimation error** from **camera-extrinsic error**. Even a ve
 
 ### 11.2 Imitation learning and VLAs
 
+This section only establishes **when explicit extrinsics are needed**. BC/ACT and demonstrations belong in [Data and Imitation Learning](Data_Imitation_Learning_EN.md); SAM/Foundation models, temporal estimation and reacquisition belong in [Visual State Estimation](Visual_State_Estimation_EN.md).
+
+
 Actions may be represented as TCP increments $a_t=\Delta T_{\mathrm{TCP}}$ or future joint sequences $a_t=q_{t:t+H}$. Whether explicit extrinsics are required depends on the architecture and task:
 
 | Task | Explicit extrinsics? |

@@ -106,100 +106,13 @@ Note that DPPO, DSRL, and OGPO were developed for generative policies and cannot
 
 ### 2.1 On-policy RL: PPO
 
-**PPO (Proximal Policy Optimization)** is a widely used reinforcement-learning algorithm for robot locomotion and motion control.
-
-Its main characteristics are:
-
-- It is trained using interaction data collected by the current policy.
-- After each sampling round, it updates the policy a limited number of times.
-- Training is generally relatively stable.
-- It integrates readily with large-scale, GPU-parallel simulation.
-- It is not well suited to repeatedly using large amounts of old data over long periods.
-
-#### Which tasks mainly use PPO?
-
-| Application | Specific tasks |
-|---|---|
-| Quadruped robots | Walking, running, jumping, traversing complex terrain |
-| Humanoid robots | Bipedal walking, balancing, and disturbance recovery |
-| Whole-Body Control | Coordinated whole-body control and motion tracking |
-| Dexterous manipulation | Dexterous-hand object rotation, grasping, and contact-rich operation |
-| Sim-to-Real | Train a control policy in simulation and deploy it on physical hardware |
-| Generative-policy post-training | Policy-gradient approaches such as DPPO for Diffusion Policies |
-
-#### Why is PPO popular in robot locomotion?
-
-Locomotion tasks can often run thousands of robots simultaneously in simulators such as Isaac Lab.
-
-For example:
-
-```text
-                4,096 parallel robots
-                          |
-                          v
-                 Collect motion data
-                          |
-                          v
-                     PPO training
-                          |
-                          v
-                   Update control policy
-                          |
-                          v
-               Continue large-scale sampling
-```
-
-In this setting, large quantities of environment interaction data are readily available, so PPO's on-policy use of data is often acceptable.
-
-**Typical technical combination:**
-
-`Isaac Lab + RSL-RL + PPO`
-
-The official Isaac Lab documentation also recommends RSL-RL as one starting point for a new robot RL project. ([Isaac Lab documentation](https://isaac-sim.github.io/IsaacLab/develop/source/concepts/reinforcement_learning.html))
+PPO is an on-policy optimizer using fresh rollouts and advantage estimates to control policy updates. Here the emphasis is when it is appropriate for parallel simulation and robot tasks. **For clipped surrogate objectives, GAE and full derivation, use the dedicated [PPO chapter](PPO_Complete_Derivation_and_Design_Motivations_English.md).**
 
 <a id="course-section-06"></a>
 
 ### 2.2 Off-policy RL: SAC
 
-**SAC (Soft Actor-Critic)** is a representative off-policy algorithm for continuous robot control.
-
-Its main characteristics are:
-
-- It can reuse historical interaction data.
-- It stores experience in a replay buffer.
-- It usually offers higher sample efficiency measured in environment interactions.
-- It is well suited to online policy improvement.
-- It can use a critic to guide action selection.
-- It is sensitive to the quality of critic learning.
-
-#### Which tasks mainly use SAC?
-
-| Application | Specific tasks |
-|---|---|
-| Robot-arm control | Grasping, placing, and pushing objects |
-| Dexterous manipulation | In-hand rotation, object reorientation, and precision operations |
-| Real-robot RL | Improving a policy with limited physical interaction data |
-| Residual RL | Learning action corrections on top of an existing controller |
-| Latent RL | Learning the latent variables of a pretrained generative policy |
-| Embodied-model post-training | Off-policy policy optimization guided by a critic |
-
-#### Why is SAC suitable for learning on physical robots?
-
-Interactions with a physical robot are costly.
-
-For example, one dexterous-hand grasp may involve:
-
-- Robot-arm movement;
-- Finger contact;
-- Execution of the grasp;
-- A determination of task success or failure;
-- Robot reset.
-
-If every policy update required collecting large amounts of new data, training would be very expensive.
-
-SAC can reuse existing experience through a replay buffer, making it a common choice for research on data-efficient online robot learning.
-
-However, **SAC's advantage in interaction sample efficiency does not mean that it outperforms PPO on every robot task.** In particular, when large-scale parallel simulation is available, PPO may achieve higher training throughput.
+SAC reuses replayed interaction data and optimizes a maximum-entropy continuous-action objective with twin critics. This overview focuses on task selection and sample efficiency. **Bellman targets, entropy tuning and Actor/Critic derivations are owned by the [SAC chapter](SAC_Complete_Derivation_EN.md).** Applying SAC to a generative VLA is not a trivial actor replacement.
 
 <a id="course-section-07"></a>
 

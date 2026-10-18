@@ -583,7 +583,7 @@ Observation
 
 ## 第六章：运动模仿强化学习
 
-复杂跳跃、跳舞、体操动作和高维灵巧操作，直接从零探索可能非常困难，因此可以引入参考运动。
+复杂跳跃、跳舞、体操动作和高维灵巧操作，直接从零探索可能非常困难，因此可以引入参考运动。这里的**Motion Tracking / Motion Imitation RL** 是通过奖励与物理环境学习跟踪，和从动作标签监督回归的 BC 有所区别；后者的 BC/ACT/Flow 动作块训练集中见[模仿学习](Data_Imitation_Learning_ZH.md)。
 
 <a id="course-section-22"></a>
 

@@ -184,14 +184,7 @@ Action chunking reduces how often a large VLA must be invoked and promotes tempo
 
 ### 2.4 Flow matching, intuitively
 
-Starting from random action noise $x_0$, a neural velocity field transforms it toward a plausible action $x_1$ conditioned on images, the language goal, and robot state:
-
-$$
-\frac{\mathrm{d}x_\tau}{\mathrm{d}\tau}
-=v_\theta(x_\tau,\tau\mid I,l,s),\qquad \tau\in[0,1].
-$$
-
-An intuitive interpretation is that the model learns how to *move a noisy candidate action toward a useful action trajectory*. The generation-time variable $\tau$ is **not** the robot's physical execution time $t$.
+GR00T's action expert produces an observation-conditioned action chunk from a noise prior. The **generative velocity field is not joint velocity**; chunk commands reach the System 0 controller through a specified interface and timing scheme. The complete CFM, continuity equation and ODE derivation belongs in [Flow Matching](Flow_Matching_Step_by_Step_Derivation_EN.md).
 
 <a id="course-section-10"></a>
 

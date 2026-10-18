@@ -184,14 +184,7 @@ $$
 
 ### 2.4 Flow Matching 的直觉解释
 
-Flow Matching 从噪声动作 $x_0$ 出发，通过一个由网络预测的时间相关速度场，逐步得到符合当前图像和任务的动作 $x_1$：
-
-$$
-\frac{\mathrm{d}x_\tau}{\mathrm{d}\tau}
-=v_\theta(x_\tau,\tau\mid I,l,s),\qquad \tau\in[0,1].
-$$
-
-可以把它想成：模型学习“怎样把随机动作噪声推向合理的动作轨迹”。这里的 $\tau$ 是**生成过程中的流时间**，不等于机器人执行动作的物理时间 $t$。
+GR00T 的生成式动作头可以在条件观测下构造一段动作块。这里最需要掌握的是：生成式**速度场不是机器人的关节速度**，动作块需要经接口映射给 System 0，并处理推理频率与执行频率。**条件 Flow Matching、连续性方程、ODE 和目标函数的数学推导统一见 [Flow Matching 专章](Flow_Matching_详细推导_精简版.md)**。
 
 <a id="course-section-10"></a>
 
@@ -221,6 +214,8 @@ $$
 $$
 
 在 SONIC 场景中，$a_t$ 可以是 Motion Token 与双手动作的组合，而不是原始的全身关节角。
+
+数据采集、BC/ACT 和生成式动作块的训练目标集中见[数据采集与模仿学习](Data_Imitation_Learning_ZH.md)，本章只保留 SONIC 接口与任务微调的区别。
 
 **注意：** 模仿学习是这一官方工作流的主要 VLA 微调方式；VLA 后训练也可以研究在线强化学习，但它不是部署 SONIC 的必要前提。
 
@@ -319,17 +314,7 @@ $$
 
 ### 3.6 SONIC 的强化学习训练：PPO + 跟踪奖励
 
-SONIC 使用 PPO，通过密集的 Motion Tracking Reward 训练：
-
-$$
-r_t\approx r_{\mathrm{tracking}}-r_{\mathrm{penalty}}.
-$$
-
-跟踪奖励关注根节点、身体关键点、姿态和速度；惩罚项约束不平滑动作、关节越界和不合理接触。实际奖励由多个带权重的项组成，上式只表达总体思想。
-
-训练中可采用 **Asymmetric Actor–Critic**：Actor 使用真机上能获取的观测；Critic 使用仿真中额外可见的精确状态，以提高训练效率。部署时只需 Actor / 控制解码器，不需要 Critic。
-
-**Domain Randomization** 通常包含质量、摩擦、执行器响应、外部推力和初始姿态等变化。它有助于鲁棒性，但不能保证所有强扰动都不会跌倒。
+SONIC 类全身运控策略采用运动跟踪奖励和强化学习优化，将高层运动指令转成可执行的低层动作。本节的重点是 tracking reference、奖励与控制接口；**PPO 数学推导见 [PPO 专章](PPO_完整推导与设计动机_中文.md)**，运控训练方案与 Sim-to-Real 问题见[运动控制 RL](Embodied_Motion_Control_RL_Tutorial_ZH.md)。
 
 <a id="course-section-19"></a>
 

@@ -308,6 +308,9 @@ Contact dynamics are highly nonlinear. Collision geometry, friction, compliance,
 
 ### 6.3 Four sources of visual closed-loop error
 
+This section catalogues **simulation-to-deployment observation gaps**. For SAM/Foundation vision models, temporal estimation and closed-loop reacquisition, see [Visual State Estimation](Visual_State_Estimation_EN.md).
+
+
 1. **Geometry:** Intrinsics, lens distortion, extrinsics, TCP, and object CAD/mesh scale.
 2. **Coordinate frames:** World/base/optical frames, transform multiplication order, quaternion convention.
 3. **Perception:** Missing depth, lighting, occlusions, blur, and pose-estimator drift.

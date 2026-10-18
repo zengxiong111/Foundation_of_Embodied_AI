@@ -43,7 +43,7 @@ def make_one(root, config, lang, fontfile):
                 raise RuntimeError('Unreadable chapter PDF: ' + str(file))
             entries.append(dict(title=topic['title_zh' if zh else 'title_en'],
                                 file=file, count=len(source), outline=source.get_toc()))
-    if not 1 <= len(entries) <= 17:
+    if not 1 <= len(entries) <= 18:
         raise RuntimeError('One-page contents supports 1–17 topics')
 
     cursor = 2
