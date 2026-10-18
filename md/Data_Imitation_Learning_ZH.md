@@ -71,7 +71,7 @@
   - [10.3 从模仿学习到 Robot Agent 的接口](#course-section-54)
 <!-- course-toc:end -->
 
-**学习目标：** 识别数据质量问题；比较 BC、ACT 与生成式动作策略；设计可复现的抓取实验。
+**学习目标：** 识别示教数据质量问题；理解 BC、DAgger、ACT、Diffusion/Flow 的动作块训练；区分 Inference-time 与 Training-time RTC，并设计兼顾延迟、连续性和任务成功率的实验。
 
 <a id="course-section-01"></a>
 
@@ -353,7 +353,7 @@ $\beta_i$ 通常逐步降低。真实机器人上必须给专家接管、安全�
 
 <a id="course-section-30"></a>
 
-## 10. 从 ACT 到扩散与 Flow Matching 动作策略
+## 10. ACT、Diffusion Policy、Flow Matching 与 RTC：训练和执行
 
 <a id="course-section-31"></a>
 

@@ -71,7 +71,7 @@
   - [10.3 Connection to Agentic Robotics](#course-section-54)
 <!-- course-toc:end -->
 
-**Learning outcomes：** Identify data quality risks; compare BC, ACT, and generative action policies; design reproducible grasping experiments.
+**Learning outcomes:** Identify demonstration quality risks; understand BC, DAgger, ACT, and diffusion/flow chunk training; distinguish inference-time and training-time RTC; evaluate timing, continuity, and task success.
 
 <a id="course-section-01"></a>
 
@@ -351,7 +351,7 @@ Compare uniform time sampling against event-biased sampling. A weighted loss is 
 
 <a id="course-section-30"></a>
 
-## 10. ACT, Diffusion Policy, and Flow Matching for Actions
+## 10. ACT, Diffusion Policy, Flow Matching, and RTC: Training vs. Execution
 
 <a id="course-section-31"></a>
 
