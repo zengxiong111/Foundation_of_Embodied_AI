@@ -39,10 +39,6 @@ PDF 默认采用黑白为主的打印样式：黑色正文、标题、公式和�
 
 依赖锁定在 `package-lock.json`，打印样式在 `scripts/print.css`。`pdf/build-manifest.json` 记录源文件/PDF 哈希、构建输入指纹、浏览器版本、字体哈希及页数。它用于发现过期 PDF；浏览器、字体和 PDF 内部时间戳可能影响二进制结果，因此不承诺跨环境逐字节重现。
 
-## 课程合订本
-
-执行 `npm run build`、`npm run check` 成功后，安装构建依赖 `python3 -m pip install pymupdf==1.26.7`，再运行 `python3 scripts/merge_collections.py`。它将生成 `books/Foundation_of_Embodied_AI_Complete_Chinese.pdf` 和 `books/Foundation_of_Embodied_AI_Complete_English.pdf`，包含可点击总目录与章节书签。合订本直接使用验证通过的 28 份独立章节 PDF。
-
 ## 网站同步
 
 需要 GitHub CLI 已登录，且对课程仓库与个人网站仓库拥有相应写权限。以下发布命令仅更新清单列出的个人网站资料文件；课程仓库改动仍需正常 commit 和 push。

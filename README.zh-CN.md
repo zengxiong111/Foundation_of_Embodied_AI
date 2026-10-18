@@ -6,12 +6,6 @@
 
 **课程导读：** 按“工具 → 物理与视觉 → 强化学习 → 示教与生成策略 → 系统集成”的路径阅读；Git 和 ROS 2 可按需作为工具参考。完整路径见 [课程大纲](syllabus/COURSE_MAP_ZH.md)。
 
-[课程合订本](#中英文课程合订本) · [课程资料](#课程资料) · [使用与反馈](#使用与反馈)
-
-## 中英文课程合订本
-
-[下载中文版完整讲义 PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Foundation_of_Embodied_AI_Complete_Chinese.pdf) · [下载英文版完整讲义 PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Foundation_of_Embodied_AI_Complete_English.pdf)
-
 ## 课程资料
 
 14 个主题，28 份 Markdown 和 28 份 PDF。点击表格中的链接阅读或下载。

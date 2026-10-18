@@ -17,3 +17,6 @@ __pycache__/
 # Installed build dependencies and local build output
 node_modules/
 .course-build/
+
+# Course materials are maintained as individual chapters only
+books/

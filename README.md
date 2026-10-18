@@ -6,12 +6,6 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 
 **How to read:** Follow tools → physics/perception → reinforcement learning → demonstrations/generative policies → systems integration. Git and ROS 2 are optional tool references. See the [course map](syllabus/COURSE_MAP_EN.md).
 
-[Complete readers](#complete-course-readers) · [Course materials](#course-materials) · [Usage and feedback](#usage-and-feedback)
-
-## Complete course readers
-
-[Download Chinese course PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Foundation_of_Embodied_AI_Complete_Chinese.pdf) · [Download English course PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Foundation_of_Embodied_AI_Complete_English.pdf)
-
 ## Course materials
 
 14 topics, 28 Markdown files and 28 PDFs. Use the links below to read or download.
