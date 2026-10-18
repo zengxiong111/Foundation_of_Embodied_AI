@@ -8,7 +8,7 @@ Fourteen topics are organized as tools → physics and perception → robot RL �
 |---|---|---|
 | 0. Orientation | Systems map and guide | Explain perception–policy–control loops |
 | 1. Tools | Git, ROS 2 | Manage code and understand ROS communication and TF |
-| 2. Physics and perception | Dynamics, calibration, visual state estimation, Isaac / MuJoCo | Relate physical models, sensors and simulation |
+| 2. Physics and perception | Dynamics, calibration, vision foundation models, Isaac / MuJoCo | Relate physical models, sensors and simulation |
 | 3. Reinforcement learning | Embodied RL, motion RL, PPO, SAC | Design observations, actions, rewards and data collection |
 | 4. Demonstrations and models | Imitation Learning, Flow Matching, GR00T / SONIC | Learn chunk policies from demonstrations and connect hierarchical controllers |
 | 5. Robot Agent integration | Robot Agent planning, tool use, verification and recovery | Orchestrate perception, policy and control for long-horizon tasks |
@@ -35,7 +35,7 @@ flowchart LR
 
 1. Beginners: orientation → essential Git and ROS 2 → dynamics → calibration → visual estimates → simulation.
 2. Motion control: dynamics → simulation → embodied RL → PPO / SAC → motion control RL.
-3. VLA: calibration → visual state estimation → Imitation Learning → Flow Matching → GR00T / SONIC → Robot Agent.
+3. VLA: calibration → vision foundation models → Imitation Learning → Flow Matching → GR00T / SONIC → Robot Agent.
 4. Mathematical deep dives: full PPO, SAC, and Flow Matching derivations are reference material; hands-on learning does not require deriving everything first.
 
 ## Shared Panda + cube + table exercise
@@ -61,7 +61,7 @@ Final topic: [Robot Agents: planning, execution, verification and recovery](../m
 | Canonical chapter | What it teaches | What related chapters reuse |
 |---|---|---|
 | Camera Calibration | Intrinsics, extrinsics, hand-eye, TF and frame geometry | Vision uses calibrated transforms without duplicating hand-eye derivations |
-| Visual State Estimation | SAM 2/3/3D, FoundationPose/Stereo, 6D, temporal fusion and reacquisition | Robot Agent uses the state/uncertainty interface |
+| Vision Foundation Models | Model outputs, SAM 2/3/3D, FoundationPose/Stereo and model selection/composition | Robot Agent combines perception outputs for task decisions |
 | Imitation Learning | BC/DAgger/ACT, generative action chunks and real-time RTC | GR00T/SONIC focuses on its specific training and deployment interfaces |
 | Flow Matching | Full CFM mathematics, velocity fields and ODE derivations | Imitation learning uses only the conditional action-generation interface |
 | PPO / SAC and Motion RL | RL objectives and motion-control engineering | Imitation learning does not duplicate reward-optimization derivations |

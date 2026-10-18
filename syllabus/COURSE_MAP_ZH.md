@@ -8,7 +8,7 @@
 |---|---|---|
 | 0. 导论 | 全栈知识地图与阅读说明 | 看懂感知—策略—控制—机器人闭环 |
 | 1. 工程工具 | Git、ROS 2 | 版本管理；理解 ROS 通信与 TF |
-| 2. 物理与视觉 | 机器人动力学、相机标定、视觉状态估计、Isaac / MuJoCo | 建立机器人物理、传感器和仿真模型 |
+| 2. 物理与视觉 | 机器人动力学、相机标定、视觉基础模型、Isaac / MuJoCo | 建立机器人物理、传感器和仿真模型 |
 | 3. 强化学习 | 具身 RL、运动控制 RL、PPO、SAC | 设计观测、动作、奖励及数据收集方式 |
 | 4. 演示与基础模型 | Imitation Learning、Flow Matching、GR00T / SONIC | 从演示生成动作块并理解分层控制 |
 | 5. Robot Agent 集成 | Robot Agent：任务规划、工具调用、验证与恢复 | 编排视觉、策略和控制，完成长时任务闭环 |
@@ -33,9 +33,9 @@ flowchart LR
 
 ## 推荐学习顺序与先修关系
 
-1. 初学者：先阅读本导论，跳读 Git / ROS 2 的必要部分，再学习动力学、标定、视觉状态估计与仿真。
+1. 初学者：先阅读本导论，跳读 Git / ROS 2 的必要部分，再学习动力学、标定、视觉基础模型与仿真。
 2. 运控方向：动力学 → 仿真 → 具身 RL → PPO / SAC → 运动控制 RL。
-3. VLA 方向：相机标定 → 视觉状态估计 → Imitation Learning → Flow Matching → GR00T / SONIC → Robot Agent。
+3. VLA 方向：相机标定 → 视觉基础模型 → Imitation Learning → Flow Matching → GR00T / SONIC → Robot Agent。
 4. 深度推导：PPO、SAC、Flow Matching 的完整数学推导是独立深入阅读材料，并非先学完所有公式才能开始实践。
 
 ## 贯穿课程的 Panda + 方块 + 桌面案例
@@ -54,14 +54,14 @@ flowchart LR
 
 ## 先进 Robot Agent 的系统集成
 
-最终专题：[Robot Agent：规划、执行、验证与恢复](../md/Robot_Agent_Workflow_ZH.md)。任务级决策与恢复在该章集中介绍，不再重复视觉状态估计、BC 或 Flow Matching 的理论推导。
+最终专题：[Robot Agent：规划、执行、验证与恢复](../md/Robot_Agent_Workflow_ZH.md)。任务级决策与恢复在该章集中介绍，不再重复视觉基础模型、BC 或 Flow Matching 的理论推导。
 
 ## 跨章节职责：减少重复教学
 
 | 主讲章节 | 负责内容 | 其他章节如何使用 |
 |---|---|---|
 | 相机标定 | 内参、外参、手眼、TF 与几何坐标系 | 视觉章节只使用标定结果，不重复手眼推导 |
-| 视觉感知与状态估计 | SAM 2/3/3D、FoundationPose/Stereo、6D、时序和失效重定位 | 机器人 Agent 使用状态接口与置信度 |
+| 视觉基础模型 | 模型输出、SAM 2/3/3D、FoundationPose/Stereo 与选型组合 | 机器人 Agent 组合视觉输出用于任务决策 |
 | Imitation Learning | BC/DAgger/ACT、生成式动作块与实时 RTC | GR00T 章节只讲自身训练/部署接口 |
 | Flow Matching | CFM 数学、速度场与 ODE 推导 | 模仿学习只讲条件动作生成的损失接口 |
 | PPO / SAC 与运控 RL | RL 优化原理、运控任务设计与 Sim-to-Real | 模仿学习不重复奖励优化推导 |

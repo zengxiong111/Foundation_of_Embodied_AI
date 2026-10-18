@@ -131,13 +131,13 @@
     },
     {
       "id": "visual-state",
-      "title_en": "Visual Perception and State Estimation",
-      "title_zh": "视觉感知与状态估计",
-      "reviewed_at": "2026-10-18",
-      "review_scope_en": "Document integration and rendering checks only; no robot, accuracy or runtime validation. No experimental chapter is included.",
-      "review_scope_zh": "仅进行文档整合与排版检查；未进行真机、精度或运行验证。不包含实验章节。",
-      "versions_en": "Camera geometry, RGB-D/stereo, segmentation, FoundationPose, SE(3) filtering, uncertainty, asynchronous execution and recovery concepts",
-      "versions_zh": "相机几何、RGB-D/双目、分割、FoundationPose、SE(3) 滤波、不确定性、异步执行与恢复概念",
+      "title_en": "Vision Foundation Models",
+      "title_zh": "视觉基础模型",
+      "reviewed_at": "2026-10-19",
+      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDF bytes preserved without regeneration. Model-selection notes only; no performance, deployment or robot validation.",
+      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 保持原始字节且未重新生成；仅为模型选型讲义，未进行性能、部署或真机验证。",
+      "versions_en": "Detection, segmentation and tracking, depth, 3D reconstruction and 6D pose; SAM 2/3/3.1, FoundationPose, FoundationStereo/Fast-FoundationStereo, SAM 3D and model composition. No calibration or SE(3) filtering derivations, policy training, code or experiments.",
+      "versions_zh": "检测、分割与跟踪、深度、三维重建和 6D 位姿；SAM 2/3/3.1、FoundationPose、FoundationStereo/Fast-FoundationStereo、SAM 3D 与模型组合。不含标定或 SE(3) 滤波推导、策略训练、代码或实验。",
       "source_refs": [],
       "documents": {
         "zh": {
