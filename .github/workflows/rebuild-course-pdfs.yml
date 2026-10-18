@@ -1,0 +1,11 @@
+name: Rebuild course PDFs
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  preview:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo 'PDF automation scaffold; release job added in next commit.'
