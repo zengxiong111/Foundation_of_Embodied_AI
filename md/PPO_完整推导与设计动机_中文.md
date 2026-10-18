@@ -1,27 +1,16 @@
 ---
 title: "PPO 完整推导与设计动机"
-subtitle: "从策略梯度、重要性采样与 TRPO 到 PPO-Clip、GAE 和机器人连续控制"
+subtitle: "含 Actor 与 Critic 学习机制：从策略梯度、PPO-Clip、GAE 到机器人控制"
 author: "强化学习研究教程"
-date: "2026 年 10 月 15 日"
+date: "2026 年 10 月 18 日（Actor–Critic 扩展版）"
 lang: zh-CN
 toc-title: "目录"
 ---
 
 # PPO 完整推导与设计动机
 
-<!-- course-meta:start -->
 [课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/PPO_Complete_Derivation_and_Design_Motivations_English.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_CN.pdf)
 
-| 项目 | 说明 |
-|---|---|
-| 适用范围 | PPO-Clip / GAE 理论；PyTorch 风格示例为教学内容，非已测试训练包 |
-| 文档核验日期 | 2026-10-18 |
-| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
-
-**核验边界：** 文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。 固定源码引用见[资料清单](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/materials.json)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
-<!-- course-meta:end -->
-
-<!-- course-toc:start -->
 ## 目录
 
 - [第一部分　从预期回报到策略梯度](#course-section-01)
@@ -72,15 +61,20 @@ toc-title: "目录"
   - [35. 算法演化：每一步解决一个问题](#course-section-46)
 - [第十二部分　最终公式总览与研究启示](#course-section-47)
   - [参考文献与延伸阅读](#course-section-48)
-<!-- course-toc:end -->
 
-**章节知识地图**
+<!-- tutorial-body:start -->
+> **阅读目标**：逐步理解 PPO 为什么这样设计，而不仅仅是记住其损失函数。本文覆盖完整数学推导、各步骤的设计动机、数值示例、实现要点，以及在机器人连续控制与残差策略学习中的用法。
 
-```mermaid
-flowchart LR
-  A["新轨迹采样"] --> B["GAE 估计"] --> C["Clipped 目标"] --> D["策略更新"]
-```
+**核心思想**：提高好动作的概率、降低坏动作的概率，同时避免一次策略更新过大，使得根据旧策略数据建立的局部性能模型仍然可信。
 
+**阅读路线**：回报最大化 $\rightarrow$ Policy Gradient $\rightarrow$ Baseline / Advantage $\rightarrow$ 性能差分与重要性采样 $\rightarrow$ TRPO $\rightarrow$ PPO-Clip $\rightarrow$ GAE $\rightarrow$ Actor–Critic 完整损失 $\rightarrow$ 机器人应用与实现。
+
+> **记号约定**：主要考虑折扣无限时域 MDP，$\gamma\in[0,1)$；$J(\theta)$ 表示从初始状态分布出发的折扣回报。涉及实际 PPO 的时间步平均时，会明确说明与严格折扣占用分布之间的区别。$\hat A_t$ 是利用旧策略 Rollout 计算、在本轮策略更新中固定的 Advantage 估计。
+
+
+> **版本说明（2026-10-18）**：本版保留原文 12 部分、35 节的完整推导，并在第 24–28、30、32–34 节补充 Actor–Critic 学习机制，包括 Bellman/TD($\lambda$) 回归目标、半梯度、Actor 概率学习、Gaussian 均值与 Log Std、梯度隔离、共享网络、机器人 Asymmetric Actor–Critic 和训练诊断。原教程：[在线 PDF](https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_CN.pdf)；开源课程：[Foundation of Embodied AI](https://github.com/zengxiong111/Foundation_of_Embodied_AI)。原教程版权信息：Xiong Zeng and contributors，CC BY 4.0。代码片段为教学示例，未经完整环境/训练验证。
+
+**新增学习主线**：Critic 根据固定的 Bootstrap/GAE Target 学会估计长期回报 $\rightarrow$ 用 TD Error / GAE 为旧动作计算相对优劣 $\rightarrow$ Actor 根据优势梯度更新动作概率分布 $\rightarrow$ PPO-Clip 抑制过度策略变化 $\rightarrow$ 新策略重新采样。**Critic 做回归，Actor 做动作分布的带裁剪策略优化；二者通过固定的 Advantage 信号协同。**
 
 <a id="course-section-01"></a>
 
@@ -771,6 +765,53 @@ $$
 
 这里 $V_{\phi_{\mathrm{old}}}$ 是计算这一批 Rollout 目标时保存的旧 Value，整个 PPO 更新阶段必须视为常量。这一技巧让 Actor 的 Advantage 估计与 Critic 的回归目标保持一致。
 
+
+
+#### 24.1 Critic 的学习信号：Bellman Target 与半梯度
+
+Critic 不知道真实的 $V^{\pi_{\mathrm{old}}}(s)$，但可以从旧策略产生的样本 $(s_t,a_t,r_t,s_{t+1})$ 构造近似监督信号。对于不是真正终止的下一状态，一步自举目标为
+
+$$
+\boxed{y_t^{\mathrm{TD}}=r_t+\gamma V_{\phi_{\mathrm{old}}}(s_{t+1})},
+\qquad
+\delta_t=y_t^{\mathrm{TD}}-V_{\phi_{\mathrm{old}}}(s_t).
+$$
+
+若 $d_t=1$ 代表真实的 MDP 终止，则使用 $y_t^{\mathrm{TD}}=r_t+\gamma(1-d_t)V_{\phi_{\mathrm{old}}}(s_{t+1})$。人工时间上限、Rollout 切分和真正终止不能直接使用同一个 Mask：若环境只是截断而非终止，应从截断前的真实最后观测 Bootstrap，不能误用 Reset 后的状态。
+
+把目标视为**常量**，Critic 通过回归学习：
+
+$$
+\ell_t(\phi)=\tfrac12\big(V_\phi(s_t)-\operatorname{stopgrad}(y_t^{\mathrm{TD}})\big)^2,
+$$
+
+$$
+\boxed{\nabla_\phi\ell_t
+=\big(V_\phi(s_t)-y_t^{\mathrm{TD}}\big)\nabla_\phi V_\phi(s_t)}.
+$$
+
+这就是常说的 **Semi-Gradient TD**：目标中的旧 Critic 值不接受本次反向传播；但预测项 $V_\phi(s_t)$ 接受梯度。若让梯度同时穿过目标 $V_\phi(s_{t+1})$，优化的就不再是通常的固定目标 TD 回归。注意：PPO **通常不要求**像 DQN 那样再维护一个长期滞后的 Target Network；一次 Rollout 内保存旧值并固定回归目标即可。
+
+#### 24.2 为什么 PPO 常用 TD($\lambda$) Return，而非仅用 One-Step TD？
+
+第 22–23 节已推导 GAE。它与 Critic Target 存在一致的代数关系：
+
+$$
+\boxed{\hat R_t^\lambda
+=V_{\mathrm{old}}(s_t)+\hat A_t^{\mathrm{GAE}}}.
+$$
+
+对一段没有真实终止的连续轨迹，可等价写成
+
+$$
+\hat R_t^\lambda=r_t+\gamma\left[(1-\lambda)V_{\mathrm{old}}(s_{t+1})
++\lambda\hat R_{t+1}^\lambda\right],
+$$
+
+在采样段尾部用合适的 $V_{\mathrm{old}}(s_T)$ 初始化 Bootstrap；遇到真正终止则令后续回报为零。$\lambda=0$ 退化为 One-Step TD Target；对完整终止轨迹，$\lambda=1$ 退化为 Monte Carlo Return。中间值同时利用多步奖励与 Bootstrap，这既可作为 Actor 的 Advantage 信号，也可形成 Critic 的回归目标。
+
+**关键区分：**“计算 GAE 的旧 Value”与“当前要训练的 $V_\phi$”是两个时间快照；PPO 一轮优化中，$\hat A_t$、$\hat R_t^\lambda$ 和旧动作 Log Probability 均固定，即使 Critic 参数已更新也不在同一轮内偷偷重算它们。
+
 <a id="course-section-31"></a>
 
 ## 第七部分　完整 Actor–Critic 损失
@@ -795,6 +836,37 @@ $$\boxed{\mathcal L_{\mathrm{actor}}=-L^{\mathrm{CLIP}}}. \tag{36}$$
 
 如果 $\hat A_t$ 通过当前可训练 Critic 的计算图产生，应在 Actor Loss 中对其 `detach`，避免无意把 Actor 更新传播到 Advantage 目标。
 
+
+
+#### 25.1 Actor 没有正确动作标签，为什么仍能学习？
+
+行为克隆需要专家标签 $a_t^*$，PPO 不需要。它只有自己采样的动作及其**相对质量** $\hat A_t$。先看未裁剪代理目标：
+
+$$
+L^{\mathrm{CPI}}_t(\theta)=\rho_t(\theta)\hat A_t,
+\qquad
+\rho_t(\theta)=\frac{\pi_\theta(a_t\mid s_t)}{\pi_{\mathrm{old}}(a_t\mid s_t)}.
+$$
+
+因为旧分母和 Advantage 被固定，
+
+$$
+\boxed{\nabla_\theta[-L^{\mathrm{CPI}}_t]
+=-\hat A_t\rho_t(\theta)\nabla_\theta\log\pi_\theta(a_t\mid s_t)}.
+$$
+
+在本轮更新刚开始时 $\theta=\theta_{\mathrm{old}}$，有 $\rho_t=1$，Clipping 尚未生效，因此 Actor 与基本 Advantage Policy Gradient 的方向一致：
+
+- $\hat A_t>0$：提高这次采样动作的概率密度，**并非**将动作强行回归到它；
+- $\hat A_t<0$：降低这次动作的概率密度；
+- $\hat A_t\simeq0$：该样本给出的局部策略信号很弱。
+
+对参数做梯度下降后，神经网络会改变许多状态与动作的概率，因此上面讨论的是**单样本、局部的梯度贡献**，不保证某个动作最终概率必然按该方向变化。Clipping 只在样本的概率比朝有利方向变化过多时，停止提供额外收益；第 17 节已经给出精确的分段梯度。
+
+#### 25.2 一个 Actor 更新数值例子
+
+设某个采样动作在旧策略下的概率为 $\pi_{\mathrm{old}}(a_t\mid s_t)=0.20$，$\epsilon=0.2$，$\hat A_t=+2$。若新概率变成 $0.22$，则 $\rho_t=1.1$，该样本的未裁剪收益为 $2.2$；若变成 $0.30$，则 $\rho_t=1.5$，PPO-Clip 对该样本只计 $1.2\times2=2.4$，进一步增大这一概率不再增加其代理收益。对于负 Advantage，过度**降低**概率时也出现相应平台。这里为了直观以离散动作的概率作例子；连续 Gaussian Policy 应使用**概率密度**与联合 Log Probability，而非单点概率。
+
 <a id="course-section-33"></a>
 
 ### 26. Critic Loss
@@ -808,6 +880,40 @@ $$
 
 也可以直接回归 Monte Carlo Return。某些实现另设 Value Clipping 或 $\tfrac12$ 系数，但它们不是 PPO-Clip 目标的必要组成。Critic 过差会导致 Advantage 的符号或量级不准确，因此 PPO 的训练稳定性很大程度依赖 Value Function 的估计质量。
 
+
+
+#### 26.1 Critic 的误差如何真正改变网络参数？
+
+为简化梯度形式，考虑带 $\tfrac12$ 系数的逐样本 MSE：
+
+$$
+\ell_t^V(\phi)=\tfrac12\big(V_\phi(s_t)-\hat R_t^\lambda\big)^2,
+\quad
+\boxed{\nabla_\phi\ell_t^V
+=\big(V_\phi(s_t)-\hat R_t^\lambda\big)\nabla_\phi V_\phi(s_t)}.
+$$
+
+例如 $V_{\mathrm{old}}(s_t)=4$、$V_{\mathrm{old}}(s_{t+1})=5$、$r_t=2$、$\gamma=0.9$、且没有终止，One-Step Target 为
+
+$$
+ y_t^{\mathrm{TD}}=2+0.9\times5=6.5,\qquad\delta_t=6.5-4=2.5.
+$$
+
+若把 $V(s_t)$ 暂时视为一个可单独优化的标量，则 $\partial\ell/\partial V=4-6.5=-2.5$，梯度下降会推动预测值上升。对真实神经网络，更新通过 $\nabla_\phi V_\phi(s_t)$ 分配到共享参数，因此不会保证任何特定状态的预测单调改变。
+
+**学习的不只是即时奖励：**$V_\phi(s_t)$ 预测的是当前策略下的折扣**长期**回报；即使当前奖励为零，后继状态的 Bootstrap 或未来多步奖励也能传递学习信号。Critic 属于近似的、自举的监督回归，不是已知真值标签上的普通回归。
+
+#### 26.2 Critic Loss 降了，Value 就一定正确吗？
+
+不一定。Target 依赖旧 Critic、有限轨迹和随机奖励；Actor 更新又会改变下轮所对应的策略与状态分布。低训练 MSE 不等于 Value 无偏，也不等于真实 Episode Return 提升。**Explained Variance** 常定义为
+
+$$
+\mathrm{EV}=1-\frac{\operatorname{Var}(\hat R_t^\lambda-V_\phi(s_t))}
+{\operatorname{Var}(\hat R_t^\lambda)},
+$$
+
+当目标的方差接近零时该指标不稳定；且目标本身仍可能有偏。应结合成功率、实际回报与 Target / Value 的尺度一起诊断。某些实现对 Value 增量做 Clipping，但它不保证真实价值精度提升。
+
 <a id="course-section-34"></a>
 
 ### 27. Entropy Bonus 的动机
@@ -820,6 +926,21 @@ $$
 $$
 
 鼓励合理探索。其平均值记为 $L^{\mathrm{entropy}}=\mathbb E_t[H(\pi_\theta(\cdot\mid s_t))]$。高熵并不总是更好，尤其是机器人部署阶段；Entropy Coefficient 可能取零，也可能随训练退火。
+
+
+
+#### 27.1 熵正则如何参与 Gaussian 方差学习？
+
+一维未压缩 Gaussian $\mathcal N(\mu,\sigma^2)$ 的熵为
+
+$$
+\boxed{H(\pi)=\tfrac12\log(2\pi e\sigma^2)
+=\tfrac12\log(2\pi e)+\log\sigma},
+\qquad
+\frac{\partial H}{\partial\log\sigma}=1.
+$$
+
+因此，最小化总损失中的 $-c_e H$，会在 $c_e>0$ 时提供增加 $\log\sigma$ 的梯度倾向；而 Advantage 的梯度可能使方差增大或减小，具体见第 30 节。**探索并不是方差越大越好**：高噪声会妨碍接触稳定性，也可能使机器人执行动作触及安全限制。多维独立 Gaussian 的熵为各维之和；经 Tanh 变换后的动作熵不能不加修改地等同于变换前 Gaussian 熵。
 
 <a id="course-section-35"></a>
 
@@ -847,6 +968,39 @@ $$
 - 独立 Actor 与 Critic 参数时可分别更新；共享网络时需要考虑梯度耦合。
 
 常见实现对每个训练 Mini-batch 做多轮更新，但旧 Log Probability、Advantage 和 Return Target 在该 Rollout 的 PPO Epoch 内保持固定。
+
+
+
+#### 28.1 梯度图：谁更新谁？
+
+在使用独立参数的 Actor 和 Critic 时，一轮采样后先完成 GAE 计算，然后形成两条**彼此不同的监督路径**：
+
+$$
+\begin{gathered}
+\pi_{\theta_{\mathrm{old}}}\ \longrightarrow\ (s_t,a_t,r_t,s_{t+1},\log\pi_{\mathrm{old}},V_{\mathrm{old}})\\
+\downarrow\quad\mathrm{TD\ errors\ and\ GAE}\\
+\hat A_t\xrightarrow{\operatorname{stopgrad}}L^{\mathrm{CLIP}}(\theta)
+\ \longrightarrow\ \text{Actor parameters }\theta,\\
+\hat R_t^\lambda=\hat A_t+V_{\mathrm{old}}(s_t)
+\xrightarrow{\operatorname{stopgrad}}\mathcal L_{\mathrm{critic}}(\phi)
+\ \longrightarrow\ \text{Critic parameters }\phi.
+\end{gathered}
+$$
+
+**为什么停止 Advantage 的梯度？**Actor 应因改变 $\pi_\theta(a_t\mid s_t)$ 而提高代理目标，而非通过修改 Critic 的 $V_\phi$ 或回归标签来“投机”降低 Actor Loss。固定 Advantage 并不会阻止 Critic 根据自己的 Loss 学习。
+
+若两个网络各自独立，可分别用不同优化器和学习率更新。若共享视觉编码器或 Backbone，联合 Loss 对共享参数的梯度来自 Actor、Critic 和 Entropy 三项；`stopgrad` 仍用于冻结**优势与回归目标**，但不会阻断 Critic Loss 自身对共享 Backbone 的合理梯度。共享表示降低推理和参数开销，也可能导致策略与价值梯度竞争；这并不是 PPO 必须采用的架构。
+
+#### 28.2 机器人中的 Asymmetric Actor–Critic
+
+在仿真训练中，Actor 可以只输入部署时可获得的相机图像、本体感觉或估计状态，而 Critic 使用仿真器可访问的真实物体姿态、接触信息等 Privileged State。用符号表示为
+
+$$
+\pi_\theta(a_t\mid o_t),\qquad V_\phi(x_t),
+\quad x_t\ \text{可包含训练阶段特权信息}.
+$$
+
+这类 Asymmetric Actor–Critic 能减少价值估计难度，但**绝不能让部署 Actor 无意依赖特权输入**；如存在历史信息、部分可观测性和非马尔可夫观测，也要明确 Value 使用的信息集与 Bootstrap 条件。它是训练架构选择，而不是 PPO-Clip 算法的必备条件。
 
 <a id="course-section-36"></a>
 
@@ -908,6 +1062,36 @@ $$
 
 当 $\hat A>0$，更新推动分布均值朝采样动作移动；当 $\hat A<0$，更新推动均值远离该动作。PPO 的 Clipping 再限制单个样本从此类概率变化中获得的额外收益。若 $\sigma$ 可训练，还有关于方差的梯度项。
 
+
+
+#### 30.1 除了均值，Log Standard Deviation 怎样学习？
+
+允许 Gaussian 的标准差可训练，令 $\eta_\theta(s)=\log\sigma_\theta(s)$。一维 Log Probability 为
+
+$$
+\log\pi_\theta(a\mid s)=
+-\tfrac12\left[\frac{(a-\mu_\theta(s))^2}{e^{2\eta_\theta(s)}}
++2\eta_\theta(s)+\log(2\pi)\right].
+$$
+
+对均值和对数标准差分别求导：
+
+$$
+\boxed{\frac{\partial\log\pi_\theta}{\partial\mu_\theta}
+=\frac{a-\mu_\theta}{\sigma_\theta^2}},\qquad
+\boxed{\frac{\partial\log\pi_\theta}{\partial\eta_\theta}
+=\frac{(a-\mu_\theta)^2}{\sigma_\theta^2}-1}.
+$$
+
+未被 Clipping 截断的样本，在梯度**上升**方向给这两项乘以 $\hat A_t\rho_t$。对于 $\hat A_t>0$，如果 $|a-\mu|>\sigma$，该样本会倾向于增加 $\log\sigma$；如果 $|a-\mu|<\sigma$，则倾向于减小 $\log\sigma$。$\hat A_t<0$ 时方向相反。可见策略不是机械地“好动作就缩小噪声”，而是同时学习概率分布的**位置和宽度**。
+
+机器人 PPO 中常见两种参数化：
+
+1. **State-Independent Log Std**：网络预测 $\mu_\theta(s)$，另把每个动作维度的 $\eta_i$ 当作可训练参数；在许多 Locomotion / Dexterous Control 配置中常用，结构简单。
+2. **State-Dependent Log Std**：网络同时预测 $\mu_\theta(s)$ 和 $\eta_\theta(s)$；表达能力更强，但数值稳定性与训练难度可能不同。
+
+实际可对 Log Std 设上下界，并检查策略熵和实际控制噪声。训练时从策略采样动作（通常为随机）；评估/部署时常用均值动作或等价的确定性映射，但这不是 PPO 数学要求的唯一选择。若使用 Tanh-Squashed Gaussian，密度计算需要一致地考虑相应变量变换。
+
 <a id="course-section-39"></a>
 
 ### 31. 机器人 Residual PPO 示例
@@ -955,6 +1139,18 @@ $$
 8. **计算 Ratio 与 Clipped Actor Loss**：$r_t=\exp(\log\pi_\theta-\log\pi_{\mathrm{old}})$，然后应用式 (21)。
 9. **更新 Actor 与 Critic**：最小化联合损失或分别优化，在同一批数据上重复若干 Epoch，监测 KL、Clip Fraction、Value Loss。
 10. **重新采样**：更新完毕后，用新策略生成下一批数据；不把任意久远的旧数据当作标准 On-Policy PPO 的普通 Rollout 重复训练。
+
+
+
+#### 32.1 同一批 Rollout 中，Actor 与 Critic 的参数到底何时变化？
+
+建议把第 32 节的十个步骤理解为两个不同的阶段：
+
+1. **数据采样与 GAE 阶段：** 环境状态、采样动作和奖励随时间变化，随后一次性计算 $\hat A_t$ 与 $\hat R_t^\lambda$。采样时的行为策略 $\pi_{\mathrm{old}}$ 和用于形成 Target 的 $V_{\mathrm{old}}$ 保持为固定快照。
+2. **$K$ 轮 Mini-batch 优化阶段：** 只更新当前 Actor 参数 $\theta$、Critic 参数 $\phi$ 以及由它们产生的新 Log Probability 和 Value。存储的旧动作、旧 Log Probability、$\hat A_t$、$\hat R_t^\lambda$ 始终不变。
+3. **下一次 Rollout 阶段：** 更新后的 Actor 成为新的行为策略，采集新数据；不把很久以前的旧 Rollout 当作标准 PPO 的新采样继续训练。
+
+这样能解释一个常见混淆：在同一轮 PPO Epoch 中，**Critic 的预测可以改变，但用来训练 Critic 的回归 Target 不跟着改变**。如果训练时动态重算旧 Log Probability 或 Advantage，优化目标会不再对应于最初的旧策略快照。
 
 <a id="course-section-42"></a>
 
@@ -1024,6 +1220,39 @@ entropy = dist.entropy().sum(dim=-1)
 
 这段代码只展示核心公式；完整训练还需要 Rollout Buffer、环境步进、网络结构、优化器、正确的 `terminated/truncated` 处理与指标记录。
 
+
+
+#### 33.1 从三种损失得到一次可反向传播的完整更新
+
+以下补充代码只演示**已准备好一个固定 Rollout Mini-batch** 时的三个 Loss。它不替代上面的 GAE / 终止 Mask 处理，也不是完整训练包。
+
+```python
+import torch
+
+
+def ppo_joint_losses(actor, critic, obs, actions,
+                     old_log_prob, advantages, returns,
+                     clip_eps=0.2, value_coef=0.5,
+                     entropy_coef=0.0):
+    # actor(obs) returns [batch, action_dim] mean and log_std.
+    mean, log_std = actor(obs)
+    dist = torch.distributions.Independent(
+        torch.distributions.Normal(mean, log_std.exp()), 1
+    )
+    new_log_prob = dist.log_prob(actions)
+    actor_loss = ppo_actor_loss(
+        new_log_prob, old_log_prob.detach(),
+        advantages.detach(), clip_eps
+    )
+    value_pred = critic(obs).squeeze(-1)
+    value_loss = 0.5 * (value_pred - returns.detach()).square().mean()
+    entropy = dist.entropy().mean()
+    total_loss = actor_loss + value_coef * value_loss - entropy_coef * entropy
+    return total_loss, actor_loss, value_loss, entropy
+```
+
+若 Actor、Critic 参数互不共享，可以分别计算梯度并调用各自优化器；若共享 Backbone，则 `total_loss.backward()` 会汇总对共享参数的梯度。示例使用 `Independent(Normal, 1)` 得到动作向量的联合 Log Probability；如果网络的动作分布实现不同，必须对应调整 Density 的计算。这里的 `returns` 必须由**旧 Value + GAE** 在优化前计算。
+
 <a id="course-section-43"></a>
 
 ## 第十部分　超参数与实际诊断
@@ -1048,6 +1277,18 @@ entropy = dist.entropy().sum(dim=-1)
 **$\gamma$ 与 $\lambda$ 的根本区别**：$\gamma$ 决定优化目标如何折扣远期奖励，而 $\lambda$ 决定 Advantage 估计多大程度依赖远期采样 TD 信息。二者共同以 $(\gamma\lambda)^l$ 出现在 GAE 中，但理论角色不同。
 
 重要诊断量还包括 Episode Return、Success Rate、Value Loss、Explained Variance、Entropy、Approximate KL、Clip Fraction、梯度范数。出现“代理 Loss 看似改善、真实成功率下降”时，应重点检查数据分布漂移、Critic 误差、KL 过大和奖励设计。
+
+
+
+#### 34.1 将诊断指标映射到 Actor–Critic 的真实学习问题
+
+- **Value Loss 大 / Explained Variance 低：** 可能是 Critic Target 噪声大、网络表达能力不足、Bootstrap 偏差或奖励尺度变化。优先核对 Return Target 与 Value 的范围、真正终止的 Mask、Value 学习率和 Normalization。
+- **Actor Loss 下降，但成功率不升：** 代理目标不必然等同于真实性能。应比较新 Rollout 的 Return、Approximate KL、Clip Fraction 和奖励定义，并审查 Advantage 估计的噪声。
+- **Approximate KL 或 Clip Fraction 长期偏大：** 通常提示在固定 Rollout 上 Actor 更新太快。检查 Actor Learning Rate、每批 PPO Epoch 数、Mini-batch 大小和 Target-KL Early Stopping。
+- **Entropy 很快接近零：** 检查可训练 Log Std 是否收缩过快、Log Std 的上下界、动作分布形式及 Entropy Coefficient。
+- **机器人接触任务中策略抖动：** 可能来自过大的探索噪声、不合适的动作尺度或控制频率；应联动检查 Action Scale、Log Std、控制周期以及关节/接触约束。
+
+**注意两类学习率和两个时间尺度：**Actor 的学习率控制策略漂移；Critic 的学习率控制 Value 对变化中的目标的追踪速度。Critic 太慢可能损坏 GAE，太快可能导致高噪声目标下的过拟合或优化不稳定。不能仅凭 Critic Loss 数值选择两者；应同时观察性能和 KL。更多数据复用提高样本利用率，但也增加偏离采样策略的风险。
 
 <a id="course-section-45"></a>
 
@@ -1132,6 +1373,7 @@ $$
 2. Schulman, J. et al. (2015). *Trust Region Policy Optimization*. ICML. <https://arxiv.org/abs/1502.05477>
 3. Schulman, J. et al. (2015). *High-Dimensional Continuous Control Using Generalized Advantage Estimation*. ICLR 2016. <https://arxiv.org/abs/1506.02438>
 4. OpenAI Spinning Up. *PPO Documentation*. <https://spinningup.openai.com/en/latest/algorithms/ppo.html>
+5. Zeng, X. and contributors. *PPO 完整推导与设计动机*（原课程 PDF）. <https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_CN.pdf>
 
 ---
 

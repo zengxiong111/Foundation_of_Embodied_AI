@@ -1,26 +1,15 @@
 ---
 title: "PPO: A Complete Derivation and Its Design Motivations"
-subtitle: "From Policy Gradients and Importance Sampling to TRPO, PPO-Clip, GAE, and Robotic Continuous Control"
+subtitle: "Including How Actors and Critics Learn: From Policy Gradients, PPO-Clip, and GAE to Robot Control"
 author: "Reinforcement Learning Research Tutorial"
-date: "October 15, 2026"
+date: "October 18, 2026 (Actor–Critic Expanded Edition)"
 lang: en-US
 ---
 
 # PPO: A Complete Derivation and Its Design Motivations
 
-<!-- course-meta:start -->
 [Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/PPO_%E5%AE%8C%E6%95%B4%E6%8E%A8%E5%AF%BC%E4%B8%8E%E8%AE%BE%E8%AE%A1%E5%8A%A8%E6%9C%BA_%E4%B8%AD%E6%96%87.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_EN.pdf)
 
-| Item | Details |
-|---|---|
-| Applicability | PPO-Clip / GAE theory; PyTorch-style examples are instructional, not a tested training package |
-| Documentation review date | 2026-10-18 |
-| License | CC BY 4.0 · Xiong Zeng and contributors |
-
-**Verification scope:** Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation. See the [materials manifest](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/materials.json) for pinned source references. Original teaching content uses [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); third-party quotations, figures and code retain their original licenses. Citation alone does not grant relicensing rights.
-<!-- course-meta:end -->
-
-<!-- course-toc:start -->
 ## Contents
 
 - [Part I. From Expected Return to Policy Gradients](#course-section-01)
@@ -71,15 +60,20 @@ lang: en-US
   - [35. Algorithmic progression: one design choice per problem](#course-section-46)
 - [Part XII. Final Formula Sheet and Research Takeaways](#course-section-47)
   - [References and further reading](#course-section-48)
-<!-- course-toc:end -->
 
-**Chapter concept map**
+<!-- tutorial-body:start -->
+> **Learning objective.** Understand not just the PPO loss, but why every component was introduced. This tutorial develops the mathematics step by step, provides numerical examples, addresses implementation pitfalls, and connects PPO to continuous robot control and residual reinforcement learning.
 
-```mermaid
-flowchart LR
-  A["Fresh rollout"] --> B["GAE"] --> C["Clipped objective"] --> D["Policy update"]
-```
+**Central idea:** Increase the probability of advantageous actions and decrease the probability of disadvantageous actions, without changing the policy so aggressively that an improvement estimate constructed from old-policy data becomes unreliable.
 
+**Roadmap:** Expected return $\rightarrow$ Policy gradient $\rightarrow$ Baselines and advantage $\rightarrow$ Performance differences and importance sampling $\rightarrow$ TRPO $\rightarrow$ PPO-Clip $\rightarrow$ GAE $\rightarrow$ Complete actor–critic objective $\rightarrow$ Continuous control and implementation.
+
+> **Notation.** We mainly consider a discounted infinite-horizon MDP with $\gamma\in[0,1)$, and $J(\theta)$ is the discounted return from the initial-state distribution. We explicitly distinguish the rigorous discounted-state-occupancy formulation from the time-step averages commonly used in PPO implementations. Within each PPO optimization phase, the advantage estimates $\hat A_t$ are held fixed after being computed from an old-policy rollout.
+
+
+> **Expanded edition (2026-10-18).** This edition preserves all 12 parts and 35 numbered sections of the original derivation, and expands Sections 24–28, 30, and 32–34 with Bellman/TD($\lambda$) regression targets, semi-gradient value learning, advantage-weighted actor updates, Gaussian mean/log-standard-deviation learning, gradient separation, shared encoders, asymmetric actor–critic for robotics, and diagnostics. Original tutorial: [online Chinese PDF](https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_CN.pdf); course repository: [Foundation of Embodied AI](https://github.com/zengxiong111/Foundation_of_Embodied_AI). Original tutorial credits: Xiong Zeng and contributors, CC BY 4.0. Code snippets are illustrative and have not been validated as complete training systems.
+
+**New learning thread:** The critic learns to predict long-term return from fixed bootstrapped/GAE targets $\rightarrow$ TD errors and GAE estimate the relative quality of old actions $\rightarrow$ the actor changes action probabilities through advantage-weighted policy gradients $\rightarrow$ PPO-Clip discourages overly large policy changes $\rightarrow$ the updated policy collects new samples. **The critic performs regression; the actor optimizes a clipped surrogate over action distributions. Fixed advantage estimates connect them.**
 
 <a id="course-section-01"></a>
 
@@ -767,6 +761,52 @@ $$
 
 $V_{\phi_{\mathrm{old}}}$ denotes the critic values saved when targets for the rollout were calculated. Hold these values fixed during the PPO epochs. The construction aligns the actor's advantage estimates with the critic's regression target.
 
+
+
+#### 24.1 Where do critic labels come from? Bellman targets and semi-gradients
+
+The critic does not know the true $V^{\pi_{\mathrm{old}}}(s)$. Instead, samples $(s_t,a_t,r_t,s_{t+1})$ collected under the behavior policy provide approximate regression targets. For a nonterminal transition, the one-step target and temporal-difference error are
+
+$$
+\boxed{y_t^{\mathrm{TD}}=r_t+\gamma V_{\phi_{\mathrm{old}}}(s_{t+1})},
+\qquad\delta_t=y_t^{\mathrm{TD}}-V_{\phi_{\mathrm{old}}}(s_t).
+$$
+
+If $d_t=1$ denotes true MDP termination, use $y_t^{\mathrm{TD}}=r_t+\gamma(1-d_t)V_{\phi_{\mathrm{old}}}(s_{t+1})$. A time limit or rollout boundary is not necessarily a true terminal transition: bootstrap from the appropriate *final observation*, not a reset observation.
+
+Hold the target constant while fitting the critic:
+
+$$
+\ell_t(\phi)=\tfrac12\big(V_\phi(s_t)-\operatorname{stopgrad}(y_t^{\mathrm{TD}})\big)^2,
+$$
+
+$$
+\boxed{\nabla_\phi\ell_t
+=\big(V_\phi(s_t)-y_t^{\mathrm{TD}}\big)\nabla_\phi V_\phi(s_t)}.
+$$
+
+This is a **semi-gradient TD update**: gradients flow through the current prediction, but not through the bootstrapped target. Backpropagating through the target would change the objective being optimized. Standard PPO does **not require** a separate slowly updated target network of the kind commonly used in DQN. The old critic snapshot and fixed per-rollout regression targets generally suffice.
+
+#### 24.2 Why TD($\lambda$) returns rather than only one-step targets?
+
+GAE, derived in Sections 22–23, supplies a return target consistent with the actor's advantage estimate:
+
+$$
+\boxed{\hat R_t^\lambda
+=V_{\mathrm{old}}(s_t)+\hat A_t^{\mathrm{GAE}}}.
+$$
+
+On a nonterminal portion of a trajectory, this is equivalent to
+
+$$
+\hat R_t^\lambda=r_t+\gamma\left[(1-\lambda)V_{\mathrm{old}}(s_{t+1})
++\lambda\hat R_{t+1}^\lambda\right].
+$$
+
+At a rollout boundary, initialize the recursion using the appropriate bootstrap value $V_{\mathrm{old}}(s_T)$; at true termination, future return is zero. With $\lambda=0$, the target is one-step TD. With $\lambda=1$ on a complete terminal trajectory, it is the Monte Carlo return. Intermediate values mix multi-step reward information with bootstrapping.
+
+**The two critic snapshots must not be conflated.** $V_{\mathrm{old}}$ generates targets, while $V_\phi$ is being trained. During all minibatch epochs of one PPO update, hold $\hat A_t$, $\hat R_t^\lambda$, and the old action log probabilities fixed, even after the critic parameters change.
+
 <a id="course-section-31"></a>
 
 ## Part VII. The Complete Actor–Critic Loss
@@ -791,6 +831,37 @@ $$\boxed{\mathcal L_{\mathrm{actor}}=-L^{\mathrm{CLIP}}}. \tag{36}$$
 
 If the advantage estimates were produced by a differentiable critic currently inside the computational graph, detach them from the actor objective to avoid unintentionally backpropagating through the advantage targets.
 
+
+
+#### 25.1 How can the actor learn without labeled optimal actions?
+
+Behavior cloning needs expert labels $a_t^*$; PPO does not. Its own sampled actions are weighted by their **relative quality**, $\hat A_t$. Begin with the unclipped surrogate,
+
+$$
+L^{\mathrm{CPI}}_t(\theta)=\rho_t(\theta)\hat A_t,
+\qquad
+\rho_t(\theta)=\frac{\pi_\theta(a_t\mid s_t)}{\pi_{\mathrm{old}}(a_t\mid s_t)}.
+$$
+
+With the old denominator and advantage held fixed,
+
+$$
+\boxed{\nabla_\theta[-L^{\mathrm{CPI}}_t]
+=-\hat A_t\rho_t(\theta)\nabla_\theta\log\pi_\theta(a_t\mid s_t)}.
+$$
+
+At the beginning of an update, $\theta=\theta_{\mathrm{old}}$ and $\rho_t=1$. Clipping is inactive, so the initial direction agrees with the usual advantage policy gradient:
+
+- For $\hat A_t>0$, increase the density of this sampled action; **do not** regress the network output to it as a supervised label.
+- For $\hat A_t<0$, decrease that action's density.
+- For $\hat A_t\approx0$, the sample gives little local policy-update signal.
+
+These are **per-sample, local gradient contributions**. Shared network parameters may change densities at many states, and other samples can counteract an individual contribution. PPO clipping removes additional surrogate gain for favorable but overly large ratio changes; the exact piecewise gradient was derived in Section 17.
+
+#### 25.2 A numerical example of an actor update
+
+Suppose a sampled discrete action has $\pi_{\mathrm{old}}(a_t\mid s_t)=0.20$, $\epsilon=0.2$, and $\hat A_t=+2$. If the new probability is $0.22$, the ratio is $1.1$ and the sample's unclipped contribution is $2.2$. If it becomes $0.30$, the ratio is $1.5$ but PPO-Clip credits only $1.2\times2=2.4$ to this sample: further increases yield no additional clipped surrogate gain. An analogous plateau occurs when a **negative-advantage** action's probability is decreased too far. This discrete example is for intuition; a continuous Gaussian policy uses **densities** and joint action log probabilities, not nonzero single-point probabilities.
+
 <a id="course-section-33"></a>
 
 ### 26. Critic loss
@@ -804,6 +875,41 @@ $$
 
 Direct Monte Carlo return targets are another option. Some PPO implementations use value-function clipping or multiply the squared error by $1/2$; neither is essential to the basic PPO-Clip objective. An inaccurate critic can corrupt the sign or magnitude of advantages, so policy-update stability depends strongly on value estimation quality.
 
+
+
+#### 26.1 How a critic prediction error changes network parameters
+
+Using a per-sample MSE with the conventional factor $\tfrac12$,
+
+$$
+\ell_t^V(\phi)=\tfrac12\big(V_\phi(s_t)-\hat R_t^\lambda\big)^2,
+\qquad
+\boxed{\nabla_\phi\ell_t^V
+=\big(V_\phi(s_t)-\hat R_t^\lambda\big)\nabla_\phi V_\phi(s_t)}.
+$$
+
+For example, let $V_{\mathrm{old}}(s_t)=4$, $V_{\mathrm{old}}(s_{t+1})=5$, $r_t=2$, and $\gamma=0.9$, with no termination. The one-step TD target and error are
+
+$$
+ y_t^{\mathrm{TD}}=2+0.9\times5=6.5,
+\qquad\delta_t=6.5-4=2.5.
+$$
+
+If $V(s_t)$ were an independently adjustable scalar, $\partial\ell/\partial V=4-6.5=-2.5$, so gradient descent would raise its prediction. In a neural network, the error is propagated through $\nabla_\phi V_\phi(s_t)$ to shared parameters, so an individual state's predicted value need not change monotonically.
+
+**The prediction concerns long-term return, not immediate reward.** Even when $r_t=0$, bootstrap values or subsequent rewards can supply a learning signal. Critic training is noisy, bootstrapped regression against estimated targets, not supervised regression against known ground truth.
+
+#### 26.2 Does lower critic loss guarantee a good value function?
+
+No. Targets depend on the old critic, finite rollout, and stochastic rewards. Actor updates also alter the next iteration's policy and state distribution. Low training MSE alone proves neither unbiased value estimates nor higher episode return. A common diagnostic is **explained variance**:
+
+$$
+\mathrm{EV}=1-\frac{\operatorname{Var}(\hat R_t^\lambda-V_\phi(s_t))}
+{\operatorname{Var}(\hat R_t^\lambda)}.
+$$
+
+It becomes unstable when the target variance is nearly zero, and the target itself may still be biased. Inspect success rates, actual returns, and target/value scales as well. Some implementations clip changes in value predictions; value clipping does not guarantee greater true value accuracy.
+
 <a id="course-section-34"></a>
 
 ### 27. Motivation for the entropy bonus
@@ -816,6 +922,20 @@ $$
 $$
 
 to encourage sufficient exploration. Let $L^{\mathrm{entropy}}=\mathbb E_t[H(\pi_\theta(\cdot\mid s_t))]$. Higher entropy is not always preferable, particularly near robot deployment. The entropy coefficient may be zero or annealed during training.
+
+
+
+#### 27.1 How does entropy regularization affect Gaussian standard deviation?
+
+The entropy of an unsquashed one-dimensional Gaussian $\mathcal N(\mu,\sigma^2)$ is
+
+$$
+\boxed{H(\pi)=\tfrac12\log(2\pi e\sigma^2)
+=\tfrac12\log(2\pi e)+\log\sigma},
+\qquad\frac{\partial H}{\partial\log\sigma}=1.
+$$
+
+Consequently, minimizing the total loss with $-c_eH$ contributes a gradient encouraging larger $\log\sigma$ when $c_e>0$. The advantage-weighted policy gradient may raise or lower the standard deviation, as explained in Section 30. **More entropy is not always desirable**: excessive action noise can destabilize contact and trigger physical safety limits. Entropies add across independent Gaussian dimensions. The entropy of a tanh-squashed action distribution is not identical to that of its underlying Gaussian.
 
 <a id="course-section-35"></a>
 
@@ -843,6 +963,39 @@ $$
 - With separate actor and critic parameters, the two networks can have separate updates; with shared parameters, their gradients interact.
 
 A PPO optimization phase typically uses several mini-batch epochs over a fixed rollout, keeping the stored old log probabilities, advantages, and return targets constant during that phase.
+
+
+
+#### 28.1 The gradient graph: which loss trains which network?
+
+After rollout collection and GAE, the learning signal splits into **two different regression/optimization paths**:
+
+$$
+\begin{gathered}
+\pi_{\theta_{\mathrm{old}}}\ \longrightarrow\ (s_t,a_t,r_t,s_{t+1},\log\pi_{\mathrm{old}},V_{\mathrm{old}})\\
+\downarrow\quad\mathrm{TD\ errors\ and\ GAE}\\
+\hat A_t\xrightarrow{\operatorname{stopgrad}}L^{\mathrm{CLIP}}(\theta)
+\ \longrightarrow\ \text{actor parameters }\theta,\\
+\hat R_t^\lambda=\hat A_t+V_{\mathrm{old}}(s_t)
+\xrightarrow{\operatorname{stopgrad}}\mathcal L_{\mathrm{critic}}(\phi)
+\ \longrightarrow\ \text{critic parameters }\phi.
+\end{gathered}
+$$
+
+**Why stop the gradient through advantage?** The actor should improve the surrogate by changing $\pi_\theta(a_t\mid s_t)$, not by manipulating $V_\phi$ or the labels used to score sampled actions. Freezing advantage does not prevent the critic from learning through its own loss.
+
+With separate networks, actor and critic can have independent optimizers and learning rates. With a shared visual encoder/backbone, gradients of the actor, critic, and entropy terms all reach the shared parameters. `stopgrad` still freezes the **advantage and return targets**, but does not block the valid critic-loss gradient through its shared backbone. Sharing saves parameters but can create gradient competition; it is an architectural choice, not a PPO requirement.
+
+#### 28.2 Asymmetric actor–critic for robotics
+
+During simulation training, an actor may receive only deployable camera images, proprioception, or estimated states, while the critic also receives privileged simulator information such as exact object poses or contact states:
+
+$$
+\pi_\theta(a_t\mid o_t),\qquad V_\phi(x_t),
+\quad x_t\ \text{may contain privileged training information}.
+$$
+
+This **asymmetric actor–critic** setup can simplify value prediction, but privileged inputs must **never inadvertently leak into the deployed actor**. For history dependence and partial observability, define the critic's information set and bootstrap assumptions carefully. Asymmetry is optional and separate from the clipped PPO objective.
 
 <a id="course-section-36"></a>
 
@@ -906,6 +1059,36 @@ $$
 
 For $\hat A>0$, this tends to move the mean toward the sampled action; for $\hat A<0$, it tends to move the mean away. PPO clipping limits further *surrogate benefit* from excessive probability changes. If $\sigma$ is learned, there are additional gradient terms associated with variance.
 
+
+
+#### 30.1 Learning log standard deviation as well as the mean
+
+Let the Gaussian standard deviation be trainable and define $\eta_\theta(s)=\log\sigma_\theta(s)$. In one dimension,
+
+$$
+\log\pi_\theta(a\mid s)=
+-\tfrac12\left[\frac{(a-\mu_\theta(s))^2}{e^{2\eta_\theta(s)}}
++2\eta_\theta(s)+\log(2\pi)\right].
+$$
+
+Differentiating with respect to the mean and log standard deviation gives
+
+$$
+\boxed{\frac{\partial\log\pi_\theta}{\partial\mu_\theta}
+=\frac{a-\mu_\theta}{\sigma_\theta^2}},\qquad
+\boxed{\frac{\partial\log\pi_\theta}{\partial\eta_\theta}
+=\frac{(a-\mu_\theta)^2}{\sigma_\theta^2}-1}.
+$$
+
+For an unclipped sample, gradient **ascent** on the policy objective multiplies both terms by $\hat A_t\rho_t$. With positive advantage, a sample more than one standard deviation from the mean ($|a-\mu|>\sigma$) tends to increase $\log\sigma$; a closer sample tends to decrease it. Negative advantage reverses those tendencies. A good action therefore does not automatically imply lower noise: the actor learns both a distribution's **location and width**.
+
+Two common continuous-control parameterizations are:
+
+1. **State-independent log standard deviation.** The network predicts $\mu_\theta(s)$, while trainable parameters $\eta_i$ supply one log standard deviation per action dimension. This is simple and common in locomotion and dexterous-control implementations.
+2. **State-dependent log standard deviation.** The network predicts both $\mu_\theta(s)$ and $\eta_\theta(s)$. This can be more expressive but has different stability considerations.
+
+Practical implementations may bound log standard deviations and monitor both entropy and executed control noise. Training typically samples stochastic actions; evaluation/deployment often uses the mean or another deterministic mapping, but PPO does not mathematically require this deployment convention. A tanh-squashed Gaussian requires consistently transformed log densities.
+
 <a id="course-section-39"></a>
 
 ### 31. Example: residual PPO for robot manipulation
@@ -953,6 +1136,18 @@ When residuals are scaled, transformed nonlinearly, or filtered through a safety
 8. **Compute ratios and clipped actor loss.** Use $r_t=\exp(\log\pi_\theta-\log\pi_{\mathrm{old}})$ and Eq. (21).
 9. **Optimize actor and critic.** Minimize the joint objective or separate losses for multiple epochs, monitoring KL, clip fraction, and value prediction.
 10. **Collect new on-policy data.** Use the updated policy for the next rollout rather than treating arbitrarily old replay data as ordinary PPO training data.
+
+
+
+#### 32.1 When do the actor and critic parameters actually change?
+
+Interpret the ten steps above as distinct phases:
+
+1. **Rollout and GAE.** Environment states, sampled actions, and rewards change during collection; $\hat A_t$ and $\hat R_t^\lambda$ are then computed once. The behavior policy $\pi_{\mathrm{old}}$ and the critic snapshot $V_{\mathrm{old}}$ remain fixed while those targets are created.
+2. **$K$ minibatch epochs.** Update current actor parameters $\theta$, critic parameters $\phi$, and the resulting *new* log probabilities and value predictions. The sampled actions, *old* log probabilities, $\hat A_t$, and $\hat R_t^\lambda$ remain frozen.
+3. **Next rollout.** The updated actor becomes the new behavior policy. Gather new data instead of treating arbitrarily old samples as fresh on-policy PPO experience.
+
+Thus, within one PPO optimization phase, **critic predictions can change but the critic regression targets remain fixed**. Recomputing old log probabilities or advantage from the moving parameters inside the same update changes the surrogate away from the behavior-policy snapshot it was designed for.
 
 <a id="course-section-42"></a>
 
@@ -1022,6 +1217,39 @@ entropy = dist.entropy().sum(dim=-1)
 
 These examples implement the essential formulas; a complete training program still needs a rollout buffer, environment interaction, network definitions, optimizers, correct `terminated/truncated` handling, and metric logging.
 
+
+
+#### 33.1 Combining the three losses into one differentiable minibatch update
+
+The following addition illustrates the three losses for an **already prepared, fixed rollout minibatch**. It does not replace the GAE/termination-mask handling above, and it is not a complete training package.
+
+```python
+import torch
+
+
+def ppo_joint_losses(actor, critic, obs, actions,
+                     old_log_prob, advantages, returns,
+                     clip_eps=0.2, value_coef=0.5,
+                     entropy_coef=0.0):
+    # actor(obs) returns [batch, action_dim] mean and log_std.
+    mean, log_std = actor(obs)
+    dist = torch.distributions.Independent(
+        torch.distributions.Normal(mean, log_std.exp()), 1
+    )
+    new_log_prob = dist.log_prob(actions)
+    actor_loss = ppo_actor_loss(
+        new_log_prob, old_log_prob.detach(),
+        advantages.detach(), clip_eps
+    )
+    value_pred = critic(obs).squeeze(-1)
+    value_loss = 0.5 * (value_pred - returns.detach()).square().mean()
+    entropy = dist.entropy().mean()
+    total_loss = actor_loss + value_coef * value_loss - entropy_coef * entropy
+    return total_loss, actor_loss, value_loss, entropy
+```
+
+With separate parameters, actor and critic losses can be backpropagated and stepped with separate optimizers. With a shared backbone, `total_loss.backward()` aggregates gradients on shared parameters. The `Independent(Normal, 1)` distribution yields the joint log probability for the entire action vector; other action distributions require matching density calculations. Importantly, `returns` is computed from **old values plus GAE** *before* the optimization epochs.
+
 <a id="course-section-43"></a>
 
 ## Part X. Hyperparameters and Diagnostics
@@ -1046,6 +1274,18 @@ These are experimental starting points, not universal optima. Large-scale parall
 **The distinction between $\gamma$ and $\lambda$:** The discount factor $\gamma$ defines how the learning objective values distant rewards; $\lambda$ determines how much an advantage estimator incorporates distant sampled TD information. Both appear through $(\gamma\lambda)^l$ in GAE, but their conceptual roles are different.
 
 Useful diagnostics include episode return, task success rate, value loss, explained variance, policy entropy, approximate KL, clip fraction, and gradient norm. If a surrogate improves while actual robot success decreases, investigate distribution shift, critic error, excessive KL, and reward design.
+
+
+
+#### 34.1 Reading diagnostics as actual actor–critic learning problems
+
+- **High value loss or low explained variance.** Possible causes include noisy critic targets, limited approximation capacity, bootstrap bias, and changing reward scales. Inspect target/value ranges, true termination masks, critic learning rate, and normalization.
+- **Actor loss improves while success does not.** The surrogate objective may fail to track actual performance. Check *new* rollout returns, approximate KL, clip fraction, reward design, and advantage noise.
+- **Persistently high approximate KL or clip fraction.** The actor may be updating too quickly on a fixed rollout. Check actor learning rate, PPO epochs, minibatch size, and target-KL stopping.
+- **Entropy collapses early.** Inspect shrinking trainable log standard deviations, their allowed range, the action distribution, and the entropy coefficient.
+- **Robot contact becomes jittery.** Excessive exploratory noise or poorly chosen action scaling/control frequency may be responsible. Check action scale, log standard deviation, control period, and joint/contact limits.
+
+**Two learning rates and two time scales matter.** The actor learning rate controls policy drift; the critic learning rate controls tracking of changing value targets. A critic that learns too slowly may corrupt GAE; overly aggressive updates can overfit noisy targets or destabilize optimization. Do not tune either rate from value loss alone: monitor actual task performance and policy KL. More epochs reuse data more aggressively but also increase departure from the data-collecting policy.
 
 <a id="course-section-45"></a>
 
@@ -1130,6 +1370,7 @@ $$
 2. Schulman, J., et al. (2015). *Trust Region Policy Optimization*. ICML. <https://arxiv.org/abs/1502.05477>
 3. Schulman, J., et al. (2015). *High-Dimensional Continuous Control Using Generalized Advantage Estimation*. ICLR 2016. <https://arxiv.org/abs/1506.02438>
 4. OpenAI Spinning Up. *PPO Documentation*. <https://spinningup.openai.com/en/latest/algorithms/ppo.html>
+5. Zeng, X. and contributors. *PPO: Complete Derivation and Design Motivations* (original course tutorial). <https://zengxiong111.github.io/zengxiong.github.io/files/PPO_Complete_Derivation_CN.pdf>
 
 ---
 
