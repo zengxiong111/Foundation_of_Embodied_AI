@@ -44,31 +44,22 @@
 - [9. Interactive Imitation and Recovering from Failure](#course-section-27)
   - [9.1 DAgger: Expert Queries on Learner-Visited States](#course-section-28)
   - [9.2 Failures, Recoveries, and Event-Biased Sampling](#course-section-29)
-- [10. ACT, Diffusion Policy, and Flow Matching for Actions](#course-section-30)
+- [10. ACT, Diffusion Policy, Flow Matching, and RTC: Training vs. Execution](#course-section-30)
   - [10.1 ACT: Conditional VAE and Transformer Chunks](#course-section-31)
   - [10.2 Diffusion Policy: Predict Noise in Action Space](#course-section-32)
   - [10.3 Flow Matching: Generative Velocity Is Not Joint Velocity](#course-section-33)
   - [10.4 Fair Comparisons Against BC](#course-section-34)
-- [11. Human Video Retargeting, Contact, and Augmentation](#course-section-35)
-  - [11.1 Human-to-Robot Is Not Pixel Imitation](#course-section-36)
-  - [11.2 Augmentation Must Preserve Geometry and Physics](#course-section-37)
-- [12. Training and Evaluation Protocol](#course-section-38)
-  - [12.1 Offline Metrics, Closed-Loop Success, and Recovery](#course-section-39)
-  - [12.2 A Shared Panda Tabletop Benchmark](#course-section-40)
-- [13. Where This Fits and References](#course-section-41)
-- [8. Deeper Foundations: Demonstrations and Supervised Objectives](#course-section-42)
-  - [8.1 Episodes, Behavior Policies, and Causality](#course-section-43)
-  - [8.2 Deterministic and Probabilistic BC](#course-section-44)
-  - [8.3 Compounding Error and DAgger](#course-section-45)
-- [9. Action Chunking, ACT, and Generative Imitation](#course-section-46)
-  - [9.1 Prediction Versus Execution Horizon](#course-section-47)
-  - [9.2 ACT and the CVAE Objective](#course-section-48)
-  - [9.3 Diffusion Policy](#course-section-49)
-  - [9.4 Flow Matching for Action Chunks](#course-section-50)
-- [10. Data Quality and Evaluation](#course-section-51)
-  - [10.1 Contacts, Failures, and Event-Aware Sampling](#course-section-52)
-  - [10.2 Shared Panda Evaluation](#course-section-53)
-  - [10.3 Connection to Agentic Robotics](#course-section-54)
+  - [10.5 Why RTC Matters: From Synchronous Chunks to Asynchronous Control](#course-section-35)
+  - [10.6 Inference-Time RTC: Inpainting With a Frozen Prefix and Soft Overlap](#course-section-36)
+  - [10.7 Training-Time RTC: Learn the Prefix Constraint From Demonstrations](#course-section-37)
+  - [10.8 Comparing RTC Against Temporal Ensembling and Naive Async](#course-section-38)
+- [11. Human Video Retargeting, Contact, and Augmentation](#course-section-39)
+  - [11.1 Human-to-Robot Is Not Pixel Imitation](#course-section-40)
+  - [11.2 Augmentation Must Preserve Geometry and Physics](#course-section-41)
+- [12. Training and Evaluation Protocol](#course-section-42)
+  - [12.1 Offline Metrics, Closed-Loop Success, and Recovery](#course-section-43)
+  - [12.2 A Shared Panda Tabletop Benchmark](#course-section-44)
+- [13. Where This Fits and References](#course-section-45)
 <!-- course-toc:end -->
 
 **Learning outcomes:** Identify demonstration quality risks; understand BC, DAgger, ACT, and diffusion/flow chunk training; distinguish inference-time and training-time RTC; evaluate timing, continuity, and task success.
@@ -408,7 +399,6 @@ Use the same demonstrations, observation encoder, action representation, predict
 
 <a id="course-section-35"></a>
 
-
 ### 10.5 Why RTC Matters: From Synchronous Chunks to Asynchronous Control
 
 **Real-Time Chunking (RTC) is not a new BC objective or a standalone motor policy.** It is an execution/conditional generation technique for keeping diffusion- or flow-based chunk policies responsive despite inference latency. Synchronous chunk execution pauses at chunk boundaries. Naive asynchronous switching removes the pause but may jump between different valid yet incompatible future trajectories. Temporal ensembling averages predictions, which can produce an invalid average of two legitimate modes in contact-rich tasks.
@@ -431,6 +421,8 @@ flowchart LR
   E --> F["Switch to compatible future plan"]
   F --> G["Observe and replan"]
 ~~~
+
+<a id="course-section-36"></a>
 
 ### 10.6 Inference-Time RTC: Inpainting With a Frozen Prefix and Soft Overlap
 
@@ -467,6 +459,8 @@ $
 
 Integrate $A^{\tau+\Delta\tau}=A^\tau+\Delta\tau\,\widetilde v_\theta$. This keeps the generated trajectory compatible with committed actions while still allowing future corrections. The correction involves a vector–Jacobian product during generative integration: **inference-time RTC does not require retraining, but adds inference computation.** The original method assumes a guidable continuous diffusion/flow sampler; an arbitrary deterministic ACT output cannot simply be passed through the same inpainting solver.
 
+<a id="course-section-37"></a>
+
 ### 10.7 Training-Time RTC: Learn the Prefix Constraint From Demonstrations
 
 [Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964) incorporates the committed prefix into the imitation-learning objective. It learns
@@ -501,6 +495,8 @@ At deployment, supply the previously committed actions as a hard prefix and gene
 
 This method belongs naturally in imitation learning because it changes **sample construction, token conditioning, and loss masking**. The full flow-matching mathematical derivation remains in [Flow Matching](Flow_Matching_Step_by_Step_Derivation_EN.md). Sample $d$ from measured latency statistics rather than assuming an arbitrary universal delay range; the cited $\pi_{0.6}$ experiments evaluate randomly sampled prefix lengths at both training and inference time.
 
+<a id="course-section-38"></a>
+
 ### 10.8 Comparing RTC Against Temporal Ensembling and Naive Async
 
 | Execution mode | Waits at chunk boundaries? | How inter-chunk consistency is handled | Changes training? |
@@ -516,9 +512,11 @@ This method belongs naturally in imitation learning because it changes **sample 
 **References:** [RTC original paper (NeurIPS 2025)](https://arxiv.org/abs/2506.07339), [training-time RTC (2025)](https://arxiv.org/abs/2512.05964), [Physical Intelligence project/videos](https://www.pi.website/research/real_time_chunking), and [LeRobot RTC documentation](https://huggingface.co/docs/lerobot/main/rtc). Extensions such as [Soft RTC (2026)](https://arxiv.org/abs/2605.25537) and [DiscreteRTC (2026)](https://arxiv.org/abs/2604.25050) explore soft overlap priors and native inpainting for discrete action samplers; their reported benefits are not universal guarantees for the original RTC method.
 
 
+<a id="course-section-39"></a>
+
 ## 11. Human Video Retargeting, Contact, and Augmentation
 
-<a id="course-section-36"></a>
+<a id="course-section-40"></a>
 
 ### 11.1 Human-to-Robot Is Not Pixel Imitation
 
@@ -533,17 +531,17 @@ $
 
 Define $\mathcal L_{\rm contact}$ for the task, e.g. contact point error, surface normals, grasp maintenance or object slip. Mere proximity does not certify physical contact.
 
-<a id="course-section-37"></a>
+<a id="course-section-41"></a>
 
 ### 11.2 Augmentation Must Preserve Geometry and Physics
 
 When perturbing object position, scale or orientation, transform task goals, observable geometry, trajectories and reference-frame-dependent labels consistently. Rotating an image without adjusting Cartesian action labels is typically invalid. Contact phases should be physically replayed to check penetration, limits, slip and unreasonable forces before accepting augmented episodes.
 
-<a id="course-section-38"></a>
+<a id="course-section-42"></a>
 
 ## 12. Training and Evaluation Protocol
 
-<a id="course-section-39"></a>
+<a id="course-section-43"></a>
 
 ### 12.1 Offline Metrics, Closed-Loop Success, and Recovery
 
@@ -557,7 +555,7 @@ When perturbing object position, scale or orientation, transform task goals, obs
 
 For $k$ successes in $N$ independent episodes, report $\hat p=k/N$ and a confidence interval. The rough standard error is $\sqrt{\hat p(1-\hat p)/N}$; use a Wilson interval for small $N$ or near-boundary success rates. Frames from the same episode are not independent trials.
 
-<a id="course-section-40"></a>
+<a id="course-section-44"></a>
 
 ### 12.2 A Shared Panda Tabletop Benchmark
 
@@ -566,7 +564,7 @@ Use the same Panda arm, cube, and tabletop in simulation. First validate control
 **Chapter ownership:** this tutorial owns demonstration quality, supervised imitation, distribution shift and action-policy comparisons. Complete PPO/SAC derivations belong to their respective chapters; formal FM derivations belong to the [Flow Matching tutorial](Flow_Matching_Step_by_Step_Derivation_EN.md); the visual model toolbox belongs to [Visual Perception and State Estimation](Visual_State_Estimation_EN.md).
 
 
-<a id="course-section-41"></a>
+<a id="course-section-45"></a>
 
 ## 13. Where This Fits and References
 
@@ -581,4 +579,3 @@ This chapter bridges [camera calibration](Robot_Camera_Calibration_Tutorial_EN.m
 **Verification boundary:** this chapter is a methods and experiment-design primer, not a claim that those policies were reproduced in the shared Panda setup.
 
 
-<a id="course-section-42"></a>

@@ -3,8 +3,8 @@
   "documents": {
     "md/Flow_Matching_详细推导_精简版.md": {
       "pdf": "pdf/Flow_Matching_详细推导_精简版.pdf",
-      "source_sha256": "d91b2c78ac8edae37ce6ca20a6b9057504482cfc7ba91d0fe20129d26dc2825b",
-      "pdf_sha256": "f4fa0ebad3ac3b9b9b057dc53da0d5c6cecdc6c0e661ccd24cfcfb1d1b297151",
+      "source_sha256": "079c634ad8e1a5074b7b7ff269897880a3641591a66318c9b011fd20813e667f",
+      "pdf_sha256": "09189c56bcc9d1c7e8945a73a07cdf3052f83eb65f9313eb038a33d567967847",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -29,8 +29,8 @@
     },
     "md/Flow_Matching_Step_by_Step_Derivation_EN.md": {
       "pdf": "pdf/Flow_Matching_Step_by_Step_Derivation_EN.pdf",
-      "source_sha256": "57207a57aecb8b144bee563aa09699461b9b8c855964f4ffc360585c1dfba543",
-      "pdf_sha256": "ea28a0b3e35c3fc1109088bbd882c9b36d3765cbe50e929002bc69baa1f66345",
+      "source_sha256": "54fa3371e9fdd8d51607a23712f999e628c1237332f16e053ff39e62bc42c594",
+      "pdf_sha256": "45d5631d178dac37bc3adeeff05a90473a9e2979d4235b01bb2bd8d2b8b0be98",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -47,7 +47,7 @@
           "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
         }
       ],
-      "pages": 20,
+      "pages": 21,
       "math_nodes": 237,
       "math_errors": 0,
       "diagrams_rendered": 1,
@@ -55,8 +55,8 @@
     },
     "md/System1_System0_GR00T_SONIC_CN.md": {
       "pdf": "pdf/System1_System0_GR00T_SONIC_CN.pdf",
-      "source_sha256": "be7af1dbd527d7e6feaaa377e97e7e1e144e525f74636ade5bdb9c50a8b35021",
-      "pdf_sha256": "4d5f67781bfb29256a5885e71bb94ed9a5225d7dfc1c0507545909215ac26f9d",
+      "source_sha256": "07547180df0a8f7eb3db8adefeafd6141c8ca4151041aece50df8d6635e13f29",
+      "pdf_sha256": "df5ab9e95491af0f0ef832a36d28fcaff054be806b1b33f6cfe99ceba771191a",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -81,8 +81,8 @@
     },
     "md/System1_System0_GR00T_SONIC_EN.md": {
       "pdf": "pdf/System1_System0_GR00T_SONIC_EN.pdf",
-      "source_sha256": "94323d1939fdaf71603eda389024f1853848e7f5a217433716217686bccd9d45",
-      "pdf_sha256": "22901af96d709a13048c0448572efe6e14e02d68c1ea6fc4c70bb467e0b7dec2",
+      "source_sha256": "6726a9cdd733a522f2b6b56a2ee65a79f55208c4db3e82041e70b1a955d9b38e",
+      "pdf_sha256": "b0e73848cbc77d742ef5d8ef8fe4108941692bbb7b2ebc74c532003004ac97fa",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -108,7 +108,7 @@
     "md/Git_使用教程_中文版.md": {
       "pdf": "pdf/Git_使用教程_中文版.pdf",
       "source_sha256": "8c0378841476402e0b46d88880ba1a523cefaa324cd5e8e79604420e8b85c1f6",
-      "pdf_sha256": "a671d1a665ff72a6a15441a992007db10a2f704ad6a5decc1dfb4f867ae9d48f",
+      "pdf_sha256": "7faa376fd4807ae4838acd544ca4e4e6cd5fe2c74c1cdd4a5ffdcff3f0204291",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -134,7 +134,7 @@
     "md/Git_Tutorial_English.md": {
       "pdf": "pdf/Git_Tutorial_English-1.pdf",
       "source_sha256": "29212961b083f49be2abfd46dd205d42875d98903becf09f0c7160be0f332037",
-      "pdf_sha256": "0efdb168e7d64b0d591a08c6f362939a0712e456d7c9cc64369bd6e3103a602c",
+      "pdf_sha256": "f9b9917eb6e2cf12e408c50b9c89397f9c12192c6ebd6c8cd29b2b73029f66c5",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -160,7 +160,7 @@
     "md/ROS2_Robot_Learning_Tutorial_ZH.md": {
       "pdf": "pdf/ROS2_Robot_Learning_Tutorial_ZH.pdf",
       "source_sha256": "05c164d6d17d9221ce80f29a12dbb879b27b5311eed777a969b457dabb6ba136",
-      "pdf_sha256": "8841c981c56f975e3e63e6ac18823f80810e2923ddf30b8bd809825c8305976a",
+      "pdf_sha256": "fa15c1d6484667debb8ed4b0f5d9381e5a450f3312b814e75d5561b88a20c777",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -186,7 +186,7 @@
     "md/ROS2_Robot_Learning_Tutorial_EN.md": {
       "pdf": "pdf/ROS2_Robot_Learning_Tutorial_EN-1.pdf",
       "source_sha256": "922f0894be73b652db53d899c999447e4799666ffd12b7a743cf2a8d04ae8216",
-      "pdf_sha256": "78df10e4c307fd3532b2d1bfbc8265859192e6707514af712c379d3ee3170c24",
+      "pdf_sha256": "c3ca6a79666e7adee21b3eeb2aea90c4d309094215893a2f51cc2ba49d77854e",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -212,7 +212,7 @@
     "md/Robot_Camera_Calibration_Tutorial_ZH.md": {
       "pdf": "pdf/Robot_Camera_Calibration_Tutorial_ZH-1.pdf",
       "source_sha256": "9df432b7683fec96bdc72ff7a3472bcfcfd6e67ab963a4d3d04b48cb90da10c3",
-      "pdf_sha256": "26d94015b32e5784f2e276945bbf954aa76647fe129e70f1ac8f570d72ce3651",
+      "pdf_sha256": "f5b0e8544246739f947b8ea02b8bc829c4707c2e982bca6f0a7f7bf5990a2490",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -238,7 +238,7 @@
     "md/Robot_Camera_Calibration_Tutorial_EN.md": {
       "pdf": "pdf/Robot_Camera_Calibration_Tutorial_EN-1.pdf",
       "source_sha256": "85743d1e2fed0ffea36fd7c4d8e92072e58fa3d511d07e0ce7057b8a7ae77acf",
-      "pdf_sha256": "cb391c2774876bb946658d45d624fff1d008ff96347cc38d51bff6447eaa85c7",
+      "pdf_sha256": "38afaee3ee200253afd6f14f4a2ec6b449cb339aa64cec20c52a531064597a2f",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -264,7 +264,7 @@
     "md/Robot_Dynamics_Embodied_CN.md": {
       "pdf": "pdf/Robot_Dynamics_Embodied_CN.pdf",
       "source_sha256": "e0883b0367386ab5cfb2d211a37c0d0c010b685b4ca5bcea5ed7893a84a3581c",
-      "pdf_sha256": "29c026e6d7475a4c458bb3bc0d90da870d13932b17e8de74be74890a48a201ae",
+      "pdf_sha256": "18dd1b50596dfadd590247fe490a5e0a18fdc7cc2ba5fc2e469cf8dda06a6d3a",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -290,7 +290,7 @@
     "md/Robot_Dynamics_Embodied_EN.md": {
       "pdf": "pdf/Robot_Dynamics_Embodied_EN.pdf",
       "source_sha256": "605a46626edd68ad2ac3cd92033aa5523cdceceaa465b3e0e4ddc8670f288ab2",
-      "pdf_sha256": "192faa4c9d12d908ae8fff9c7d754674dc50ef14a1cbd6aebbe5fb8a29da6b35",
+      "pdf_sha256": "52abd76db6392b1d70af04d1948c6e3220aaa7bd7d4dd74faeb64079ff8a909f",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -316,7 +316,7 @@
     "md/Isaac_MuJoCo_RL_完整教程_中文.md": {
       "pdf": "pdf/Isaac_MuJoCo_RL_完整教程_中文.pdf",
       "source_sha256": "8c65470eadb7c04b1e1d913a966fff1b2688b050ddf57c32f6fe59e406f1d75f",
-      "pdf_sha256": "96d2496479baac0edddc57d3b553e78d4de5b34433796ba2bc62acc9f17d27cc",
+      "pdf_sha256": "2c47b708194ba763ec7d546d8601fc93e766abfeccc95a16de3ae6dea47b9832",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -342,7 +342,7 @@
     "md/Isaac_MuJoCo_RL_Complete_Guide_EN.md": {
       "pdf": "pdf/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf",
       "source_sha256": "2bae03f8e62102ad0587f42799df26a75a1e72f676eaa8da7065f99fee2b561a",
-      "pdf_sha256": "e136e083502229447d3881f7a34e47235f4cf0bd5c2ada3f81feddf59836e342",
+      "pdf_sha256": "728c4f3761fd4ce0a880d027aae97bcc4c2e44a86f1eea3510e19fb8be615e9e",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -368,7 +368,7 @@
     "md/Embodied_RL_Tutorial_Full_ZH.md": {
       "pdf": "pdf/Embodied_RL_Tutorial_Full_ZH-1.pdf",
       "source_sha256": "1b79f7244bc64d1cd9e0ec5ae224c77cfa400deffb5323b76ea40f30dc45b91e",
-      "pdf_sha256": "c89cf4b78b35ff3d47dc0140c43fda71cd3e89aaa80e4205ebbe8d578bc6b9ae",
+      "pdf_sha256": "2f7b4ec5d7db91ec24080166ab6a84d26292c3748f220d41772df2f2d7587e40",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -394,7 +394,7 @@
     "md/Embodied_RL_Tutorial_Full_EN.md": {
       "pdf": "pdf/Embodied_RL_Tutorial_Full_EN-1.pdf",
       "source_sha256": "e2f89ecc319fcca373f414c356ffcc9e1c7247446820ec393fc5d000164187c5",
-      "pdf_sha256": "a7b3b9adb2c04fa6d44b54d9c49bf32624035cd2f2cf74b7f2a503b95377f737",
+      "pdf_sha256": "ac38ffa25e3b77d80a5b5b3d26f5a19d88d5746fd0d740e64c6a312c4050b651",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -420,7 +420,7 @@
     "md/Embodied_Motion_Control_RL_Tutorial_ZH.md": {
       "pdf": "pdf/Embodied_Motion_Control_RL_Tutorial_ZH.pdf",
       "source_sha256": "568b403001762ac0032a2475cdcb5f2f287d0f7165fd6b3d4b1474ab2b0c6602",
-      "pdf_sha256": "245239169d9f1de11ec026cdd4d93e9e9446884b22495e3754a9bcbf167f7d05",
+      "pdf_sha256": "3013a389abe1d6c856d4c886476b630f3872eb4c112b9ba9f9de91f10f940219",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -446,7 +446,7 @@
     "md/Embodied_Motion_Control_RL_Tutorial_EN.md": {
       "pdf": "pdf/Embodied_Motion_Control_RL_Tutorial_EN.pdf",
       "source_sha256": "ad205bea9304948a307f08437affd16652c1ebff96756f8c3fb10915a8ad79fb",
-      "pdf_sha256": "9a5b6a299ede5def309deddfec13f57715c15e75c042ad2f3ea94ced486a1fce",
+      "pdf_sha256": "0587df62e42e2c62eb0c45c322cc391094fd1f1ac39ca33da588f419ccb6b25c",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -472,7 +472,7 @@
     "md/PPO_完整推导与设计动机_中文.md": {
       "pdf": "pdf/PPO_完整推导与设计动机_中文.pdf",
       "source_sha256": "2468d805abde9b82aa6e6a9cab7ad3416a2f2561417ce15c6a4ff935ad817f26",
-      "pdf_sha256": "a9df66819da439928f41e9f5e92bc1a8597c29e856638787e1b4712eb1ed86e1",
+      "pdf_sha256": "d4ec75dcb4bf9501b49b8ac21c9b16fe62c3184a3ce412fbf289ba627e28ca85",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -498,7 +498,7 @@
     "md/PPO_Complete_Derivation_and_Design_Motivations_English.md": {
       "pdf": "pdf/PPO_Complete_Derivation_and_Design_Motivations_English-1.pdf",
       "source_sha256": "f72e80767bf3fe138af19674bb2d1db3a1e61ff7cb2e2e95da961f793c691267",
-      "pdf_sha256": "0e7c0fe621e19873154f9cb047083fc21184274b41ffde830455e0e24c05ce5a",
+      "pdf_sha256": "a3a3f0fd23cc14ab7fae8fb82f8af0eb23d2b50787038be36d4e347dcca8ca45",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -524,7 +524,7 @@
     "md/SAC_Complete_Derivation_CN.md": {
       "pdf": "pdf/SAC_Complete_Derivation_CN-1.pdf",
       "source_sha256": "964d016cdc510f7ec050479c45f540b3369c30cf6e72fe670c7695f2c05302ae",
-      "pdf_sha256": "b7db295cb25a0e02efdd0b0b91f8fb4da301b78d52f5946bbe6e22d4fef708e0",
+      "pdf_sha256": "c99b901635f8be527e006be6974f68f996e52a33d0248cac1d6d5625174a6d13",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -550,7 +550,7 @@
     "md/SAC_Complete_Derivation_EN.md": {
       "pdf": "pdf/SAC_Complete_Derivation_EN-1.pdf",
       "source_sha256": "765ef690ec18cfe9bea81f420eaea6843c9c963a75483c19c840fd580aaaad20",
-      "pdf_sha256": "f8ac200abb4dff436aafd7b679ce2686e543dd3d2f70a49ace555238f69735af",
+      "pdf_sha256": "8003bceca4186714837fcd935622e3394e2d852a73cba26b861e134ce64183fe",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -576,7 +576,7 @@
     "md/Visual_State_Estimation_ZH.md": {
       "pdf": "pdf/Visual_State_Estimation_ZH.pdf",
       "source_sha256": "c96f84ec9825f727b771fad9f7480b411de3d2a0f1af93c9e58d6170df9ee315",
-      "pdf_sha256": "b725a6f8e39d282805096cc763cea6e945387037eb4eda687800ab78cb466222",
+      "pdf_sha256": "8e5d70457b8774a969ac40f506407dabfd787c3eab6ac5b26f8d920a56097c7c",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -602,7 +602,7 @@
     "md/Visual_State_Estimation_EN.md": {
       "pdf": "pdf/Visual_State_Estimation_EN.pdf",
       "source_sha256": "5bbe85b1194c9553cc2a6f7bb8ac03ea51af766ac2ad1fd0b8232c0228cc93f5",
-      "pdf_sha256": "9e05bee5aadecfa61bb7e2f5d314680dcb22f801cf0e98de315b98b13d9495aa",
+      "pdf_sha256": "a821ed17a2efb2a59946dc5354e9a999ce1bddb0dd837e09ae0d1297206dcfda",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -627,8 +627,34 @@
     },
     "md/Data_Imitation_Learning_ZH.md": {
       "pdf": "pdf/Data_Imitation_Learning_ZH.pdf",
-      "source_sha256": "87ae928f41a9791213f11bca724241fb6ad90b2c0a1e5d3f9f03d0c70cbff4e8",
-      "pdf_sha256": "0143f24f48f144afd44b0cc4d8a476c524d7a8e372e5e5d3945738c9fa237a2d",
+      "source_sha256": "a275c17972f98a38d9f8ad53b2eb7cd676a9a28d3a63229607508b6b0c8d12c8",
+      "pdf_sha256": "79e78dc6295a5d12e1c9555c6eae1597835f702fa72f59560ea1d0792796116f",
+      "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
+      "browser": "156.0.8078.4",
+      "fonts": [
+        {
+          "family": "Noto Serif CJK SC",
+          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
+        },
+        {
+          "family": "Noto Sans CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        },
+        {
+          "family": "Noto Sans Mono CJK SC",
+          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
+        }
+      ],
+      "pages": 11,
+      "math_nodes": 93,
+      "math_errors": 0,
+      "diagrams_rendered": 3,
+      "equation_overflows": 0
+    },
+    "md/Data_Imitation_Learning_EN.md": {
+      "pdf": "pdf/Data_Imitation_Learning_EN.pdf",
+      "source_sha256": "6c383e2e4f80b5fd87fbef77debfd868f4b05774852eeb7655639c3c1e164f01",
+      "pdf_sha256": "6561c42cc642c3a8d18be6de4d14b9b6fbfec86268b00f9034b8a75370f0b71e",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -646,41 +672,15 @@
         }
       ],
       "pages": 12,
-      "math_nodes": 92,
+      "math_nodes": 85,
       "math_errors": 0,
-      "diagrams_rendered": 2,
-      "equation_overflows": 0
-    },
-    "md/Data_Imitation_Learning_EN.md": {
-      "pdf": "pdf/Data_Imitation_Learning_EN.pdf",
-      "source_sha256": "df72dd51f8b07f34dc7fad1a077db25687bceb62d72ea70b5d5e3a60893228ed",
-      "pdf_sha256": "578d38c69b5cf7b9fb779b71e7c00632f7d9f4ab5eee0c24b37f9385a1f39700",
-      "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
-      "browser": "156.0.8078.4",
-      "fonts": [
-        {
-          "family": "Noto Serif CJK SC",
-          "sha256": "93069d8e9e45d515cc421c971a79e6a5777704b348e36a9ef86578bf58adef77"
-        },
-        {
-          "family": "Noto Sans CJK SC",
-          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
-        },
-        {
-          "family": "Noto Sans Mono CJK SC",
-          "sha256": "b76b0433203017ca80401b2ee0dd69350349871c4b19d504c34dbdd80541690a"
-        }
-      ],
-      "pages": 13,
-      "math_nodes": 77,
-      "math_errors": 0,
-      "diagrams_rendered": 2,
+      "diagrams_rendered": 3,
       "equation_overflows": 0
     },
     "md/Robot_Agent_Workflow_ZH.md": {
       "pdf": "pdf/Robot_Agent_Workflow_ZH.pdf",
       "source_sha256": "10279215e96f2c394798f76568bb4747ccc2a0754efaf4bf491292c5967e7128",
-      "pdf_sha256": "968d39815290c14dd1e92830403a1711c6e1ef27bf588db6eed68f7e86ae88cc",
+      "pdf_sha256": "5897b64f5d98e1a07f19e28963a43ee58dd01a64a4742e3af342ea1f6ddb75f0",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
@@ -706,7 +706,7 @@
     "md/Robot_Agent_Workflow_EN.md": {
       "pdf": "pdf/Robot_Agent_Workflow_EN.pdf",
       "source_sha256": "6e53e466493d359984fde196fcee362f943ada62e898c18d2e13c75295082c62",
-      "pdf_sha256": "ec8b3adcd6bd4c0532f6692f98155827d26dd2605f3c3af20ef7dc7242971238",
+      "pdf_sha256": "7ee6f46b03632f872d0a9cffa385266dc6ec2e5a5523af3098f88a8c2bb41a9b",
       "build_inputs_sha256": "e51bde3a91c5bd2cc4a98799a61ba0556e9dff5c0a4b0db0b93e9011ad756ec8",
       "browser": "156.0.8078.4",
       "fonts": [
