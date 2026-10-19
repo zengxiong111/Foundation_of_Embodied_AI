@@ -185,11 +185,11 @@
       "id": "simulation",
       "title_en": "Isaac / MuJoCo Simulation",
       "title_zh": "Isaac / MuJoCo 仿真",
-      "reviewed_at": "2026-10-18",
-      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
-      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
-      "versions_en": "Documented tracks: Isaac Lab 2.3.2 / Isaac Sim 5.1; Lab 3.0 Early Access / Sim 6.1. MuJoCo, MJX and MJWarp releases must be selected per task",
-      "versions_zh": "文档路线：Isaac Lab 2.3.2 / Isaac Sim 5.1；Lab 3.0 Early Access / Sim 6.1。MuJoCo、MJX、MJWarp 需按任务选择版本",
+      "reviewed_at": "2026-10-19",
+      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDF bytes preserved without regeneration. No independent training, simulation or robot validation.",
+      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 保持原始字节且未重新生成；未独立进行训练、仿真或真机验证。",
+      "versions_en": "No-code simulation and RL tooling guide: Isaac Lab 2.3.2 / Isaac Sim 5.1 and Lab 3.0 Early Access / Sim 6.1; MuJoCo/MJX/MJWarp; assets, environment contracts, library selection, throughput, calibration, Sim-to-Sim and a Tron2 + Revo3 asset/scene case.",
+      "versions_zh": "无代码仿真与 RL 工具指南：Isaac Lab 2.3.2 / Isaac Sim 5.1 与 Lab 3.0 Early Access / Sim 6.1；MuJoCo/MJX/MJWarp；资产、环境契约、训练库选择、吞吐率、标定、Sim-to-Sim 及 Tron2 + Revo3 资产与场景案例。",
       "source_refs": [
         "isaac-sim/IsaacLab@v2.3.2",
         "isaac-sim/IsaacLab@release/3.0.0"
@@ -213,11 +213,11 @@
       "id": "motion-rl",
       "title_en": "Motion Control RL",
       "title_zh": "运动控制 RL",
-      "reviewed_at": "2026-10-18",
-      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
-      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
-      "versions_en": "Isaac Lab / RSL-RL workflows are illustrative; task, trainer, asset and actuator versions must be bound together",
-      "versions_zh": "Isaac Lab / RSL-RL 工作流为说明性示例；任务、训练器、资产和执行器版本需一起绑定",
+      "reviewed_at": "2026-10-19",
+      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDF bytes preserved without regeneration. No independent training, simulation or robot validation.",
+      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 保持原始字节且未重新生成；未独立进行训练、仿真或真机验证。",
+      "versions_en": "Motion-control algorithms and learning strategies: PPO/SAC interfaces, motion tracking, DeepMimic/AMP, HOVER/BeyondMimic/SONIC, privileged teachers, distillation, RMA, residual RL, recovery and Sim-to-Real; legged and dexterous-manipulation case studies.",
+      "versions_zh": "运动控制算法与学习策略：PPO/SAC 接口、运动跟踪、DeepMimic/AMP、HOVER/BeyondMimic/SONIC、特权教师、蒸馏、RMA、Residual RL、恢复与 Sim-to-Real；足式及灵巧操作案例。",
       "source_refs": [
         "isaac-sim/IsaacLab@v2.3.2"
       ],
@@ -343,10 +343,10 @@
       "title_en": "RL Post-training",
       "title_zh": "RL Post-training",
       "reviewed_at": "2026-10-19",
-      "review_scope_en": "Supplied bilingual Markdown and academic PDFs integrated; PDF bytes preserved without regeneration. No reproduced benchmarks, training runs or robot deployment.",
-      "review_scope_zh": "整合用户提供的中英文 Markdown 及学术排版 PDF，PDF 保持原始字节且未重新生成；未复现基准、运行训练或进行真机部署。",
-      "versions_en": "RL post-training for pretrained Diffusion, Flow Matching and VLA policies; generator updates versus frozen-generator interfaces; DPPO, OGPO, Q-VGM, DSRL, residual RL and RL Token; Actor–Critic/off-policy loops, training infrastructure, real-robot feedback, evaluation and open research/system challenges. No from-scratch controllers or coding exercises.",
-      "versions_zh": "预训练 Diffusion、Flow Matching 与 VLA 策略的 RL 后训练；更新生成器与冻结生成器接口；DPPO、OGPO、Q-VGM、DSRL、Residual RL 与 RL Token；Actor–Critic/离策略闭环、训练基础设施、真机反馈、评估与开放研究及系统问题。不含从零训练控制器或代码实验。",
+      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDF bytes preserved without regeneration. No independent training, simulation or robot validation.",
+      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 保持原始字节且未重新生成；未独立进行训练、仿真或真机验证。",
+      "versions_en": "RL refinement of pretrained Diffusion, Flow Matching and VLA policies; generator updates versus frozen-generator interfaces; DPPO, OGPO, Q-VGM, DSRL, residual RL and RL Token; Actor–Critic loops, RLinf infrastructure and physical deployment boundaries. No from-scratch controllers or executable tutorials.",
+      "versions_zh": "预训练 Diffusion、Flow Matching 与 VLA 策略的 RL 后训练；更新生成器与冻结生成器接口；DPPO、OGPO、Q-VGM、DSRL、Residual RL 与 RL Token；Actor–Critic 闭环、RLinf 基础设施及真机部署边界。不含从零训练控制器或可执行教程。",
       "source_refs": [],
       "documents": {
         "zh": {
@@ -396,23 +396,23 @@
       "title_en": "Advanced Robot Agents",
       "title_zh": "先进 Robot Agent",
       "reviewed_at": "2026-10-19",
-      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDFs reformatted to the RL Post-training style with teaching content retained. No reproduced experiments, executable-code validation or robot deployment.",
-      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 按 RL Post-training 样式重新排版，教学内容保持不变；未复现实验、验证可执行代码或进行真机部署。",
-      "versions_en": "Foundation models, coding agents and agent harnesses; Claude, Codex and Gemini 4 Argon in the supplied tutorial; model-driven robot workflows, RAX Explore–Compile–Evaluate, ASPIRE trace repair and skills, Real2Sim/self-improvement examples, and a unified dexterous-hand screwdriver teaching case. No code or experimental chapters.",
-      "versions_zh": "基础模型、Coding Agent 与 Agent Harness；讲义中的 Claude、Codex 与 Gemini 4 Argon；模型驱动的机器人工作流、RAX Explore–Compile–Evaluate、ASPIRE Trace 修复与技能、Real2Sim/自我改进示例及统一灵巧手螺丝刀教学案例。不含代码或实验章节。",
+      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDF bytes preserved without regeneration. No independent training, simulation or robot validation.",
+      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 保持原始字节且未重新生成；未独立进行训练、仿真或真机验证。",
+      "versions_en": "Foundation models and agent harnesses; RAX Explore–Compile–Evaluate; ASPIRE trace repair; RPent toolkits, memory, Flash Mode and the RLinf data flywheel; model-driven robot workflows and a dexterous screwdriver case. No code listings or laboratory exercises.",
+      "versions_zh": "基础模型与 Agent Harness；RAX Explore–Compile–Evaluate；ASPIRE 轨迹修复；RPent 工具集、记忆、Flash Mode 与 RLinf 数据飞轮；模型驱动机器人工作流及灵巧手螺丝刀案例。不含代码清单或实验练习。",
       "source_refs": [],
       "documents": {
         "zh": {
-          "md": "md/Robot_Agent_Workflow_ZH.md",
-          "pdf": "pdf/Robot_Agent_Workflow_ZH.pdf",
-          "site_md": "files/Robot_Agent_Workflow_ZH.md",
-          "site_pdf": "files/Robot_Agent_Workflow_ZH.pdf"
+          "md": "md/Robot_Agent_Workflow_RPent_ZH.md",
+          "pdf": "pdf/Robot_Agent_Workflow_RPent_ZH.pdf",
+          "site_md": "files/Robot_Agent_Workflow_RPent_ZH.md",
+          "site_pdf": "files/Robot_Agent_Workflow_RPent_ZH.pdf"
         },
         "en": {
-          "md": "md/Robot_Agent_Workflow_EN.md",
-          "pdf": "pdf/Robot_Agent_Workflow_EN.pdf",
-          "site_md": "files/Robot_Agent_Workflow_EN.md",
-          "site_pdf": "files/Robot_Agent_Workflow_EN.pdf"
+          "md": "md/Robot_Agent_Workflow_RPent_EN.md",
+          "pdf": "pdf/Robot_Agent_Workflow_RPent_EN.pdf",
+          "site_md": "files/Robot_Agent_Workflow_RPent_EN.md",
+          "site_pdf": "files/Robot_Agent_Workflow_RPent_EN.pdf"
         }
       }
     }

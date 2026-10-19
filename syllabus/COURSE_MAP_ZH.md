@@ -79,11 +79,11 @@ flowchart LR
 
 ### 6. Isaac / MuJoCo 仿真
 
-[Isaac / MuJoCo 仿真](../md/Isaac_MuJoCo_RL_完整教程_中文.md)：理解 Isaac Sim、Isaac Lab 与 MuJoCo 的分工，学习机器人资产、执行器、观测、奖励和环境接口如何构成仿真强化学习流程。
+[Isaac / MuJoCo 仿真](../md/Isaac_MuJoCo_RL_完整教程_中文.md)：理解 Isaac Sim、Isaac Lab 与 MuJoCo 作为仿真和训练工具的分工，学习资产导入、环境契约、RL 训练库选择、并行吞吐率、部署接口及 Tron2 + Revo3 场景案例。
 
 ### 7. 运动控制 RL
 
-[运动控制 RL](../md/Embodied_Motion_Control_RL_Tutorial_ZH.md)：将 MDP 设计和 PPO/SAC 与机器人运动控制联系起来，学习观测、动作接口、奖励、重置、并行仿真、域随机化与 Sim-to-Real 要点。
+[运动控制 RL](../md/Embodied_Motion_Control_RL_Tutorial_ZH.md)：学习运动跟踪、DeepMimic/AMP、通用控制器、Teacher–Student、RMA 与 Residual RL，并联系足式与灵巧操作、失败恢复及 Sim-to-Real。
 
 ### 8. PPO
 
@@ -103,7 +103,7 @@ flowchart LR
 
 ### 12. RL Post-training
 
-[RL Post-training](../md/RL_Post_Training_ZH.md)：学习预训练 Diffusion、Flow Matching 与 VLA 策略的强化学习后训练，比较生成器更新与冻结生成器接口、Actor–Critic 闭环及真机反馈。
+[RL Post-training](../md/RL_Post_Training_ZH.md)：学习预训练 Diffusion、Flow Matching 与 VLA 策略的强化学习后训练，比较可训练接口及 Actor–Critic 闭环，理解 RLinf 基础设施、物理反馈与部署边界。
 
 ### 13. GR00T 与 SONIC
 
@@ -111,4 +111,4 @@ flowchart LR
 
 ### 14. Robot Agent
 
-[Robot Agent](../md/Robot_Agent_Workflow_ZH.md)：区分基础模型、Coding Agent 与 Agent Harness，学习模型驱动工作流、RAX 探索与编译、ASPIRE 轨迹修复、技能记忆及任务级验证。
+[Robot Agent](../md/Robot_Agent_Workflow_RPent_ZH.md)：区分基础模型、Coding Agent 与 Agent Harness，将 RAX 探索、ASPIRE 轨迹修复及 RPent 工具集、记忆、Flash Mode 和 RLinf 数据飞轮连接为可复用机器人工作流。

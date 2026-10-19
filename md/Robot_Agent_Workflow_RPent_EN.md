@@ -1,14 +1,14 @@
-# Advanced Robot Agents: Foundation Models, RAX, ASPIRE, and Continual Improvement
+# Advanced Robot Agents: Foundation Models, RAX, ASPIRE, RPent, and Continual Improvement
 
-[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [中文 Markdown](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Robot_Agent_Workflow_ZH.md) · [English PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.pdf)
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [中文 Markdown](Robot_Agent_Workflow_RPent_ZH.md) · [English PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_EN.pdf)
 
 **Foundation of Embodied AI · Revised course notes**  
-*From general-purpose foundation models to online exploration, verifiable execution, and reusable robot skills*  
+*From foundation models and online exploration to composable agent systems and reliable execution*  
 **Revision: October 19, 2026**
 
-> **Central questions:** How can Claude, Codex, and Gemini 4 Argon participate in robotics without being real-time robot controllers? Where does the reasoning in RAX and ASPIRE come from? How do foundation models, tool calls, physical feedback, and reusable programs combine into a useful, trustworthy robot agent?
+> **Central questions:** How can Claude, Codex, and Gemini 4 Argon participate in robotics without being real-time robot controllers? What are the distinct contributions of RAX and ASPIRE, and how does RPent connect planners, perception, actions, memory, and physical robots? How can the resulting loop be made reusable and independently verifiable?
 
-**Learning outcomes:** Distinguish foundation models, coding agents, agent harnesses, robot agents, VLAs, and low-level controllers; understand how a general model processes observations, selects tools, writes programs, and incorporates execution feedback; explain RAX's Explore–Compile–Evaluate cycle, ASPIRE's trace-guided refinement, and the publicly demonstrated robotic applications of Gemini 4 Argon; and understand the responsibility and safety boundaries of a unified system. **No code listings or laboratory exercises are included.**
+**Learning outcomes:** Distinguish foundation models, coding agents, agent harnesses, robot agents, VLAs, and low-level controllers; understand how a general model processes observations, selects tools, writes programs, and incorporates execution feedback; explain RAX's Explore–Compile–Evaluate cycle, ASPIRE's trace-guided refinement, RPent's toolkit/memory/Flash/data-flywheel architecture, and the publicly demonstrated robotic applications of Gemini 4 Argon; and understand the responsibility and safety boundaries of a unified system. **No code listings or laboratory exercises are included.**
 
 ## Contents
 
@@ -17,9 +17,10 @@
 3. [A general foundation-model-driven robot-agent workflow](#agent-section-03)
 4. [RAX: from exploration to stand-alone programs](#agent-section-04)
 5. [ASPIRE: trace-guided repair and accumulating skills](#agent-section-05)
-6. [Gemini 4 Argon: control, Real2Sim, and self-improvement](#agent-section-06)
-7. [A unified system and a dexterous screwdriver example](#agent-section-07)
-8. [Papers and official resources](#agent-references)
+6. [RPent: from research workflows to composable agent infrastructure](#agent-section-06)
+7. [Gemini 4 Argon: control, Real2Sim, and self-improvement](#agent-section-07)
+8. [A unified system and a dexterous screwdriver example](#agent-section-08)
+9. [Papers and official resources](#agent-references)
 
 ---
 
@@ -92,7 +93,8 @@ $$
 | **Codex** | Model-powered coding agent and harness | Tool use, program generation and repair, sandboxing and approval | The product is not interchangeable with one specific base model |
 | **Gemini 4 Argon** | General-purpose multimodal reasoning model | Physical/video reasoning, robotic planning, code generation, Real2Sim | It is not inherently a fixed-rate joint-action VLA |
 | **Google Antigravity / custom harness** | Agent execution environment | Connects Argon to context, tools, and execution feedback | Argon can be deployed through different environments |
-| **RAX / ASPIRE** | Robot exploration and learning workflows | Organize exploration, verification, debugging, and memory | Neither is a newly trained universal foundation model |
+| **RAX / ASPIRE** | Exploration and repair research workflows | Organize compilation, trace-based debugging, and skill learning | Neither is a robot driver or trainer |
+| **RPent** | Open robot-agent runtime infrastructure | Connect planners, toolkits, perception/VLA services, memory, and robot environments | Not a foundation model or low-level controller |
 
 ### 2.2 Six activities a foundation model can support
 
@@ -102,7 +104,7 @@ Within a robotic task, the model can help **(1) interpret the language goal, (2)
 flowchart TB
   G[User goal] --> M[Foundation model: Claude / GPT / Gemini 4 Argon]
   M <--> H[Agent harness: Claude Code / Codex / custom runtime]
-  H --> T[Robot tools: vision / IK / planning / sim / execution]
+  H --> T[Robot toolkit: RPent or custom robot APIs]
   H --> W[Learning workflow: RAX / ASPIRE style]
   T --> K[Skill program, VLA, or local planner]
   W --> K
@@ -112,7 +114,7 @@ flowchart TB
   F --> H
 ```
 
-**Figure 2.** The foundation model supplies reasoning, the harness implements the agent loop, robot tools expose action channels, and RAX/ASPIRE specify how experience is explored, tested, and accumulated. This is an **illustrative reference architecture**, not a claim that all three systems have been integrated in a published implementation.
+**Figure 2.** The foundation model provides reasoning; the agent harness manages tool use; infrastructure such as RPent can connect robot services; and RAX/ASPIRE offer distinct exploration and refinement methods. This is a **teaching architecture**, not a claim of jointly validated RAX–ASPIRE–RPent integration.
 
 ### 2.3 Why the harness matters as much as the model
 
@@ -127,6 +129,8 @@ Calling the same base model once for an answer and embedding it in an iterative 
 **Codex path.** Codex already offers a coding-agent loop for reading workspaces, calling tools, generating programs, and iterating on feedback. The RAX implementation explicitly supports Codex CLI or Claude Code, while ASPIRE distributes agent skills compatible with Codex. [2,4,6]
 
 **Argon path.** Gemini 4 Argon can reason about robots and simulation through external tools and runtimes. Google has demonstrated robotics workflows involving control, Real2Sim, video analysis, and program improvement. Those demonstrations **do not establish that Argon is integrated into the official RAX/ASPIRE implementations or can replace servo controllers**. [7,8]
+
+**Engineering implementation.** RPent supports `api`, `claude_code`, and `codex` planner backends and uses a standardized toolkit to connect perception, VLA, and environment services. This offers a concrete runtime layer for several of the preceding components, but interface compatibility is not evidence of an official Argon or RAX/ASPIRE integration. [10,11,16]
 
 **General lesson:** Selecting the model is only one design decision. What matters just as much is **which robot capabilities are exposed, how feedback is represented, how dangerous calls are prevented, and where verified experience is stored**.
 
@@ -176,7 +180,7 @@ The **control loop** handles rapid feedback and stability; the **skill loop** ha
 
 ### 3.4 What is learned? Program memory is not weight fine-tuning
 
-RAX and ASPIRE primarily improve the system by accumulating **programs, failure explanations, skill-library entries, and execution evidence**; they do not require online gradient updates to foundation-model weights. A different route uses simulation-generated demonstrations to train or post-train a VLA. In that case, the **action model's weights** change in a separate training stage. Robot interaction, self-improvement, online RL, and foundation-model fine-tuning are therefore **not synonyms**.
+RAX and ASPIRE primarily improve the system by accumulating **programs, failure explanations, skill-library entries, and execution evidence**; they do not require online gradient updates to foundation-model weights. A different route uses simulation-generated demonstrations to train or post-train a VLA. In that case, the **action model's weights** change in a separate training stage. Robot interaction, self-improvement, online RL, and foundation-model fine-tuning are therefore **not synonyms**. For example, RPent can export verified execution data for separate Pi0.5 supervised fine-tuning with RLinf; simply updating task memory is not a parameter update. [14]
 
 ---
 
@@ -242,11 +246,79 @@ One repair iteration follows **select trace → formulate a local hypothesis →
 ---
 
 <a id="agent-section-06"></a>
-## 6. Gemini 4 Argon: Control, Real2Sim, and Self-Improvement
+## 6. RPent: From Research Workflows to Composable Agent Infrastructure
+
+RAX and ASPIRE emphasize complementary methodological questions: **how can a new skill be explored and compiled**, and **how can failures be diagnosed, repaired, and consolidated**? To use these ideas in a physical system, we also need an operational substrate connecting model decisions to cameras, action policies, robot tools, state feedback, and persistent experience. **RPent (Recursive Physical Agent)** operates at this infrastructure layer. It is an open framework for physical agents based on **service-oriented, standardized, and composable** components, not a newly trained foundation model, a VLA checkpoint, or a reinforcement-learning algorithm. [10,11]
+
+### 6.1 Where RPent fits in the agent stack
+
+RPent lets multiple planners operate against robot-specific tools. Its `api` backend uses an API-based tool-calling loop, while the `claude_code` and `codex` backends reuse their respective agent SDKs. A toolkit routes calls to perception, scripted motion, VLA primitives, or environment services. The foundation model selects operations and interprets the resulting feedback; **the environment and controllers remain responsible for physical motion and state**. A shared tool boundary means that changing the planner does not require rewriting every robot primitive. [11,16]
+
+| Component | Role in RPent | Why the separation matters |
+|:--|:--|:--|
+| **Planner** | Maintains task context and selects subsequent tool calls | Keeps slow reasoning out of servo updates |
+| **Toolkit / RobotSpec** | Defines robot integration, tool schemas, and run configuration | Provides explicit, inspectable contracts |
+| **Perception / VLA services** | Localization, segmentation, and action prediction | Decouples heavy GPU models from the agent process |
+| **Memory / Session** | Retrieval, exploration drafts, and run records | Enables reuse, review, and versioned experience |
+| **Environment / controller** | Executes motion and supplies actual state or task criteria | Avoids conflating an LLM's `finish` with real success |
+
+```mermaid
+flowchart TB
+  G[Task goal] --> P[RPent Planner: API / Claude Code / Codex]
+  M[Verified experience memory] --> P
+  P --> T[RPent Toolkit / RobotSpec]
+  T --> V[Perception and VLA primitives]
+  T --> A[Scripted motion and planners]
+  V --> E[Simulation environment or real robot]
+  A --> E
+  E --> O[Observations, tool results, and evaluation]
+  O --> P
+  O --> M
+```
+
+**Figure 4.** RPent connects and schedules existing intelligent components. The loop is architectural; it does not imply that every supported platform has identical safety enforcement, success detection, or online-training capabilities. [11]
+
+### 6.2 Exploration and memory are not gradient-based learning
+
+RPent's exploration mode allows repeated resets and attempts while recording local experience drafts. Its evaluation mode **reads existing memory without writing new memory**, thereby limiting evaluation leakage. In the documented LIBERO workflow, successful audits and action sequences become reusable only when the **environment itself marks the attempt successful**. Memories may contain task-specific procedures and broader failure/recovery guidance; recorded pixels or coordinates must be re-anchored to **current observations** at execution time. [12]
+
+An attempted action, an LLM's claimed success, and validated reusable experience are distinct artifacts. Reproducible evaluation requires a fixed memory revision; for hardware, success still needs independent sensing or operator judgment. Calling `finish` only ends the planning loop. [11,12]
+
+### 6.3 Flash Mode versus RAX Compile: related objectives, different artifacts
+
+Both mechanisms attempt to reduce repeated LLM deliberation for known tasks, but **RPent Flash Mode is not the RAX compiler**. The currently documented RPent LIBERO Flash workflow reads a stored **action plan and visual anchors**, uses SAM3 or Molmo to locate anchors in a new scene, and adjusts relative action offsets before replay. The planner does not call an LLM to construct a new sequence during Flash evaluation, yet perception and VLA services may still be needed. [13]
+
+| Dimension | **RAX Compile** | **RPent Flash Mode** |
+|:--|:--|:--|
+| Reused artifact | Executable program with observations, branches, and recovery | Saved action plan with visual anchors |
+| New layout | Conditional program decisions from current state | Re-detection of anchors and updated relative coordinates |
+| Runtime reasoning | Can run without continuing to invoke the coding agent | No online LLM replanning; still uses perception/VLA |
+| Documented setting | RAX research tasks and program evaluation | RPent's LIBERO Flash evaluation |
+
+Flash effectiveness depends on plan coverage, anchor detection, scene changes, and the underlying policy. **No online LLM planning** does not mean zero latency, no vision inference, or universal recovery. [13]
+
+### 6.4 The data flywheel: connecting RPent to RLinf
+
+RPent also provides an optional **LIBERO data-flywheel** workflow. It retains immutable raw execution trajectories, verifies them, and exports successful episodes to the LeRobot format. A separate RLinf environment can then perform **Pi0.5 supervised fine-tuning (SFT)**. This creates a plausible sequence of **agent execution → curated data → action-policy training**, while **RPent's recording and export do not themselves update weights or implement online off-policy RL**. Failed episodes remain available for audit but are not included in the described successful-demonstration SFT export. [14]
+
+Three improvement assets should be kept conceptually distinct: **external memory** (notes and plans), **executable skills** (procedures with conditional logic), and **model parameters** (weights changed by SFT or RL). RPent organizes and runs the first two while exposing a data interface for the third; these should not be presented as the same learning process.
+
+### 6.5 Physical deployment: what still needs engineering
+
+RPent documentation covers LIBERO, RoboCasa365, RoboTwin, RoboDojo, and examples involving single- and dual-arm Franka robots. Such support **does not make every arm, dexterous hand, or contact-rich task plug-and-play**. [10,15] A new platform needs a matching `RobotSpec` and toolkit, plus calibrated camera frames, coordinate transforms, IK/collision checks, motion timing, reliable error propagation, explicit operator permissions, and hardware-enforced emergency stops.
+
+For dexterous manipulation, important gaps remain: partially observed contact and slip, primitive precondition drift across embodiments, the mismatch between slow agent reasoning and high-frequency action stabilization, unverified memory transfer, and reliability under changed scenes or objects. **RPent provides a framework in which these questions can be studied; it does not establish that they are solved.**
+
+**Chapter takeaway:** RAX and ASPIRE explain *what a task agent should explore, validate, and improve*. RPent shows *how a planner, tool interface, memory system, and robot service can be assembled and operated*. These are complementary levels, but integrating particular implementations still requires dedicated adapters, tests, and physical verification.
+
+---
+
+<a id="agent-section-07"></a>
+## 7. Gemini 4 Argon: Control, Real2Sim, and Self-Improvement
 
 On **October 13, 2026**, Google published a collection of robotic demonstrations using Gemini 4 Argon. Argon is a **general-purpose reasoning foundation model** that can process visual and video inputs and use tools. Once integrated with robot APIs, simulation tools, and repeated observations, the resulting system can act as a **robot agent**. The model itself is not a servo-rate action policy. [7,8]
 
-### 6.1 Four categories demonstrated by Google
+### 7.1 Four categories demonstrated by Google
 
 | Application | Published demonstration | What the model contributes |
 |:--|:--|:--|
@@ -255,7 +327,7 @@ On **October 13, 2026**, Google published a collection of robotic demonstrations
 | **Physical understanding** | Video hindsight labeling, contact-level events, task-progress estimation | Structured process labels and evidence useful for evaluation |
 | **Research and improvement** | Simulation-generated action datasets; SO-101 hardware improvement | Better programs, environments, and data-generation pipelines |
 
-### 6.2 How to interpret the case studies
+### 7.2 How to interpret the case studies
 
 **Case A: Visual closed-loop manipulation.** In the mug-and-napkin task, Argon uses a calibrated wrist-camera representation and a set of existing action primitives. It selects the next operation and checks feedback after tool calls. This is **model reasoning + harness + robot tools**, not direct neural control of motor current. [8]
 
@@ -265,22 +337,23 @@ On **October 13, 2026**, Google published a collection of robotic demonstrations
 
 **Case D: Hardware self-improvement.** In an SO-101 visual pick-and-place task, Google reports three execution iterations taking **58.9, 22.9, and 17.4 seconds**, respectively. This documents one showcased agentic optimization sequence, not a general statistical guarantee for robot success or reliability. [8]
 
-### 6.3 Complementarity with RAX and ASPIRE
+### 7.3 Complementarity with RAX, ASPIRE, and RPent
 
 | System | What it is | Primary research emphasis | What it does not establish |
 |:--|:--|:--|:--|
 | **Gemini 4 Argon** | General multimodal foundation model | Physical reasoning, code generation, video understanding | Native high-rate servo control |
 | **RAX** | Online exploration and program-compilation framework | Stand-alone execution after skill discovery | Requirement for a newly trained foundation model |
 | **ASPIRE** | Trace-based debugging and continual skill-refinement framework | Failure diagnosis and transferable repair | VLA parameter post-training by definition |
+| **RPent** | Modular robot-agent runtime infrastructure | Planner/toolkit integration, memory, deployment | Validated joint integration with RAX/ASPIRE |
 
-Conceptually, Argon could serve as a reasoning model in a RAX-like or ASPIRE-like architecture, but **a plausible combination is not an experimental result published by those projects**. Useful comparisons must separate the model's capability, the harness, the exposed robot API, and the independently verified physical outcome.
+Conceptually, Argon could serve as a reasoning model in a RAX-like or ASPIRE-like architecture, but **a plausible combination is not an experimental result published by those projects**. Useful comparisons must separate the model's capability, the harness, the robot API exposed by infrastructure such as RPent, and the independently verified physical outcome. Existing RPent planner configurations do not by themselves establish official Argon support; each model provider needs an actual API adapter and testing.
 
 ---
 
-<a id="agent-section-07"></a>
-## 7. A Unified System and a Dexterous Screwdriver Example
+<a id="agent-section-08"></a>
+## 8. A Unified System and a Dexterous Screwdriver Example
 
-### 7.1 One reusable workflow without overstating the papers
+### 8.1 One reusable workflow without overstating the papers
 
 ```mermaid
 flowchart TB
@@ -298,9 +371,9 @@ flowchart TB
   V -->|Safety event| H
 ```
 
-**Figure 4.** RAX-style exploration fills skill gaps; ASPIRE-style debugging and memory address recurrent failures; Claude, Codex, or Argon-related model/harness components can provide higher-level reasoning. This is a **teaching reference architecture**, not a system whose joint performance has already been established by the cited papers.
+**Figure 5.** RAX motivates exploration and executable skill discovery; ASPIRE motivates evidence-based repair; infrastructure such as RPent can connect planners, tools, services, and memory. This is a **teaching reference architecture**, not an experimentally validated joint integration.
 
-### 7.2 The minimum contract for a reusable skill
+### 8.2 The minimum contract for a reusable skill
 
 1. **Preconditions:** Robot body, dexterous hand, sensing/calibration assumptions, object class, and permitted workspace.
 2. **Execution:** Parameter interface, approved tool calls, duration/budget, and delegated low-level control.
@@ -310,7 +383,7 @@ flowchart TB
 
 This is an **engineering recommendation**, not a universal data structure prescribed by one paper. A script should not be promoted to a deployable skill without constrained independent tests and the required approvals.
 
-### 7.3 Worked example: grasp, transport, and rotate a screwdriver
+### 8.3 Worked example: grasp, transport, and rotate a screwdriver
 
 **Illustrative teaching scenario, not an experiment reported in the cited papers.** A screwdriver starts at an arbitrary permitted location on a table. A robot observes it through head and wrist cameras, uses a dexterous hand to grasp it, transports it to a fixed region, and rotates it through a desired angle. If it slips, dangerous motion must stop before the agent decides whether re-localization and recovery are safe.
 
@@ -322,11 +395,11 @@ This is an **engineering recommendation**, not a universal data structure prescr
 | **Rotate** | **Object itself**, not just wrist, attains the target orientation | Independent object-pose tracking is necessary |
 | **Recover** | New location is authorized and the goal is re-established | Unobservable or unreachable: return `UNKNOWN` or stop |
 
-**What does the task-level agent do?** It specifies observable success, searches for existing skills, explores missing grasp/approach decisions using RAX-like tools, compiles conditional procedures, diagnoses failures from ASPIRE-like traces, and allows bounded repairs. Claude, Codex, or Argon may provide the reasoning and programming capabilities, **but this example does not assert that any of these particular models has been experimentally validated on this hand/arm platform**.
+**What does the task-level agent do?** It specifies observable success, searches for existing skills, explores missing grasp/approach decisions using RAX-like tools, compiles conditional procedures, diagnoses failures from ASPIRE-like traces, and allows bounded repairs. With RPent, the robot-specific `RobotSpec`, perception tools, and motion/action primitives would first need to be implemented for this platform. Claude, Codex, or Argon may provide reasoning and programming capabilities, **but this example does not assert that any of these particular models has been experimentally validated on this hand/arm platform**.
 
 **What does the lower stack do?** Perception estimates hand/object relative poses; IK and motion planning enforce reachability and collision conditions; VLA/RL skills or local controllers perform grasping and rotation; independent hardware safety enforces limits and emergency stops. With only head/wrist cameras and no tactile sensor, occlusion and unobservable contact must be represented explicitly in verification outcomes.
 
-### 7.4 Which component should solve which problem?
+### 8.4 Which component should solve which problem?
 
 | Practical issue | First component to consider | Main evaluation criterion |
 |:--|:--|:--|
@@ -334,11 +407,12 @@ This is an **engineering recommendation**, not a universal data structure prescr
 | Persistent tool use, workspace handling, approval and logging | **Claude Code / Codex / custom harness** | Permissions, state management, auditability, failure recovery |
 | Novel task without an existing executable skill | **RAX-style exploration and compilation** | Conditional procedure with independent validation |
 | Recurrent failures whose causes are unclear | **ASPIRE-style traces and skill library** | Evidence-supported diagnosis, localized repair, transferable knowledge |
+| Integration of planners, VLAs, tools, and memory with sim or hardware | **RPent / custom robot-agent infrastructure** | Adapters, service isolation, verification, and safety boundaries |
 | Continuous contact or high-rate trajectory tracking | **VLA / RL / MPC / real-time controller** | Latency, stability, constraints, physical safety |
 
 ### Final takeaway
 
-**A robot agent is not simply a larger VLA or a model that can write robot code.** It is a task-level closed-loop system combining **foundation-model reasoning, an agent harness, robot tools, execution feedback, verifiable skill memory, and independently enforced safety**. Claude and Gemini 4 Argon may supply general reasoning, Claude Code and Codex provide agent execution environments, RAX emphasizes compiling exploration into independently runnable programs, and ASPIRE emphasizes trace-based repair and skill accumulation. Whether a real robot works reliably ultimately depends on **observability, tool quality, physical verification, and low-level control**, not on the model's name alone.
+**A robot agent is not simply a larger VLA or a model that can write robot code.** It is a task-level closed-loop system combining **foundation-model reasoning, an agent harness, robot tools, execution feedback, verifiable skill memory, and independently enforced safety**. Claude and Gemini 4 Argon may supply general reasoning, Claude Code and Codex provide agent execution environments, RAX emphasizes compiling exploration into independently runnable programs, ASPIRE emphasizes trace-based repair and skill accumulation, and RPent provides a concrete route for connecting planners, tools, memory, VLAs, and robot services. Whether a real robot works reliably ultimately depends on **observability, tool quality, physical verification, and low-level control**, not on the model's name alone.
 
 ---
 
@@ -354,5 +428,12 @@ This is an **engineering recommendation**, not a universal data structure prescr
 7. **Gemini 4 Argon model:** [Google AI for Developers](https://ai.google.dev/gemini-api/docs/models/gemini-4-argon).
 8. **Gemini 4 Argon for Robotics:** [Google Developers Blog](https://developers.googleblog.com/gemini-4-argon-for-robotics/) (Oct. 13, 2026); source for the Argon robotic demonstrations discussed here.
 9. **ASPIRE paper:** Lu et al., *ASPIRE: Agentic /Skills Discovery for Robotics* (2026). [arXiv](https://arxiv.org/abs/2607.00272) · [Project page](https://research.nvidia.com/labs/gear/aspire/).
+10. **RPent overview and repository:** [Introduction](https://rpent.readthedocs.io/en/latest/rst_source/get_started/overview.html) · [RLinf/RPent](https://github.com/RLinf/RPent).
+11. **RPent system architecture:** [Architecture and Execution](https://rpent.readthedocs.io/en/latest/rst_source/development/architecture.html).
+12. **RPent exploration and memory:** [Memory and Exploration](https://rpent.readthedocs.io/en/latest/rst_source/guides/memory.html).
+13. **RPent Flash:** [Flash Mode](https://rpent.readthedocs.io/en/latest/rst_source/guides/flash.html).
+14. **RPent data flywheel and RLinf:** [Collecting Trajectories and Data Flywheel](https://rpent.readthedocs.io/en/latest/rst_source/guides/flywheel.html).
+15. **RPent robot integration:** [Add a Robot or Simulator](https://rpent.readthedocs.io/en/latest/rst_source/development/add_robot.html).
+16. **RPent planners:** [Configuring the Planner](https://rpent.readthedocs.io/en/latest/rst_source/guides/configure_planner.html).
 
 *Attribution and scope: Revised from the Foundation of Embodied AI original course notes (CC BY 4.0; Xiong Zeng and contributors) and organized with the public resources above. Paper-supported mechanisms are distinguished from teaching reference architectures and the illustrative screwdriver case. No hardware performance guarantee is implied.*

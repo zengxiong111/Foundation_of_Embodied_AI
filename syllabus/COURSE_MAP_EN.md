@@ -79,11 +79,11 @@ flowchart LR
 
 ### 6. Isaac / MuJoCo Simulation
 
-[Isaac / MuJoCo Simulation](../md/Isaac_MuJoCo_RL_Complete_Guide_EN.md) — Understand the roles of Isaac Sim, Isaac Lab and MuJoCo. Learn how robot assets, actuators, observations, rewards and environment interfaces form a simulation-based RL pipeline.
+[Isaac / MuJoCo Simulation](../md/Isaac_MuJoCo_RL_Complete_Guide_EN.md) — Understand Isaac Sim, Isaac Lab and MuJoCo as simulation and training tools. Cover asset import, environment contracts, RL library selection, parallel throughput, deployment interfaces and a Tron2 + Revo3 scene case.
 
 ### 7. Motion Control RL
 
-[Motion Control RL](../md/Embodied_Motion_Control_RL_Tutorial_EN.md) — Connect MDP design and PPO/SAC to robot motion control. Study observations, action interfaces, rewards, resets, parallel simulation, domain randomization and Sim-to-Real considerations.
+[Motion Control RL](../md/Embodied_Motion_Control_RL_Tutorial_EN.md) — Study motion tracking, DeepMimic/AMP, universal controllers, teacher–student learning, RMA and residual RL. Connect these methods to legged and dexterous motion, recovery and Sim-to-Real.
 
 ### 8. PPO
 
@@ -103,7 +103,7 @@ flowchart LR
 
 ### 12. RL Post-training
 
-[RL Post-training](../md/RL_Post_Training_EN.md) — Study RL refinement of pretrained Diffusion, Flow Matching and VLA policies. Compare generator updates with frozen-generator interfaces, Actor–Critic loops and real-robot feedback.
+[RL Post-training](../md/RL_Post_Training_EN.md) — Study RL refinement of pretrained Diffusion, Flow Matching and VLA policies. Compare trainable interfaces and Actor–Critic loops, then examine RLinf infrastructure, physical feedback and deployment boundaries.
 
 ### 13. GR00T & SONIC
 
@@ -111,4 +111,4 @@ flowchart LR
 
 ### 14. Robot Agents
 
-[Robot Agents](../md/Robot_Agent_Workflow_EN.md) — Distinguish foundation models, coding agents and agent harnesses. Study model-driven workflows, RAX exploration and compilation, ASPIRE trace repair, skill memory and task-level verification.
+[Robot Agents](../md/Robot_Agent_Workflow_RPent_EN.md) — Distinguish foundation models, coding agents and agent harnesses. Connect RAX exploration, ASPIRE trace repair and RPent toolkits, memory, Flash Mode and the RLinf data flywheel to reusable robot workflows.
