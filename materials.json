@@ -416,5 +416,19 @@
         }
       }
     }
-  ]
+  ],
+  "syllabus": {
+    "en": {
+      "md": "syllabus/COURSE_MAP_EN.md",
+      "pdf": "syllabus/COURSE_MAP_EN.pdf",
+      "site_md": "files/COURSE_MAP_EN.md",
+      "site_pdf": "files/COURSE_MAP_EN.pdf"
+    },
+    "zh": {
+      "md": "syllabus/COURSE_MAP_ZH.md",
+      "pdf": "syllabus/COURSE_MAP_ZH.pdf",
+      "site_md": "files/COURSE_MAP_ZH.md",
+      "site_pdf": "files/COURSE_MAP_ZH.pdf"
+    }
+  }
 }

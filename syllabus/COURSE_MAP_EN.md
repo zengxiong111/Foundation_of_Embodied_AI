@@ -1,5 +1,7 @@
 # Foundation of Embodied AI: Course Map
 
+[简体中文](COURSE_MAP_ZH.md) | **English** | [PDF](COURSE_MAP_EN.pdf)
+
 Fourteen topics are organized as tools → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
 
 ## Contents
@@ -7,11 +9,7 @@ Fourteen topics are organized as tools → physics and perception → robot RL �
 - [Six learning modules](#map-section-01)
 - [Embodied AI system map](#map-section-02)
 - [Reading paths](#map-section-03)
-- [Validation boundary](#map-section-05)
-- [Vision Foundation Models: Mechanisms and Workflows](#map-section-06)
-- [RL Post-training for Pretrained Policies](#map-section-07)
-- [Advanced Robot Agents for System Integration](#map-section-08)
-- [Cross-Chapter Ownership to Avoid Duplication](#map-section-09)
+- [Tutorial overview](#map-section-04)
 
 <a id="map-section-01"></a>
 
@@ -55,41 +53,62 @@ flowchart LR
 3. VLA: calibration → vision foundation models → Imitation Learning → Flow Matching → RL Post-training → GR00T / SONIC → Robot Agent.
 4. Mathematical deep dives: full PPO, SAC, and Flow Matching derivations are reference material; hands-on learning does not require deriving everything first.
 
-<a id="map-section-05"></a>
+<a id="map-section-04"></a>
 
-## Validation boundary
+## Tutorial overview
 
-The repository provides documentation, formulae and research references, without course experiments. Record versions, camera calibration error, servo rates, safety logic and test outcomes when deploying hardware.
+### 1. Git Basics
 
+[Git Basics](../md/Git_Tutorial_English.md) — Learn Git’s working tree, staging area and commit history, then follow a GitHub workflow covering branches, pull requests, conflict resolution and common recovery commands.
 
-<a id="map-section-06"></a>
+### 2. ROS 2 Basics
 
-## Vision Foundation Models: Mechanisms and Workflows
+[ROS 2 Basics](../md/ROS2_Robot_Learning_Tutorial_EN.md) — Understand nodes, topics, services, actions, QoS and TF. Connect sensors, state estimation, policy inference and controllers through ROS 2 interfaces.
 
-Study [vision foundation models](../md/Visual_State_Estimation_EN.md) in six steps: task outputs → core mechanisms and I/O → model comparison → four workflows → system interfaces and recovery → common questions. The workflows cover known-object tool grasping and orientation, stereo depth, unknown-object shape priors, and human demonstrations/VLA. Calibration and filter derivations, network training, code and experiments remain outside this chapter.
+### 3. Camera Calibration
 
-<a id="map-section-07"></a>
+[Camera Calibration](../md/Robot_Camera_Calibration_Tutorial_EN.md) — Study camera intrinsics, distortion, extrinsics and hand–eye calibration. Relate RGB-D observations and coordinate transforms to robot-frame object poses.
 
-## RL Post-training for Pretrained Policies
+### 4. Vision Foundation Models
 
-Read [RL Post-training](../md/RL_Post_Training_EN.md) after imitation learning and Flow Matching, using PPO/SAC as background. Compare updating the pretrained generator with freezing it and training an external module; distinguish update interfaces, data reuse, Actor–Critic loops and deployment constraints. The chapter covers pretrained Diffusion, Flow Matching and VLA policies, training infrastructure, real-robot feedback loops, and unresolved reward, critic, timing, simulation and evaluation challenges. It does not cover training controllers from scratch or include coding exercises.
+[Vision Foundation Models](../md/Visual_State_Estimation_EN.md) — Compare segmentation, pose estimation, stereo depth and 3D foundation models. Follow four robotics workflows spanning known objects, stereo geometry, unknown shapes and human demonstrations.
 
-<a id="map-section-08"></a>
+### 5. Robot Dynamics
 
-## Advanced Robot Agents for System Integration
+[Robot Dynamics](../md/Robot_Dynamics_Embodied_EN.md) — Develop rigid-body motion and dynamics through coordinate frames, Jacobians, inertia and equations of motion. Connect contact, friction and control models to robot simulation.
 
-Final topic: [Robot Agents: planning, execution, verification and recovery](../md/Robot_Agent_Workflow_EN.md). It distinguishes foundation models, coding agents and agent harnesses; introduces the roles of Claude, Codex and Gemini 4 Argon; and covers model-driven workflows, RAX exploration and compilation, ASPIRE trace-guided repair, Real2Sim/self-improvement examples and a dexterous-hand screwdriver case. The combined workflow is a teaching example; no code or experiments are included.
+### 6. Isaac / MuJoCo Simulation
 
-<a id="map-section-09"></a>
+[Isaac / MuJoCo Simulation](../md/Isaac_MuJoCo_RL_Complete_Guide_EN.md) — Understand the roles of Isaac Sim, Isaac Lab and MuJoCo. Learn how robot assets, actuators, observations, rewards and environment interfaces form a simulation-based RL pipeline.
 
-## Cross-Chapter Ownership to Avoid Duplication
+### 7. Motion Control RL
 
-| Canonical chapter | What it teaches | What related chapters reuse |
-|---|---|---|
-| Camera Calibration | Intrinsics, extrinsics, hand-eye, TF and frame geometry | Vision uses calibrated transforms without duplicating hand-eye derivations |
-| Vision Foundation Models | Model mechanisms and I/O, comparisons, four robotics workflows, interfaces and recovery | Robot Agent combines perception outputs for task decisions |
-| Imitation Learning | BC/DAgger/ACT, generative action chunks and real-time RTC | GR00T/SONIC focuses on its specific training and deployment interfaces |
-| Flow Matching | Full CFM mathematics, velocity fields and ODE derivations | Imitation learning uses only the conditional action-generation interface |
-| PPO / SAC and Motion RL | RL objectives and motion-control engineering | Imitation learning does not duplicate reward-optimization derivations |
-| RL Post-training | Pretrained-policy updates, off-policy loops, training infrastructure, real-robot feedback and open challenges | Uses PPO/SAC foundations and pretrained imitation policies |
-| Robot Agent | Foundation-model and harness roles, model-driven workflows, RAX/ASPIRE, verification, recovery and memory | GR00T/SONIC remains an embodiment-specific System 1/0 case study |
+[Motion Control RL](../md/Embodied_Motion_Control_RL_Tutorial_EN.md) — Connect MDP design and PPO/SAC to robot motion control. Study observations, action interfaces, rewards, resets, parallel simulation, domain randomization and Sim-to-Real considerations.
+
+### 8. PPO
+
+[PPO](../md/PPO_Complete_Derivation_and_Design_Motivations_English.md) — Derive PPO-Clip and Actor–Critic learning from policy gradients, Bellman targets and GAE. Explain Gaussian policy updates, gradient isolation and asymmetric robot observations.
+
+### 9. SAC
+
+[SAC](../md/SAC_Complete_Derivation_EN.md) — Trace Q-learning, TD/SARSA and DQN toward entropy-regularized RL. Derive soft Bellman equations and modern SAC with twin critics, reparameterization and automatic entropy tuning.
+
+### 10. Imitation Learning
+
+[Imitation Learning](../md/Data_Imitation_Learning_EN.md) — Introduce BC, DAgger and ACT, then connect Diffusion Policy and Flow Matching to action-chunk generation. Explain temporal ensembling and inference-time versus training-time RTC.
+
+### 11. Flow Matching
+
+[Flow Matching](../md/Flow_Matching_Step_by_Step_Derivation_EN.md) — Derive conditional Flow Matching, velocity fields and the training objective. Explain how ODE integration transforms noise into conditional robot action sequences.
+
+### 12. RL Post-training
+
+[RL Post-training](../md/RL_Post_Training_EN.md) — Study RL refinement of pretrained Diffusion, Flow Matching and VLA policies. Compare generator updates with frozen-generator interfaces, Actor–Critic loops and real-robot feedback.
+
+### 13. GR00T & SONIC
+
+[GR00T & SONIC](../md/System1_System0_GR00T_SONIC_EN.md) — Use GR00T and SONIC to explain System 1/System 0 humanoid control. Connect high-level action chunks, motion representations, whole-body policies and low-level execution.
+
+### 14. Robot Agents
+
+[Robot Agents](../md/Robot_Agent_Workflow_EN.md) — Distinguish foundation models, coding agents and agent harnesses. Study model-driven workflows, RAX exploration and compilation, ASPIRE trace repair, skill memory and task-level verification.

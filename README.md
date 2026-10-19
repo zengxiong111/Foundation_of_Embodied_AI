@@ -4,7 +4,7 @@
 
 Chinese and English learning materials for a future Foundation of Embodied AI course, based on our project experience and generated with the assistance of ChatGPT.
 
-**How to read:** Follow tools → physics/perception → reinforcement learning → demonstrations/generative policies → systems integration. Git and ROS 2 are optional tool references. See the [course map](syllabus/COURSE_MAP_EN.md).
+**How to read:** Follow tools → physics/perception → reinforcement learning → demonstrations/generative policies → systems integration. Git and ROS 2 are optional tool references. See the [course map](syllabus/COURSE_MAP_EN.md) · <a href="https://zengxiong111.github.io/zengxiong.github.io/files/COURSE_MAP_EN.pdf" target="_blank">PDF</a>.
 
 ## Course materials
 

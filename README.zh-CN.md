@@ -4,7 +4,7 @@
 
 为未来「具身智能基础」课程准备的中英文学习资料，基于我们的项目经验，在 ChatGPT 的协助下生成。
 
-**课程导读：** 按“工具 → 物理与视觉 → 强化学习 → 示教与生成策略 → 系统集成”的路径阅读；Git 和 ROS 2 可按需作为工具参考。完整路径见 [课程大纲](syllabus/COURSE_MAP_ZH.md)。
+**课程导读：** 按“工具 → 物理与视觉 → 强化学习 → 示教与生成策略 → 系统集成”的路径阅读；Git 和 ROS 2 可按需作为工具参考。完整路径见 [课程大纲](syllabus/COURSE_MAP_ZH.md) · <a href="https://zengxiong111.github.io/zengxiong.github.io/files/COURSE_MAP_ZH.pdf" target="_blank">PDF</a>。
 
 ## 课程资料
 
