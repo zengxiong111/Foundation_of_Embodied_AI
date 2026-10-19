@@ -2,7 +2,7 @@
 
 [简体中文](COURSE_MAP_ZH.md) | **English** | [PDF](COURSE_MAP_EN.pdf)
 
-Fourteen topics are organized as tools → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
+Sixteen topics are organized as tools → deep learning → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
 
 ## Contents
 
@@ -18,10 +18,10 @@ Fourteen topics are organized as tools → physics and perception → robot RL �
 | Module | Topics | Outcome |
 |---|---|---|
 | 0. Orientation | Systems map and guide | Explain perception–policy–control loops |
-| 1. Tools | Git, ROS 2 | Manage code and understand ROS communication and TF |
+| 1. Tools and neural foundations | Git, ROS 2, Deep Learning Basics | Manage code, ROS interfaces and neural-network learning |
 | 2. Physics and perception | Dynamics, calibration, vision foundation models, Isaac / MuJoCo | Relate physical models, sensors and simulation |
 | 3. Reinforcement learning | Motion RL, PPO, SAC | Design observations, actions, rewards and data collection |
-| 4. Demonstrations and models | Imitation Learning, Flow Matching, RL Post-training, GR00T / SONIC | Learn chunk policies from demonstrations and connect hierarchical controllers |
+| 4. Demonstrations and models | Imitation Learning, Flow Matching, Efficient Training & Inference, RL Post-training, GR00T / SONIC | Learn generative policies and connect efficient inference with hierarchical controllers |
 | 5. Robot Agent integration | Robot Agent planning, tool use, verification and recovery | Orchestrate perception, policy and control for long-horizon tasks |
 
 <a id="map-section-02"></a>
@@ -48,9 +48,9 @@ flowchart LR
 
 ## Reading paths
 
-1. Beginners: orientation → essential Git and ROS 2 → dynamics → calibration → vision foundation models → simulation.
-2. Motion control: dynamics → simulation → PPO / SAC → motion control RL.
-3. VLA: calibration → vision foundation models → Imitation Learning → Flow Matching → RL Post-training → GR00T / SONIC → Robot Agent.
+1. Beginners: orientation → essential Git and ROS 2 → deep learning → dynamics → calibration → vision foundation models → simulation.
+2. Motion control: dynamics → simulation → deep learning → PPO / SAC → motion control RL.
+3. VLA: deep learning → calibration → vision foundation models → Imitation Learning → Flow Matching → efficient training and inference → RL Post-training → GR00T / SONIC → Robot Agent.
 4. Mathematical deep dives: full PPO, SAC, and Flow Matching derivations are reference material; hands-on learning does not require deriving everything first.
 
 <a id="map-section-04"></a>
@@ -65,50 +65,58 @@ flowchart LR
 
 [ROS 2 Basics](../md/ROS2_Robot_Learning_Tutorial_EN.md) — Understand nodes, topics, services, actions, QoS and TF. Connect sensors, state estimation, policy inference and controllers through ROS 2 interfaces.
 
-### 3. Camera Calibration
+### 3. Deep Learning Basics
+
+[Deep Learning Basics](../md/Deep_Learning_Foundations_EN.md) — Learn supervised objectives, gradient descent and backpropagation, then connect MLPs, Attention and Transformers to multimodal robot action heads. Understand pretraining, fine-tuning and the foundations required by downstream policy methods.
+
+### 4. Camera Calibration
 
 [Camera Calibration](../md/Robot_Camera_Calibration_Tutorial_EN.md) — Study camera intrinsics, distortion, extrinsics and hand–eye calibration. Relate RGB-D observations and coordinate transforms to robot-frame object poses.
 
-### 4. Vision Foundation Models
+### 5. Vision Foundation Models
 
 [Vision Foundation Models](../md/Visual_State_Estimation_EN.md) — Compare segmentation, pose estimation, stereo depth and 3D foundation models. Follow four robotics workflows spanning known objects, stereo geometry, unknown shapes and human demonstrations.
 
-### 5. Robot Dynamics
+### 6. Robot Dynamics
 
 [Robot Dynamics](../md/Robot_Dynamics_Embodied_EN.md) — Develop rigid-body motion and dynamics through coordinate frames, Jacobians, inertia and equations of motion. Connect contact, friction and control models to robot simulation.
 
-### 6. Isaac / MuJoCo Simulation
+### 7. Isaac / MuJoCo Simulation
 
 [Isaac / MuJoCo Simulation](../md/Isaac_MuJoCo_RL_Complete_Guide_EN.md) — Understand Isaac Sim, Isaac Lab and MuJoCo as simulation and training tools. Cover asset import, environment contracts, RL library selection, parallel throughput, deployment interfaces and a Tron2 + Revo3 scene case.
 
-### 7. Motion Control RL
+### 8. Motion Control RL
 
 [Motion Control RL](../md/Embodied_Motion_Control_RL_Tutorial_EN.md) — Study motion tracking, DeepMimic/AMP, universal controllers, teacher–student learning, RMA and residual RL. Connect these methods to legged and dexterous motion, recovery and Sim-to-Real.
 
-### 8. PPO
+### 9. PPO
 
 [PPO](../md/PPO_Complete_Derivation_and_Design_Motivations_English.md) — Derive PPO-Clip and Actor–Critic learning from policy gradients, Bellman targets and GAE. Explain Gaussian policy updates, gradient isolation and asymmetric robot observations.
 
-### 9. SAC
+### 10. SAC
 
 [SAC](../md/SAC_Complete_Derivation_EN.md) — Trace Q-learning, TD/SARSA and DQN toward entropy-regularized RL. Derive soft Bellman equations and modern SAC with twin critics, reparameterization and automatic entropy tuning.
 
-### 10. Imitation Learning
+### 11. Imitation Learning
 
 [Imitation Learning](../md/Data_Imitation_Learning_EN.md) — Introduce BC, DAgger and ACT, then connect Diffusion Policy and Flow Matching to action-chunk generation. Explain temporal ensembling and inference-time versus training-time RTC.
 
-### 11. Flow Matching
+### 12. Flow Matching
 
 [Flow Matching](../md/Flow_Matching_Step_by_Step_Derivation_EN.md) — Derive conditional Flow Matching, velocity fields and the training objective. Explain how ODE integration transforms noise into conditional robot action sequences.
 
-### 12. RL Post-training
+### 13. Efficient Training & Inference
+
+[Efficient Training & Inference](../md/Efficient_Training_Real_Time_Inference_EN.md) — Explain Transformer compute and memory, FlashAttention, training optimizations and valid KV-cache reuse. Connect Flow Matching acceleration, action chunks and RTC to end-to-end VLA latency and continuous robot control.
+
+### 14. RL Post-training
 
 [RL Post-training](../md/RL_Post_Training_EN.md) — Study RL refinement of pretrained Diffusion, Flow Matching and VLA policies. Compare trainable interfaces and Actor–Critic loops, then examine RLinf infrastructure, physical feedback and deployment boundaries.
 
-### 13. GR00T & SONIC
+### 15. GR00T & SONIC
 
 [GR00T & SONIC](../md/System1_System0_GR00T_SONIC_EN.md) — Use GR00T and SONIC to explain System 1/System 0 humanoid control. Connect high-level action chunks, motion representations, whole-body policies and low-level execution.
 
-### 14. Robot Agents
+### 16. Robot Agents
 
 [Robot Agents](../md/Robot_Agent_Workflow_RPent_EN.md) — Distinguish foundation models, coding agents and agent harnesses. Connect RAX exploration, ASPIRE trace repair and RPent toolkits, memory, Flash Mode and the RLinf data flywheel to reusable robot workflows.

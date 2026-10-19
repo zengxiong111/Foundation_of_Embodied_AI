@@ -103,6 +103,31 @@
       }
     },
     {
+      "id": "deep-learning",
+      "title_en": "Deep Learning Basics",
+      "title_zh": "深度学习基础",
+      "versions_en": "Supervised learning, gradient descent and backpropagation; MLPs, Attention and Transformers; multimodal action heads, pretraining, LoRA, RL post-training and robot-policy evaluation. No code or laboratory exercises.",
+      "versions_zh": "监督学习、梯度下降与反向传播；MLP、Attention 与 Transformer；多模态动作头、预训练、LoRA、RL 后训练与机器人策略评估。不含代码或实验练习。",
+      "reviewed_at": "2026-10-19",
+      "review_scope_en": "Supplied bilingual notes integrated; PDFs rebuilt with the shared academic cover and typography. Teaching content retained; no independent benchmarks, training or robot validation.",
+      "review_scope_zh": "整合用户提供的中英文讲义，PDF 按统一学术首页和字体重新排版。保留教学内容；未独立进行基准、训练或真机验证。",
+      "source_refs": [],
+      "documents": {
+        "en": {
+          "md": "md/Deep_Learning_Foundations_EN.md",
+          "pdf": "pdf/Deep_Learning_Foundations_EN.pdf",
+          "site_md": "files/Deep_Learning_Foundations_EN.md",
+          "site_pdf": "files/Deep_Learning_Foundations_EN.pdf"
+        },
+        "zh": {
+          "md": "md/Deep_Learning_Foundations_ZH.md",
+          "pdf": "pdf/Deep_Learning_Foundations_ZH.pdf",
+          "site_md": "files/Deep_Learning_Foundations_ZH.md",
+          "site_pdf": "files/Deep_Learning_Foundations_ZH.pdf"
+        }
+      }
+    },
+    {
       "id": "calibration",
       "title_en": "Camera Calibration",
       "title_zh": "相机标定",
@@ -335,6 +360,31 @@
           "pdf": "pdf/Flow_Matching_Step_by_Step_Derivation_EN.pdf",
           "site_md": "files/Flow_Matching_Step_by_Step_Derivation_EN.md",
           "site_pdf": "files/Flow_Matching_Step_by_Step_Derivation_EN.pdf"
+        }
+      }
+    },
+    {
+      "id": "efficient-inference",
+      "title_en": "Efficient Training & Inference",
+      "title_zh": "高效训练与实时推理",
+      "versions_en": "Transformer compute and memory; FlashAttention and online softmax; mixed precision, LoRA, checkpointing and distributed training; KV-cache validity, Flow Matching acceleration, action chunks, RTC and end-to-end VLA latency. No code or experiments.",
+      "versions_zh": "Transformer 计算与显存；FlashAttention 与 Online Softmax；混合精度、LoRA、检查点与分布式训练；KV Cache 有效条件、Flow Matching 加速、动作块、RTC 与端到端 VLA 时延。不含代码或实验。",
+      "reviewed_at": "2026-10-19",
+      "review_scope_en": "Supplied bilingual notes integrated; PDFs rebuilt with the shared academic cover and typography. Teaching content retained; no independent benchmarks, training or robot validation.",
+      "review_scope_zh": "整合用户提供的中英文讲义，PDF 按统一学术首页和字体重新排版。保留教学内容；未独立进行基准、训练或真机验证。",
+      "source_refs": [],
+      "documents": {
+        "en": {
+          "md": "md/Efficient_Training_Real_Time_Inference_EN.md",
+          "pdf": "pdf/Efficient_Training_Real_Time_Inference_EN.pdf",
+          "site_md": "files/Efficient_Training_Real_Time_Inference_EN.md",
+          "site_pdf": "files/Efficient_Training_Real_Time_Inference_EN.pdf"
+        },
+        "zh": {
+          "md": "md/Efficient_Training_Real_Time_Inference_ZH.md",
+          "pdf": "pdf/Efficient_Training_Real_Time_Inference_ZH.pdf",
+          "site_md": "files/Efficient_Training_Real_Time_Inference_ZH.md",
+          "site_pdf": "files/Efficient_Training_Real_Time_Inference_ZH.pdf"
         }
       }
     },
