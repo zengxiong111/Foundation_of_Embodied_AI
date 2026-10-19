@@ -8,7 +8,7 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 
 ## Course materials
 
-16 topics, 32 Markdown files and 32 PDFs. Use the links below to read or download. All PDFs use a shared academic layout; the first chapter starts on page 2.
+17 topics, 34 Markdown files and 34 PDFs. Use the links below to read or download. All PDFs use a shared academic layout; the first chapter starts on page 2.
 
 | Topic | Chinese Markdown | English Markdown | Chinese PDF | English PDF |
 |---|---|---|---|---|
@@ -27,6 +27,7 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 | Efficient Training & Inference | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_EN.pdf" target="_blank">PDF</a> |
 | RL Post-training | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/RL_Post_Training_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/RL_Post_Training_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/RL_Post_Training_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/RL_Post_Training_EN.pdf" target="_blank">PDF</a> |
 | GR00T & SONIC | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.pdf" target="_blank">PDF</a> |
+| World Action Models | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/World_Action_Models_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/World_Action_Models_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/World_Action_Models_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/World_Action_Models_EN.pdf" target="_blank">PDF</a> |
 | Robot Agents / RPent | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_EN.pdf" target="_blank">PDF</a> |
 
 ## Usage and feedback

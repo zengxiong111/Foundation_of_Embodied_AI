@@ -2,7 +2,7 @@
 
 [简体中文](COURSE_MAP_ZH.md) | **English** | [PDF](COURSE_MAP_EN.pdf)
 
-Sixteen topics are organized as tools → calibration and deep learning → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
+Seventeen topics are organized as tools → calibration and deep learning → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
 
 ## Contents
 
@@ -21,7 +21,7 @@ Sixteen topics are organized as tools → calibration and deep learning → phys
 | 1. Tools | Git, ROS 2 | Manage code and understand ROS communication and TF |
 | 2. Physics, perception and neural foundations | Calibration, Deep Learning Basics, vision foundation models, dynamics, Isaac / MuJoCo | Relate calibrated geometry, neural networks, physical models and simulation |
 | 3. Reinforcement learning | Motion RL, PPO, SAC | Design observations, actions, rewards and data collection |
-| 4. Demonstrations and models | Imitation Learning, Flow Matching, Efficient Training & Inference, RL Post-training, GR00T / SONIC | Learn generative policies and connect efficient inference with hierarchical controllers |
+| 4. Demonstrations and models | Imitation Learning, Flow Matching, Efficient Training & Inference, RL Post-training, GR00T / SONIC, World Action Models | Learn generative and predictive policies and connect efficient inference with hierarchical controllers |
 | 5. Robot Agent integration | Robot Agent planning, tool use, verification and recovery | Orchestrate perception, policy and control for long-horizon tasks |
 
 <a id="map-section-02"></a>
@@ -31,7 +31,7 @@ Sixteen topics are organized as tools → calibration and deep learning → phys
 ```mermaid
 flowchart LR
  A["Task command"] --> B["Visual / state estimation"]
- B --> C["High-level VLA / action policy"]
+ B --> C["High-level VLA / WAM policy"]
  C --> D["Motion policy / servo control"]
  D --> E["Robot and environment"]
  E --> B
@@ -50,7 +50,7 @@ flowchart LR
 
 1. Beginners: orientation → essential Git and ROS 2 → calibration → deep learning → dynamics → vision foundation models → simulation.
 2. Motion control: dynamics → simulation → deep learning → PPO / SAC → motion control RL.
-3. VLA: calibration → deep learning → vision foundation models → Imitation Learning → Flow Matching → efficient training and inference → RL Post-training → GR00T / SONIC → Robot Agent.
+3. VLA: calibration → deep learning → vision foundation models → Imitation Learning → Flow Matching → efficient training and inference → RL Post-training → GR00T / SONIC → World Action Models → Robot Agent.
 4. Mathematical deep dives: full PPO, SAC, and Flow Matching derivations are reference material; hands-on learning does not require deriving everything first.
 
 <a id="map-section-04"></a>
@@ -117,6 +117,10 @@ flowchart LR
 
 [GR00T & SONIC](../md/System1_System0_GR00T_SONIC_EN.md) — Use GR00T and SONIC to explain System 1/System 0 humanoid control. Connect high-level action chunks, motion representations, whole-body policies and low-level execution.
 
-### 16. Robot Agents
+### 16. World Action Models
+
+[World Action Models](../md/World_Action_Models_EN.md) — Distinguish world models, VLAs and WAMs through four prediction–action coupling paradigms. Study training data and objectives, explicit imagination versus action-only inference, and latency, contact and recovery constraints in robot deployment.
+
+### 17. Robot Agents
 
 [Robot Agents](../md/Robot_Agent_Workflow_RPent_EN.md) — Distinguish foundation models, coding agents and agent harnesses. Connect RAX exploration, ASPIRE trace repair and RPent toolkits, memory, Flash Mode and the RLinf data flywheel to reusable robot workflows.

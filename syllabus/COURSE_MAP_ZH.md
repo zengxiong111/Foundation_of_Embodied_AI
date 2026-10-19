@@ -2,7 +2,7 @@
 
 **简体中文** | [English](COURSE_MAP_EN.md) | [PDF](COURSE_MAP_ZH.pdf)
 
-本课程按“工具 → 标定与深度学习 → 物理与视觉 → 机器人强化学习 → 示教与生成策略 → 系统集成”组织，共 16 个专题。原有长篇技术教程保留为深入阅读，不等于所有章节必须依次完成。
+本课程按“工具 → 标定与深度学习 → 物理与视觉 → 机器人强化学习 → 示教与生成策略 → 系统集成”组织，共 17 个专题。原有长篇技术教程保留为深入阅读，不等于所有章节必须依次完成。
 
 ## 目录
 
@@ -21,7 +21,7 @@
 | 1. 工程工具 | Git、ROS 2 | 版本管理；理解 ROS 通信与 TF |
 | 2. 物理、视觉与神经网络基础 | 相机标定、深度学习基础、视觉基础模型、机器人动力学、Isaac / MuJoCo | 连接标定几何、神经网络、物理模型与仿真 |
 | 3. 强化学习 | 运动控制 RL、PPO、SAC | 设计观测、动作、奖励及数据收集方式 |
-| 4. 演示与基础模型 | Imitation Learning、Flow Matching、高效训练与实时推理、RL Post-training、GR00T / SONIC | 学习生成式策略并连接高效推理与分层控制 |
+| 4. 演示与基础模型 | Imitation Learning、Flow Matching、高效训练与实时推理、RL Post-training、GR00T / SONIC、世界动作模型 | 学习生成式与预测式策略并连接高效推理与分层控制 |
 | 5. Robot Agent 集成 | Robot Agent：任务规划、工具调用、验证与恢复 | 编排视觉、策略和控制，完成长时任务闭环 |
 
 <a id="map-section-02"></a>
@@ -31,7 +31,7 @@
 ```mermaid
 flowchart LR
  A["任务指令"] --> B["视觉 / 状态估计"]
- B --> C["高层 VLA / 动作块策略"]
+ B --> C["高层 VLA / WAM 动作策略"]
  C --> D["运控策略 / 低层控制器"]
  D --> E["机器人与环境"]
  E --> B
@@ -50,7 +50,7 @@ flowchart LR
 
 1. 初学者：先阅读本导论，跳读 Git / ROS 2 的必要部分，再学习相机标定、深度学习基础、动力学、视觉基础模型与仿真。
 2. 运控方向：动力学 → 仿真 → 深度学习基础 → PPO / SAC → 运动控制 RL。
-3. VLA 方向：相机标定 → 深度学习基础 → 视觉基础模型 → Imitation Learning → Flow Matching → 高效训练与实时推理 → RL Post-training → GR00T / SONIC → Robot Agent。
+3. VLA 方向：相机标定 → 深度学习基础 → 视觉基础模型 → Imitation Learning → Flow Matching → 高效训练与实时推理 → RL Post-training → GR00T / SONIC → 世界动作模型 → Robot Agent。
 4. 深度推导：PPO、SAC、Flow Matching 的完整数学推导是独立深入阅读材料，并非先学完所有公式才能开始实践。
 
 <a id="map-section-04"></a>
@@ -117,6 +117,10 @@ flowchart LR
 
 [GR00T 与 SONIC](../md/System1_System0_GR00T_SONIC_CN.md)：以 GR00T 与 SONIC 解释人形机器人的 System 1/System 0 分层控制，连接高层动作块、运动表示、全身策略与低层执行。
 
-### 16. Robot Agent
+### 16. 世界动作模型
+
+[世界动作模型](../md/World_Action_Models_ZH.md)：通过四类预测—动作耦合范式区分世界模型、VLA 与 WAM，学习训练数据与目标、显式想象和纯动作推理，以及机器人部署中的时延、接触与恢复约束。
+
+### 17. Robot Agent
 
 [Robot Agent](../md/Robot_Agent_Workflow_RPent_ZH.md)：区分基础模型、Coding Agent 与 Agent Harness，将 RAX 探索、ASPIRE 轨迹修复及 RPent 工具集、记忆、Flash Mode 和 RLinf 数据飞轮连接为可复用机器人工作流。
