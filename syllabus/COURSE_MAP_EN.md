@@ -2,7 +2,7 @@
 
 [简体中文](COURSE_MAP_ZH.md) | **English** | [PDF](COURSE_MAP_EN.pdf)
 
-Sixteen topics are organized as tools → deep learning → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
+Sixteen topics are organized as tools → calibration and deep learning → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
 
 ## Contents
 
@@ -18,8 +18,8 @@ Sixteen topics are organized as tools → deep learning → physics and percepti
 | Module | Topics | Outcome |
 |---|---|---|
 | 0. Orientation | Systems map and guide | Explain perception–policy–control loops |
-| 1. Tools and neural foundations | Git, ROS 2, Deep Learning Basics | Manage code, ROS interfaces and neural-network learning |
-| 2. Physics and perception | Dynamics, calibration, vision foundation models, Isaac / MuJoCo | Relate physical models, sensors and simulation |
+| 1. Tools | Git, ROS 2 | Manage code and understand ROS communication and TF |
+| 2. Physics, perception and neural foundations | Calibration, Deep Learning Basics, vision foundation models, dynamics, Isaac / MuJoCo | Relate calibrated geometry, neural networks, physical models and simulation |
 | 3. Reinforcement learning | Motion RL, PPO, SAC | Design observations, actions, rewards and data collection |
 | 4. Demonstrations and models | Imitation Learning, Flow Matching, Efficient Training & Inference, RL Post-training, GR00T / SONIC | Learn generative policies and connect efficient inference with hierarchical controllers |
 | 5. Robot Agent integration | Robot Agent planning, tool use, verification and recovery | Orchestrate perception, policy and control for long-horizon tasks |
@@ -48,9 +48,9 @@ flowchart LR
 
 ## Reading paths
 
-1. Beginners: orientation → essential Git and ROS 2 → deep learning → dynamics → calibration → vision foundation models → simulation.
+1. Beginners: orientation → essential Git and ROS 2 → calibration → deep learning → dynamics → vision foundation models → simulation.
 2. Motion control: dynamics → simulation → deep learning → PPO / SAC → motion control RL.
-3. VLA: deep learning → calibration → vision foundation models → Imitation Learning → Flow Matching → efficient training and inference → RL Post-training → GR00T / SONIC → Robot Agent.
+3. VLA: calibration → deep learning → vision foundation models → Imitation Learning → Flow Matching → efficient training and inference → RL Post-training → GR00T / SONIC → Robot Agent.
 4. Mathematical deep dives: full PPO, SAC, and Flow Matching derivations are reference material; hands-on learning does not require deriving everything first.
 
 <a id="map-section-04"></a>
@@ -65,13 +65,13 @@ flowchart LR
 
 [ROS 2 Basics](../md/ROS2_Robot_Learning_Tutorial_EN.md) — Understand nodes, topics, services, actions, QoS and TF. Connect sensors, state estimation, policy inference and controllers through ROS 2 interfaces.
 
-### 3. Deep Learning Basics
-
-[Deep Learning Basics](../md/Deep_Learning_Foundations_EN.md) — Learn supervised objectives, gradient descent and backpropagation, then connect MLPs, Attention and Transformers to multimodal robot action heads. Understand pretraining, fine-tuning and the foundations required by downstream policy methods.
-
-### 4. Camera Calibration
+### 3. Camera Calibration
 
 [Camera Calibration](../md/Robot_Camera_Calibration_Tutorial_EN.md) — Study camera intrinsics, distortion, extrinsics and hand–eye calibration. Relate RGB-D observations and coordinate transforms to robot-frame object poses.
+
+### 4. Deep Learning Basics
+
+[Deep Learning Basics](../md/Deep_Learning_Foundations_EN.md) — Learn supervised objectives, gradient descent and backpropagation, then connect MLPs, Attention and Transformers to multimodal robot action heads. Understand pretraining, fine-tuning and the foundations required by downstream policy methods.
 
 ### 5. Vision Foundation Models
 

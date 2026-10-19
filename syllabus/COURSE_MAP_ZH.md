@@ -2,7 +2,7 @@
 
 **简体中文** | [English](COURSE_MAP_EN.md) | [PDF](COURSE_MAP_ZH.pdf)
 
-本课程按“工具 → 深度学习 → 物理与视觉 → 机器人强化学习 → 示教与生成策略 → 系统集成”组织，共 16 个专题。原有长篇技术教程保留为深入阅读，不等于所有章节必须依次完成。
+本课程按“工具 → 标定与深度学习 → 物理与视觉 → 机器人强化学习 → 示教与生成策略 → 系统集成”组织，共 16 个专题。原有长篇技术教程保留为深入阅读，不等于所有章节必须依次完成。
 
 ## 目录
 
@@ -18,8 +18,8 @@
 | 模块 | 主题 | 读完能够做什么 |
 |---|---|---|
 | 0. 导论 | 全栈知识地图与阅读说明 | 看懂感知—策略—控制—机器人闭环 |
-| 1. 工具与神经网络基础 | Git、ROS 2、深度学习基础 | 掌握版本管理、ROS 接口与神经网络学习基础 |
-| 2. 物理与视觉 | 机器人动力学、相机标定、视觉基础模型、Isaac / MuJoCo | 建立机器人物理、传感器和仿真模型 |
+| 1. 工程工具 | Git、ROS 2 | 版本管理；理解 ROS 通信与 TF |
+| 2. 物理、视觉与神经网络基础 | 相机标定、深度学习基础、视觉基础模型、机器人动力学、Isaac / MuJoCo | 连接标定几何、神经网络、物理模型与仿真 |
 | 3. 强化学习 | 运动控制 RL、PPO、SAC | 设计观测、动作、奖励及数据收集方式 |
 | 4. 演示与基础模型 | Imitation Learning、Flow Matching、高效训练与实时推理、RL Post-training、GR00T / SONIC | 学习生成式策略并连接高效推理与分层控制 |
 | 5. Robot Agent 集成 | Robot Agent：任务规划、工具调用、验证与恢复 | 编排视觉、策略和控制，完成长时任务闭环 |
@@ -48,9 +48,9 @@ flowchart LR
 
 ## 推荐学习顺序与先修关系
 
-1. 初学者：先阅读本导论，跳读 Git / ROS 2 的必要部分，再学习深度学习基础、动力学、标定、视觉基础模型与仿真。
+1. 初学者：先阅读本导论，跳读 Git / ROS 2 的必要部分，再学习相机标定、深度学习基础、动力学、视觉基础模型与仿真。
 2. 运控方向：动力学 → 仿真 → 深度学习基础 → PPO / SAC → 运动控制 RL。
-3. VLA 方向：深度学习基础 → 相机标定 → 视觉基础模型 → Imitation Learning → Flow Matching → 高效训练与实时推理 → RL Post-training → GR00T / SONIC → Robot Agent。
+3. VLA 方向：相机标定 → 深度学习基础 → 视觉基础模型 → Imitation Learning → Flow Matching → 高效训练与实时推理 → RL Post-training → GR00T / SONIC → Robot Agent。
 4. 深度推导：PPO、SAC、Flow Matching 的完整数学推导是独立深入阅读材料，并非先学完所有公式才能开始实践。
 
 <a id="map-section-04"></a>
@@ -65,13 +65,13 @@ flowchart LR
 
 [ROS 2 基础](../md/ROS2_Robot_Learning_Tutorial_ZH.md)：理解节点、Topic、Service、Action、QoS 与 TF，学习通过 ROS 2 接口连接传感器、状态估计、策略推理与控制器。
 
-### 3. 深度学习基础
-
-[深度学习基础](../md/Deep_Learning_Foundations_ZH.md)：学习监督目标、梯度下降与反向传播，将 MLP、Attention 和 Transformer 连接到多模态机器人动作头，理解预训练、微调及后续策略方法所需的网络基础。
-
-### 4. 相机标定
+### 3. 相机标定
 
 [相机标定](../md/Robot_Camera_Calibration_Tutorial_ZH.md)：学习相机内参、畸变、外参及手眼标定，理解 RGB-D 观测与坐标变换如何转化为机器人坐标系中的物体位姿。
+
+### 4. 深度学习基础
+
+[深度学习基础](../md/Deep_Learning_Foundations_ZH.md)：学习监督目标、梯度下降与反向传播，将 MLP、Attention 和 Transformer 连接到多模态机器人动作头，理解预训练、微调及后续策略方法所需的网络基础。
 
 ### 5. 视觉基础模型
 
