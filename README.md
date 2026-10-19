@@ -27,10 +27,6 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 | GR00T & SONIC | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.pdf" target="_blank">PDF</a> |
 | Robot Agents: RAX / ASPIRE | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.pdf" target="_blank">PDF</a> |
 
-Vision notes cover model mechanisms, comparison and four robotics workflows; imitation notes cover BC/DAgger/ACT and RTC. Neither chapter includes experiments.
-
-PPO materials cover full derivations and Actor–Critic learning; RL Post-training focuses on improving pretrained Diffusion, Flow Matching and VLA policies.
-
 ## Usage and feedback
 
 Everyone is welcome to download, modify and submit pull requests! Send feedback to [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn).

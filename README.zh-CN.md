@@ -27,10 +27,6 @@
 | GR00T 与 SONIC | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_CN.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/System1_System0_GR00T_SONIC_EN.pdf" target="_blank">PDF</a> |
 | Robot Agent：RAX / ASPIRE | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.pdf" target="_blank">PDF</a> |
 
-视觉资料涵盖模型原理、比较与四类机器人工作流；模仿学习资料涵盖 BC/DAgger/ACT 与 RTC。两章均不含实验章节。
-
-PPO 资料涵盖完整推导与 Actor–Critic 学习机制；RL Post-training 聚焦预训练 Diffusion、Flow Matching 与 VLA 策略的强化学习后训练。
-
 ## 使用与反馈
 
 欢迎大家下载、修改和提交 PR！反馈请发送至 [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn)。
