@@ -50,9 +50,8 @@
   - [6.3 Step 3: fine-tune GR00T to predict SONIC actions](#course-section-33)
   - [6.4 Step 4: deploy with PolicyServer and SONIC](#course-section-34)
   - [6.5 Step 5: evaluate the complete system](#course-section-35)
-- [7. Research directions, ablations, and common misconceptions](#course-section-36)
+- [7. Research directions and common misconceptions](#course-section-36)
   - [7.1 Where should improvements be targeted?](#course-section-37)
-  - [7.2 Three minimal ablation studies](#course-section-38)
   - [7.3 Five common misconceptions](#course-section-39)
 - [8. Summary and references](#course-section-40)
   - [8.1 Three takeaways](#course-section-41)
@@ -556,7 +555,7 @@ Perform **sim-to-sim tests** before moving to protected, low-speed robot trials.
 
 <a id="course-section-36"></a>
 
-## 7. Research directions, ablations, and common misconceptions
+## 7. Research directions and common misconceptions
 
 <a id="course-section-37"></a>
 
@@ -570,22 +569,6 @@ Perform **sim-to-sim tests** before moving to protected, low-speed robot trials.
 | Disturbance and sim-to-real robustness | System 0 | PPO, domain randomization, system identification |
 | Complex hand-foot contact | Both layers and interface | Contact-rich demonstrations and evaluations |
 | Reliable hierarchy | Interface / deployment | Token design, timing, safety filtering |
-
-<a id="course-section-38"></a>
-
-### 7.2 Three minimal ablation studies
-
-**Ablation A: action representation**
-
-With as much else as possible held constant, compare (i) raw joint actions, (ii) explicit whole-body poses, and (iii) SONIC motion tokens. Measure success, smoothness, and sensitivity to infeasible commands. Such a comparison changes more than dimensionality; do not attribute all performance differences to compression alone.
-
-**Ablation B: feedback rate**
-
-Freeze SONIC while varying VLA refresh rate, the number of actions executed from each chunk, and imposed inference delay. Test moving targets, contact changes, and disturbance recovery.
-
-**Ablation C: low-level robustness**
-
-Freeze the high-level tokens and perturb simulator mass/friction, IMU measurements, and external pushes. Compare tracking success, posture error, and fall rate.
 
 <a id="course-section-39"></a>
 

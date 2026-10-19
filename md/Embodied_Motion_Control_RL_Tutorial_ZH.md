@@ -61,7 +61,7 @@ lang: zh-CN
   - [8.3 Action](#course-section-36)
   - [8.4 Reward](#course-section-37)
   - [8.5 Curriculum Learning](#course-section-38)
-  - [8.6 开源实验入口](#course-section-39)
+  - [8.6 开源项目入口](#course-section-39)
 - [第九章：案例二——机械臂与灵巧手运动控制 RL](#course-section-40)
   - [9.1 任务定义](#course-section-41)
   - [9.2 建议的控制架构](#course-section-42)
@@ -789,7 +789,7 @@ $$
 
 <a id="course-section-39"></a>
 
-### 8.6 开源实验入口
+### 8.6 开源项目入口
 
 [Unitree RL Lab](https://github.com/unitreerobotics/unitree_rl_lab) 基于 Isaac Lab，提供 Unitree 机器人的训练及部署相关代码。[8] 以下命令为该仓库接口的**示例**，执行前应核对当前版本的环境与任务名称：
 
@@ -803,8 +803,6 @@ $$
 # 测试策略
 ./unitree_rl_lab.sh -p --task Unitree-G1-29dof-Velocity
 ```
-
-**第一个研究实验：**先复现平地行走，再分别修改 Action Smoothness、Domain Randomization、Observation History 和 Foot Slip Penalty，观察训练收敛、速度误差和扰动恢复是否变化。
 
 <a id="course-section-40"></a>
 

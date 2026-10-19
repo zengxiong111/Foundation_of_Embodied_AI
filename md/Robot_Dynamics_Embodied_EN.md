@@ -46,7 +46,7 @@ lang: en-US
   - [5.1 Geometry and sign conventions](#course-section-21)
   - [5.2 Kinetic energy reveals joint coupling](#course-section-22)
   - [5.3 Velocity coupling and gravity](#course-section-23)
-  - [5.4 Four thought experiments worth doing](#course-section-24)
+  - [5.4 Four representative dynamics cases](#course-section-24)
 - [Chapter 6. How dynamics scales to complex robots](#course-section-25)
   - [6.1 Why we do not expand every rigid-body equation](#course-section-26)
   - [6.2 Gravity compensation is a special inverse-dynamics case](#course-section-27)
@@ -77,19 +77,6 @@ lang: en-US
   - [12.1 What each platform contributes](#course-section-52)
   - [12.2 Matching model filenames is not enough](#course-section-53)
   - [12.3 Three time scales must be identified separately](#course-section-54)
-- [Chapter 13. Code-free laboratory guide: free-space mechanics first](#course-section-55)
-  - [Lab 1 | One-link gravity and inertia](#course-section-56)
-  - [Lab 2 | Two-link mass matrix and coupling](#course-section-57)
-  - [Lab 3 | Forward–inverse dynamics consistency](#course-section-58)
-  - [Lab 4 | PD control versus gravity-compensated PD](#course-section-59)
-  - [Lab 5 | Action rate and actuator saturation](#course-section-60)
-- [Chapter 14. Code-free laboratory guide: contact, hands, and humanoids](#course-section-61)
-  - [Lab 6 | A falling block: normal contact and impact](#course-section-62)
-  - [Lab 7 | Sliding on a slope: friction intuition](#course-section-63)
-  - [Lab 8 | Dexterous grasp, rotation, and drop recovery](#course-section-64)
-  - [Lab 9 | Humanoid standing: contact force and center of mass](#course-section-65)
-  - [Lab 10 | Cross-simulator and sim-to-real sensitivity](#course-section-66)
-  - [Minimal one-page lab-report structure](#course-section-67)
 - [Chapter 15. From simulation to real robots: a concise checklist](#course-section-68)
   - [15.1 Physical parameters must remain self-consistent](#course-section-69)
   - [15.2 Prioritize sim-to-real variation by plausible error sources](#course-section-70)
@@ -131,7 +118,7 @@ $$
 
 **Deliberately omitted**: Lie-group proofs, full screw theory and product-of-exponentials derivations, detailed spatial cross-product operators, low-level implementations of RNEA/ABA, general-purpose SDP and optimal-control theory, software installation commands, and all programming code. Readers who need those topics can proceed to the references.
 
-**How to read**: Chapters 1–6 build the physics foundation. Chapters 7–11 explain actuation, contact, and control. Chapters 12–14 specify reproducible **code-free** MuJoCo and Isaac Sim / Isaac Lab experiments. Chapter 15 consolidates sim-to-real considerations. The experiments describe what to perform and measure; they are not claims that simulations have already been executed.
+**How to read**: Chapters 1–6 build the physics foundation. Chapters 7–11 explain actuation, contact, and control. Chapter 12 compares MuJoCo with Isaac Sim / Isaac Lab. Chapter 15 consolidates sim-to-real considerations.
 
 <a id="course-section-02"></a>
 
@@ -389,7 +376,7 @@ The final result is $\tau=M(q)\ddot q+C(q,\dot q)\dot q+g(q)$. We have followed 
 
 <a id="course-section-24"></a>
 
-### 5.4 Four thought experiments worth doing
+### 5.4 Four representative dynamics cases
 
 1. **Stationary, no contact**: $\dot q=\ddot q=0$ requires $\tau=g(q)$.
 2. **Slow motion**: velocity-dependent terms are small relative to the most important inertial and gravity effects.
@@ -679,90 +666,6 @@ The physics integration step $\Delta t_{\mathrm{phys}}$, servo/controller update
 
 A fair policy comparison must report all three frequencies and how actions are held or interpolated; otherwise nominally identical policies can experience different contact transients and delays.
 
-<a id="course-section-55"></a>
-
-## Chapter 13. Code-free laboratory guide: free-space mechanics first
-
-Use **the same one-link pendulum and the same two-link arm** in both platforms as the common starting point. Each lab gives an objective, setup, measurements, and a prediction. No commands, software snippets, or executable scripts are required to understand the exercise.
-
-<a id="course-section-56"></a>
-
-### Lab 1 | One-link gravity and inertia
-
-**Objective:** separate the effects of mass, center of mass, and rotational inertia. **Setup:** create a single link on a fixed rotational axis in a vertical plane. Release it from a horizontal pose, then independently vary mass, center of mass, and inertia within physically plausible ranges. **Measure:** $q(t)$, $\dot q(t)$, $\ddot q(t)$, and gravitational joint torque. **Expected:** changing center of mass changes both gravity torque and joint inertia; a stationary horizontal link requires nonzero holding torque.
-
-**Check:** align axis direction, gravity, and zero-angle convention in MuJoCo and Isaac Sim, or the gravity-torque curves may differ by a sign or phase.
-
-<a id="course-section-57"></a>
-
-### Lab 2 | Two-link mass matrix and coupling
-
-**Objective:** understand why $M(q)$ depends on configuration. **Setup:** use the two-link parameters from Chapter 5, hold $q_1$ fixed, and gradually vary $q_2$ while examining equivalent joint inertia and static holding torque. **Measure:** diagonal and off-diagonal mass-matrix terms and $g(q)$. **Expected:** $M_{11}$ and $M_{12}$ vary with $\cos q_2$; joints are inertially coupled.
-
-**Check:** remove contact and unintended drives when comparing mass-matrix properties, and verify SI units.
-
-<a id="course-section-58"></a>
-
-### Lab 3 | Forward–inverse dynamics consistency
-
-**Objective:** verify $M\ddot q+h=\tau$. **Setup:** choose matching nonsingular robot configurations, velocities, and desired accelerations. Determine the generalized forces required for the desired acceleration, then predict free-space acceleration under those forces. **Measure:** acceleration discrepancy and equation residual. **Expected:** values are close with consistent conventions; discretization and actuator modeling introduce differences.
-
-**Check:** a position-servo target is not a joint torque. Identify whether additional low-level controllers are active.
-
-<a id="course-section-59"></a>
-
-### Lab 4 | PD control versus gravity-compensated PD
-
-**Objective:** connect feedback to model feedforward. **Setup:** hold a two-link arm in horizontal and downward-pointing configurations; compare pure PD against PD with gravity compensation. **Measure:** steady-state error, maximum joint effort, and settling time. **Expected:** with suitable gains and a correct model, gravity compensation reduces pose-dependent error; it cannot remove all delay or unmodeled friction.
-
-<a id="course-section-60"></a>
-
-### Lab 5 | Action rate and actuator saturation
-
-**Objective:** see why identical policy targets can result in different motion. **Setup:** hold the target trajectory constant but vary physics step, servo rate, policy rate, torque limit, and PD gains. **Measure:** tracking error, peak torque, overshoot, and lag. **Expected:** slower command updates or stricter limits may increase tracking error; excessively high gains can destabilize contact interactions or coarse discretization.
-
-<a id="course-section-61"></a>
-
-## Chapter 14. Code-free laboratory guide: contact, hands, and humanoids
-
-<a id="course-section-62"></a>
-
-### Lab 6 | A falling block: normal contact and impact
-
-**Objective:** observe the transition from free fall to supported contact. **Setup:** drop blocks with the same mass and collision geometry from the same height onto a table in MuJoCo and Isaac Sim, then vary contact settings in a controlled manner. **Measure:** height, vertical speed, penetration, normal force/impulse, and resting jitter. **Expected:** impact details can differ across platforms; after settling, average normal support force should approximately equal object weight.
-
-<a id="course-section-63"></a>
-
-### Lab 7 | Sliding on a slope: friction intuition
-
-**Objective:** study friction coefficient and sliding threshold. **Setup:** place a block on a slowly increasing incline and repeat with different static-friction parameters. **Measure:** onset angle, sliding velocity, and normal force. **Expected:** ideal Coulomb static friction gives $\tan\theta_c\approx\mu$; static-friction approximations and time discretization can shift this threshold in real solvers.
-
-<a id="course-section-64"></a>
-
-### Lab 8 | Dexterous grasp, rotation, and drop recovery
-
-**Objective:** combine mass, inertia, friction, and contact-mode changes in one task. **Setup:** keep screwdriver geometry fixed, then vary object mass/center of mass, friction, initial orientation, grip location, and manipulation speed. Define phases for grasp $\rightarrow$ lift $\rightarrow$ rotate $\rightarrow$ disturb $\rightarrow$ regrasp when necessary. **Measure:** success rate, object orientation error, slip distance, contact duration, post-drop recovery rate, and number of actions.
-
-**Expected:** rapid rotation raises inertial loads and low friction increases slip risk. Successful recovery does not prove that the initial grasp was optimal; check whether the policy actually detected the new contact state. Before sim-to-real on Tron2 + Revo3, verify mounting geometry, payload data, and fingertip materials.
-
-<a id="course-section-65"></a>
-
-### Lab 9 | Humanoid standing: contact force and center of mass
-
-**Objective:** verify that the floating base cannot be suspended by internal actuation. **Setup:** choose a humanoid or quadruped with foot contact, and compare stable standing, a small forward body lean, and lifting one foot. **Measure:** center-of-mass projection, ground reaction force, torso pose, and joint effort. **Expected:** support forces redistribute and stability requires joint behavior consistent with contact and center-of-mass mechanics.
-
-<a id="course-section-66"></a>
-
-### Lab 10 | Cross-simulator and sim-to-real sensitivity
-
-**Objective:** identify the physical parameters that matter most for learning. **Setup:** first align the contact-free two-link models, then introduce friction, payload, joint delay, and contact. Vary one parameter family at a time before joint domain randomization. **Measure:** dynamics residual, trajectory error, contact duration, task success, and robustness curves. **Expected:** free-space comparisons are easier to make consistent; contact and actuator behavior are often the most difficult factors to match.
-
-<a id="course-section-67"></a>
-
-### Minimal one-page lab-report structure
-
-Record six items for every experiment: **research question, physical state and action definition, physical parameters, intervention, measured metrics, and conclusion/limitations**. At minimum, plot position and velocity over time; for contact labs add normal force or impulse. Cross-platform plots need matching units, time axes, initial conditions, and event labels.
-
 <a id="course-section-68"></a>
 
 ## Chapter 15. From simulation to real robots: a concise checklist
@@ -817,7 +720,7 @@ With RGB-D observations, also assess visual noise, calibration error, and occlus
 | Lecture 14: robot motion control | Chapters 7 and 11 | Retain servos, gravity compensation, computed torque, impedance |
 | Added: contact and manipulation | Chapters 8–9 | Essential to embodied tasks |
 | Added: floating-base dynamics | Chapter 10 | For humanoids and legged robots |
-| Added: two-platform experiments and sim-to-real | Chapters 12–15 | Objectives and measurements, with no code |
+| Added: simulation platforms and sim-to-real | Chapters 12 and 15 | Platform differences and model consistency |
 
 <a id="course-section-74"></a>
 
@@ -825,7 +728,7 @@ With RGB-D observations, also assess visual noise, calibration error, and occlus
 
 **Notation:** $q,\dot q,\ddot q$: joint position, velocity, acceleration; $M$: joint-space mass matrix; $C\dot q$: Coriolis/centrifugal term; $g(q)$: generalized gravity force; $h=C\dot q+g$: nonlinear bias; $\tau$: actuated generalized force; $J$: Jacobian; $\lambda$: environmental contact force; $\mu$: friction coefficient; $v$: floating-base generalized velocity; $S$: actuation-selection matrix.
 
-**Shortest learning path:** study Chapters 1–5 and carry out Labs 1–4; continue to Chapters 7–9 with Labs 5–8. If you work on humanoids or quadrupeds, add Chapter 10 and Lab 9. Lab 10 is designed for cross-simulator consistency and sim-to-real sensitivity.
+**Shortest learning path:** study Chapters 1–5, then Chapters 7–9. If you work on humanoids or quadrupeds, add Chapter 10. Chapters 12 and 15 discuss platform differences and sim-to-real model consistency.
 
 1. [MEE5114 — Advanced Control for Robotics, Wei Zhang][r1]: course structure, especially Lectures 8, 9, and 14.
 2. [Modern Robotics — Chapter 8: Dynamics of Open Chains][r2]: Lagrangian mechanics, forward/inverse dynamics, constraints, and actuation.

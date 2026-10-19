@@ -7,7 +7,6 @@ Fourteen topics are organized as tools → physics and perception → robot RL �
 - [Six learning modules](#map-section-01)
 - [Embodied AI system map](#map-section-02)
 - [Reading paths](#map-section-03)
-- [Shared Panda + cube + table exercise](#map-section-04)
 - [Validation boundary](#map-section-05)
 - [Vision Foundation Models: Mechanisms and Workflows](#map-section-06)
 - [RL Post-training for Pretrained Policies](#map-section-07)
@@ -56,22 +55,11 @@ flowchart LR
 3. VLA: calibration → vision foundation models → Imitation Learning → Flow Matching → RL Post-training → GR00T / SONIC → Robot Agent.
 4. Mathematical deep dives: full PPO, SAC, and Flow Matching derivations are reference material; hands-on learning does not require deriving everything first.
 
-<a id="map-section-04"></a>
-
-## Shared Panda + cube + table exercise
-
-- **Dynamics:** joint input, contact, end-effector motion.
-- **Calibration and vision:** convert camera measurements into a robot-base target; reacquire after lost tracking.
-- **Simulation:** use conceptually matched tasks in Isaac Lab / MuJoCo, acknowledging engine/contact differences.
-- **RL:** define observation, action, reward, reset; compare data consumption in PPO and SAC.
-- **Imitation:** collect demonstrations, then BC / ACT / Flow Matching chunk policies.
-- **Integration:** measure safety limits, controller latency, task success and recovery.
-
 <a id="map-section-05"></a>
 
 ## Validation boundary
 
-Documentation, formulae, references and proposed experiments **do not establish that every experiment was run and verified in a common environment**. Record versions, camera calibration error, servo rates, safety logic and test outcomes when deploying hardware.
+The repository provides documentation, formulae and research references, without course experiments. Record versions, camera calibration error, servo rates, safety logic and test outcomes when deploying hardware.
 
 
 <a id="map-section-06"></a>

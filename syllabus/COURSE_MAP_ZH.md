@@ -7,7 +7,6 @@
 - [六个学习模块](#map-section-01)
 - [全栈概念图](#map-section-02)
 - [推荐学习顺序与先修关系](#map-section-03)
-- [贯穿课程的 Panda + 方块 + 桌面案例](#map-section-04)
 - [阅读与复现边界](#map-section-05)
 - [视觉基础模型：原理与工作流](#map-section-06)
 - [预训练策略的 RL Post-training](#map-section-07)
@@ -56,22 +55,11 @@ flowchart LR
 3. VLA 方向：相机标定 → 视觉基础模型 → Imitation Learning → Flow Matching → RL Post-training → GR00T / SONIC → Robot Agent。
 4. 深度推导：PPO、SAC、Flow Matching 的完整数学推导是独立深入阅读材料，并非先学完所有公式才能开始实践。
 
-<a id="map-section-04"></a>
-
-## 贯穿课程的 Panda + 方块 + 桌面案例
-
-- **动力学：** 关节输入、接触力和末端运动。
-- **标定与视觉：** 把目标在相机系的观测转换为机器人基座位姿，跟踪丢失后重定位。
-- **仿真：** 在 Isaac Lab / MuJoCo 中搭建概念一致的任务，注意接触与控制模型不一定完全等价。
-- **强化学习：** 设计 observation、action、reward、reset；比较 PPO 和 SAC 数据用量。
-- **模仿学习：** 收集演示并训练 BC / ACT / Flow Matching 动作块策略。
-- **集成：** 记录安全限幅、控制延迟、成功率和扰动恢复率。
-
 <a id="map-section-05"></a>
 
 ## 阅读与复现边界
 
-本仓库提供文档、公式、研究链接与实验设计，**不代表每项实验都在同一软硬件环境中运行通过**。需要真机部署时应记录具体版本、校准误差、控制频率、机器人安全策略及测试结果。
+本仓库提供文档、公式与研究链接，不设置课程实验。需要真机部署时应记录具体版本、校准误差、控制频率、机器人安全策略及测试结果。
 
 
 <a id="map-section-06"></a>

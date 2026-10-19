@@ -50,9 +50,8 @@
   - [6.3 Step 3：微调 GR00T，让它输出 SONIC 动作](#course-section-33)
   - [6.4 Step 4：通过 PolicyServer + SONIC 部署](#course-section-34)
   - [6.5 Step 5：如何评价整体系统？](#course-section-35)
-- [7. 研究方向、实验设计与常见误区](#course-section-36)
+- [7. 研究方向与常见误区](#course-section-36)
   - [7.1 应该分别改进什么？](#course-section-37)
-  - [7.2 建议的最小消融实验](#course-section-38)
   - [7.3 五个常见误区](#course-section-39)
 - [8. 总结与参考资料](#course-section-40)
   - [8.1 最值得记住的三条结论](#course-section-41)
@@ -549,7 +548,7 @@ GPU 计算机：GR00T PolicyServer
 
 <a id="course-section-36"></a>
 
-## 7. 研究方向、实验设计与常见误区
+## 7. 研究方向与常见误区
 
 <a id="course-section-37"></a>
 
@@ -563,22 +562,6 @@ GPU 计算机：GR00T PolicyServer
 | 更好的抗扰 / Sim-to-Real | System 0 | PPO、Domain Randomization、系统辨识 |
 | 脚手协同的复杂接触 | 两层与接口 | 接触丰富的数据、联合评价 |
 | 更稳定的高低层衔接 | 接口与部署 | Token 设计、时序对齐、安全过滤 |
-
-<a id="course-section-38"></a>
-
-### 7.2 建议的最小消融实验
-
-**消融 A：动作表示**
-
-保持数据量、VLA 骨干和底层控制预算尽量一致，比较：1. 直接关节动作；2. 明确全身姿态；3. SONIC Motion Token。关注成功率、动作平滑、对不可执行指令的敏感性。注意不同表示可能改变可学习性和控制空间，结论不能简单归因于“压缩维度更小”。
-
-**消融 B：闭环频率**
-
-保持底层 SONIC 不变，比较不同 VLA 更新频率、动作 chunk 执行长度以及推理延迟。关注动态目标变化、接触切换和失败恢复。
-
-**消融 C：低层鲁棒性**
-
-固定高层 token，改变仿真质量/摩擦、IMU 噪声和外部扰动，比较成功率、姿态误差及跌倒率。
 
 <a id="course-section-39"></a>
 

@@ -809,8 +809,6 @@ The command and terrain distributions can be expanded continuously. A separate c
 ./unitree_rl_lab.sh -p --task Unitree-G1-29dof-Velocity
 ```
 
-**First controlled study:** reproduce flat-ground walking, then ablate action smoothness, domain randomization, observation history, and the foot-slip penalty. Compare convergence, velocity tracking, and perturbation recovery.
-
 <a id="course-section-40"></a>
 
 ## Chapter 9: Case Study II — Arm and Dexterous-Hand RL

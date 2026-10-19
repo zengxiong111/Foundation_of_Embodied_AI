@@ -25,7 +25,6 @@
 - [3. Learning to operate both platforms without writing code here](#course-section-08)
   - [3.1 A practical MuJoCo learning sequence](#course-section-09)
   - [3.2 An Isaac Sim / Isaac Lab learning sequence](#course-section-10)
-  - [3.3 A shared exercise: Panda, cube, and table](#course-section-11)
 - [4. Modeling robots across URDF, MJCF, and USD](#course-section-12)
   - [4.1 There is no universally lossless conversion](#course-section-13)
   - [4.2 Ten checks after import](#course-section-14)
@@ -70,20 +69,17 @@
   - [13.2 More environments are not always better](#course-section-53)
   - [13.3 Two routes to visual RL](#course-section-54)
 - [14. Domain randomization and robust learning in a sensible order](#course-section-55)
-- [15. Evaluation, ablations, and reproducibility for publishable experiments](#course-section-56)
+- [15. Evaluation and reproducibility principles](#course-section-56)
   - [15.1 Core metrics](#course-section-57)
-  - [15.2 Minimal ablation matrix](#course-section-58)
   - [15.3 Avoid unsupported conclusions](#course-section-59)
 - [16. Sim-to-real transfer: from policy weights to a safe robot](#course-section-60)
   - [16.1 Six calibration layers](#course-section-61)
   - [16.2 A deployment validation ladder](#course-section-62)
 - [17. End-to-end case study: screwdriver manipulation with Tron2 and Revo3](#course-section-63)
   - [17.1 Define the task precisely](#course-section-64)
-  - [17.2 Recommended system development route](#course-section-65)
   - [17.3 Five critical choices](#course-section-66)
   - [17.4 Stage-specific measurements](#course-section-67)
 - [18. Common failure symptoms and debugging priorities](#course-section-68)
-- [19. Suggested six-week learning plan and deliverables](#course-section-69)
 - [20. Final readiness checklist](#course-section-70)
 - [Official references and further reading](#course-section-71)
 <!-- course-toc:end -->
@@ -183,10 +179,7 @@ Official Isaac Sim 5.1 requirements specify supported Ubuntu configurations, GPU
 
 1. **Understand the model:** A robot is built from bodies, joints, geoms, actuators, sensors, and constraints. Its rendered geometry and collision geometry can be distinct.
 2. **Inspect a robot:** Check joint axes, home positions, collision shapes, inertia, and tool reference frames in the viewer.
-3. **Test passive motion:** Observe a pendulum or arm moving under gravity; compare physical intuition with simulated behavior.
-4. **Test actuation:** Examine position, velocity, and torque control separately. An actuator's command is not necessarily an applied joint torque.
-5. **Introduce contacts:** Add a tabletop and a small object. Study free fall, sliding, grasping, and release.
-6. **Prepare for RL:** Specify observations, actions, resets, and randomization before integrating a trainer.
+3. **Prepare for RL:** Specify observations, actions, resets, and randomization before integrating a trainer.
 
 **Recommended first complete robot:** Franka Panda. It is sufficiently complex for useful manipulation while remaining easy to inspect; start from a maintained model in MuJoCo Menagerie. [6]
 
@@ -203,12 +196,6 @@ Official Isaac Sim 5.1 requirements specify supported Ubuntu configurations, GPU
 7. **Add RL gradually:** Start with state-based policies and limited randomization before adding vision and difficult contacts.
 
 **Manager-based vs. Direct workflows:** Manager-based tasks emphasize reuse of observation, reward, reset, and event components. Direct tasks offer more explicit control for unusual contact phases or research algorithms. Both support reinforcement learning; the difference is software organization rather than inherent learning power. [7]
-
-<a id="course-section-11"></a>
-
-### 3.3 A shared exercise: Panda, cube, and table
-
-Do not begin by comparing two entirely different robots in different engines. Fix the robot, cube dimensions, table height, tool frame, initial pose distribution, and action definition. Progress through **single-joint response → end-effector tracking → cube grasping → perturbed regrasping**. The same evaluation sequence can later be used with Tron2 and a Revo3 hand.
 
 <a id="course-section-12"></a>
 
@@ -604,7 +591,7 @@ When teacher and student update actions at different rates, distillation must al
 
 <a id="course-section-56"></a>
 
-## 15. Evaluation, ablations, and reproducibility for publishable experiments
+## 15. Evaluation and reproducibility principles
 
 <a id="course-section-57"></a>
 
@@ -622,19 +609,6 @@ When teacher and student update actions at different rates, distillation must al
 | Real-time latency | End-to-end perception, inference, and control delay |
 
 Use multiple random seeds, report central estimates and uncertainty, and avoid cherry-picking one unusually strong checkpoint. For algorithm comparisons, align assets, observations, action interfaces, training budgets, and evaluation distributions.
-
-<a id="course-section-58"></a>
-
-### 15.2 Minimal ablation matrix
-
-1. No domain randomization versus domain randomization.
-2. Uniform RSI versus event-biased RSI versus their mixture.
-3. Proprioception only versus privileged pose versus noisy estimated pose versus images.
-4. Joint-level commands versus TCP pose increments.
-5. Standard grasp learning versus grasp plus drop recovery.
-6. In-engine evaluation only versus MuJoCo/Isaac cross-engine evaluation.
-
-For PPO versus SAC, additionally align interaction budgets, vectorization level, network size, rewards, termination rules, evaluation protocol, and wall-clock cost. Matching optimizer-update counts alone is generally not a fair comparison.
 
 <a id="course-section-59"></a>
 
@@ -678,19 +652,6 @@ For PPO versus SAC, additionally align interaction budgets, vectorization level,
 
 The robot picks up a screwdriver from **varied tabletop positions and orientations**, moves it to a target region, and executes a required rotation or reorientation. If the object slips or is dropped, the robot should use current observations to locate, approach, regrasp, and complete the objective. The assumed deployable sensors are head and wrist cameras plus robot proprioception.
 
-<a id="course-section-65"></a>
-
-### 17.2 Recommended system development route
-
-| Stage | Platform | Main experiment | Acceptance criterion |
-|---|---|---|---|
-| A. Validate model | MuJoCo | Tron2/Revo3 kinematics, mass, collision, drives | Plausible joint responses, FK and contacts |
-| B. Learn without vision | MuJoCo or Isaac Lab | Grasp and rotate using object ground truth | Reliable success at fixed starts |
-| C. Train at scale | Isaac Lab / MJWarp | RSI, curriculum, PPO | Stable success across randomized starts |
-| D. Test robustness | Both engines | Pose errors, delays, friction, drop disturbances | Quantified OOD and recovery behavior |
-| E. Distill to vision | Isaac visual backend | Head/wrist images to estimates or a visual policy | Deployable actor works without privileged state |
-| F. Test on hardware | Tron2 + Revo3 | Calibration, action limits, closed-loop regrasping | Safe real-world task completion |
-
 <a id="course-section-66"></a>
 
 ### 17.3 Five critical choices
@@ -721,21 +682,6 @@ Report not only final success but also first-grasp success, in-hand rotation suc
 | Behavior changes after Isaac update | Pinned dependencies, quaternion order, sensor/backend changes | Trust old checkpoints without revalidation |
 
 **Global diagnostic order:** Model integrity → frames and units → actuator control → physics/contact → observations and delay → reward/reset design → optimization algorithm.
-
-<a id="course-section-69"></a>
-
-## 19. Suggested six-week learning plan and deliverables
-
-| Week | Learning and experiment | Tangible deliverable |
-|---|---|---|
-| 1 | Tool landscape, Panda scene, individual joint checks | Parameter sheet, joint map, screenshots |
-| 2 | MuJoCo tracking, contacts, and grasp validation | Free-fall/sliding/grasp tests |
-| 3 | Isaac Lab benchmark tasks, environment design, PPO | A working fixed-start baseline and learning curves |
-| 4 | RSI, curriculum, domain randomization | Random-start evaluation and first ablations |
-| 5 | MJWarp/cross-engine tests and visual teacher-student | OOD report and engine discrepancy analysis |
-| 6 | Tron2/Revo3 mapping, action limits, hardware testing | Safety checklist and real-world success/recovery report |
-
-The schedule is illustrative, not a promise of completion time; the real pace depends on model quality, task complexity, and sensor reliability. Maintain the same parameter records and frozen evaluation suite throughout the project.
 
 <a id="course-section-70"></a>
 
