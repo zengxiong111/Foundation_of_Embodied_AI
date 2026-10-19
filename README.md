@@ -8,7 +8,7 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 
 ## Course materials
 
-14 topics, 28 Markdown files and 28 PDFs. Use the links below to read or download.
+14 topics, 28 Markdown files and 28 PDFs. Use the links below to read or download. All PDFs use a shared academic layout; the first chapter starts on page 2.
 
 | Topic | Chinese Markdown | English Markdown | Chinese PDF | English PDF |
 |---|---|---|---|---|

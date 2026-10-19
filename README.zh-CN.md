@@ -8,7 +8,7 @@
 
 ## 课程资料
 
-14 个主题，28 份 Markdown 和 28 份 PDF。点击表格中的链接阅读或下载。
+14 个主题，28 份 Markdown 和 28 份 PDF。点击表格中的链接阅读或下载。所有 PDF 采用统一的学术排版，第一章从第 2 页开始。
 
 | 主题 | 中文 Markdown | English Markdown | 中文 PDF | English PDF |
 |---|---|---|---|---|
