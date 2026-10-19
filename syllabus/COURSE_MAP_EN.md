@@ -72,7 +72,7 @@ Study [vision foundation models](../md/Visual_State_Estimation_EN.md) in six ste
 
 ## RL Post-training for Pretrained Policies
 
-Read [RL Post-training](../md/RL_Post_Training_EN.md) after imitation learning and Flow Matching, using PPO/SAC as background. Compare updating the pretrained generator with freezing it and training an external module; distinguish update interfaces, data reuse, Actor–Critic loops and deployment constraints. The chapter covers pretrained Diffusion, Flow Matching and VLA policies, rather than training controllers from scratch.
+Read [RL Post-training](../md/RL_Post_Training_EN.md) after imitation learning and Flow Matching, using PPO/SAC as background. Compare updating the pretrained generator with freezing it and training an external module; distinguish update interfaces, data reuse, Actor–Critic loops and deployment constraints. The chapter covers pretrained Diffusion, Flow Matching and VLA policies, training infrastructure, real-robot feedback loops, and unresolved reward, critic, timing, simulation and evaluation challenges. It does not cover training controllers from scratch or include coding exercises.
 
 <a id="map-section-08"></a>
 
@@ -91,5 +91,5 @@ Final topic: [Robot Agents: planning, execution, verification and recovery](../m
 | Imitation Learning | BC/DAgger/ACT, generative action chunks and real-time RTC | GR00T/SONIC focuses on its specific training and deployment interfaces |
 | Flow Matching | Full CFM mathematics, velocity fields and ODE derivations | Imitation learning uses only the conditional action-generation interface |
 | PPO / SAC and Motion RL | RL objectives and motion-control engineering | Imitation learning does not duplicate reward-optimization derivations |
-| RL Post-training | Improving pretrained generators or training modules around frozen policies; online off-policy loops | Uses PPO/SAC foundations and pretrained imitation policies |
+| RL Post-training | Pretrained-policy updates, off-policy loops, training infrastructure, real-robot feedback and open challenges | Uses PPO/SAC foundations and pretrained imitation policies |
 | Robot Agent | Task planning, skill tools, independent verification, recovery and memory | GR00T/SONIC remains an embodiment-specific System 1/0 case study |

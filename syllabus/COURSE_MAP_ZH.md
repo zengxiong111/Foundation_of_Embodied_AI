@@ -72,7 +72,7 @@ flowchart LR
 
 ## 预训练策略的 RL Post-training
 
-在模仿学习与 Flow Matching 之后阅读 [RL Post-training](../md/RL_Post_Training_ZH.md)，以 PPO/SAC 为基础。比较更新预训练生成器和冻结生成器、训练外部模块两条主线，区分更新接口、经验复用、Actor–Critic 闭环与部署约束。本章面向预训练 Diffusion、Flow Matching 与 VLA 策略，不讨论从零训练控制器。
+在模仿学习与 Flow Matching 之后阅读 [RL Post-training](../md/RL_Post_Training_ZH.md)，以 PPO/SAC 为基础。比较更新预训练生成器和冻结生成器、训练外部模块两条主线，区分更新接口、经验复用、Actor–Critic 闭环与部署约束。本章面向预训练 Diffusion、Flow Matching 与 VLA 策略，涵盖训练基础设施、真机反馈闭环及奖励、Critic、时序、仿真与评估方面的开放问题，不讨论从零训练控制器，不包含代码实验。
 
 <a id="map-section-08"></a>
 
@@ -91,5 +91,5 @@ flowchart LR
 | Imitation Learning | BC/DAgger/ACT、生成式动作块与实时 RTC | GR00T 章节只讲自身训练/部署接口 |
 | Flow Matching | CFM 数学、速度场与 ODE 推导 | 模仿学习只讲条件动作生成的损失接口 |
 | PPO / SAC 与运控 RL | RL 优化原理、运控任务设计与 Sim-to-Real | 模仿学习不重复奖励优化推导 |
-| RL Post-training | 改进预训练生成器或训练冻结策略的外部模块；在线离策略闭环 | 使用 PPO/SAC 基础与预训练模仿策略 |
+| RL Post-training | 预训练策略更新、离策略闭环、训练基础设施、真机反馈与开放问题 | 使用 PPO/SAC 基础与预训练模仿策略 |
 | Robot Agent | 任务级规划、工具选择、执行结果验证、失败恢复与技能记忆 | GR00T/SONIC 保留 System 1/System 0 实际系统案例 |

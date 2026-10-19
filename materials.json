@@ -345,8 +345,8 @@
       "reviewed_at": "2026-10-19",
       "review_scope_en": "Supplied bilingual Markdown and academic PDFs integrated; PDF bytes preserved without regeneration. No reproduced benchmarks, training runs or robot deployment.",
       "review_scope_zh": "整合用户提供的中英文 Markdown 及学术排版 PDF，PDF 保持原始字节且未重新生成；未复现基准、运行训练或进行真机部署。",
-      "versions_en": "RL post-training of pretrained Diffusion, Flow Matching and VLA policies; updating generators versus frozen generators with trainable external modules; DPPO, OGPO, Q-VGM, DSRL, RL Token, Actor–Critic and online off-policy loops. No from-scratch controller training or coding exercises.",
-      "versions_zh": "预训练 Diffusion、Flow Matching 与 VLA 策略的 RL 后训练；更新生成器与冻结生成器、训练外部模块两条主线；DPPO、OGPO、Q-VGM、DSRL、RL Token、Actor–Critic 与在线离策略闭环。不讨论从零训练控制器或代码实验。",
+      "versions_en": "RL post-training for pretrained Diffusion, Flow Matching and VLA policies; generator updates versus frozen-generator interfaces; DPPO, OGPO, Q-VGM, DSRL, residual RL and RL Token; Actor–Critic/off-policy loops, training infrastructure, real-robot feedback, evaluation and open research/system challenges. No from-scratch controllers or coding exercises.",
+      "versions_zh": "预训练 Diffusion、Flow Matching 与 VLA 策略的 RL 后训练；更新生成器与冻结生成器接口；DPPO、OGPO、Q-VGM、DSRL、Residual RL 与 RL Token；Actor–Critic/离策略闭环、训练基础设施、真机反馈、评估与开放研究及系统问题。不含从零训练控制器或代码实验。",
       "source_refs": [],
       "documents": {
         "zh": {
