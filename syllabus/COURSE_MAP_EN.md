@@ -78,7 +78,7 @@ Read [RL Post-training](../md/RL_Post_Training_EN.md) after imitation learning a
 
 ## Advanced Robot Agents for System Integration
 
-Final topic: [Robot Agents: planning, execution, verification and recovery](../md/Robot_Agent_Workflow_EN.md). It covers RAX exploration and compilation, ASPIRE trace-guided repair, skill reuse and a dexterous-hand screwdriver example. The combined workflow is a teaching example; no code or experiments are included.
+Final topic: [Robot Agents: planning, execution, verification and recovery](../md/Robot_Agent_Workflow_EN.md). It distinguishes foundation models, coding agents and agent harnesses; introduces the roles of Claude, Codex and Gemini 4 Argon; and covers model-driven workflows, RAX exploration and compilation, ASPIRE trace-guided repair, Real2Sim/self-improvement examples and a dexterous-hand screwdriver case. The combined workflow is a teaching example; no code or experiments are included.
 
 <a id="map-section-09"></a>
 
@@ -92,4 +92,4 @@ Final topic: [Robot Agents: planning, execution, verification and recovery](../m
 | Flow Matching | Full CFM mathematics, velocity fields and ODE derivations | Imitation learning uses only the conditional action-generation interface |
 | PPO / SAC and Motion RL | RL objectives and motion-control engineering | Imitation learning does not duplicate reward-optimization derivations |
 | RL Post-training | Pretrained-policy updates, off-policy loops, training infrastructure, real-robot feedback and open challenges | Uses PPO/SAC foundations and pretrained imitation policies |
-| Robot Agent | Task planning, skill tools, independent verification, recovery and memory | GR00T/SONIC remains an embodiment-specific System 1/0 case study |
+| Robot Agent | Foundation-model and harness roles, model-driven workflows, RAX/ASPIRE, verification, recovery and memory | GR00T/SONIC remains an embodiment-specific System 1/0 case study |

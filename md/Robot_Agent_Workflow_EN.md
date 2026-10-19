@@ -1,330 +1,358 @@
-# Advanced Robot Agents: RAX, ASPIRE, and Continually Improving Workflows
+# Advanced Robot Agents: Foundation Models, RAX, ASPIRE, and Continual Improvement
 
-[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Robot_Agent_Workflow_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.pdf)
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [中文 Markdown](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Robot_Agent_Workflow_ZH.md) · [English PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_EN.pdf)
 
-**Foundation of Embodied AI · Expanded course notes**  
-*From task planning to online exploration, verified execution, and skill accumulation*
+**Foundation of Embodied AI · Revised course notes**  
+*From general-purpose foundation models to online exploration, verifiable execution, and reusable robot skills*  
+**Revision: October 19, 2026**
 
-> **Three practical questions:** How can a robot explore a task it has never solved? After discovering an effective procedure, how can it execute without expensive step-by-step language-model reasoning? When execution fails, how can it repair the right part and reuse the lesson later?
+> **Central questions:** How can Claude, Codex, and Gemini 4 Argon participate in robotics without being real-time robot controllers? Where does the reasoning in RAX and ASPIRE come from? How do foundation models, tool calls, physical feedback, and reusable programs combine into a useful, trustworthy robot agent?
 
-**Learning goals:** Distinguish a robot agent from a VLA, a skill program, and a real-time controller; explain RAX's Explore–Compile–Evaluate cycle; understand ASPIRE's multimodal traces, iterative debugging, Coordinator–Actor organization, and evolutionary search; and assemble these ideas into a safe, reusable system. **No code or laboratory exercises** are included.
+**Learning outcomes:** Distinguish foundation models, coding agents, agent harnesses, robot agents, VLAs, and low-level controllers; understand how a general model processes observations, selects tools, writes programs, and incorporates execution feedback; explain RAX's Explore–Compile–Evaluate cycle, ASPIRE's trace-guided refinement, and the publicly demonstrated robotic applications of Gemini 4 Argon; and understand the responsibility and safety boundaries of a unified system. **No code listings or laboratory exercises are included.**
 
 ## Contents
 
-- [1. What Exactly Does a Robot Agent Do?](#agent-section-01)
-- [2. RAX: Compiling Online Exploration into Independent Programs](#agent-section-02)
-- [3. ASPIRE: From Trace-Guided Debugging to Accumulated Skills](#agent-section-03)
-- [4. A Unified RAX + ASPIRE Workflow—with the Research Boundaries Intact](#agent-section-04)
-- [5. Worked Example: A Dexterous Hand Manipulating a Screwdriver](#agent-section-05)
-
-<a id="agent-section-01"></a>
-
-## 1. What Exactly Does a Robot Agent Do?
-
-### 1.1 From predicting actions to managing task completion
-
-Consider: “Pick up the screwdriver, move it to the target area, and rotate it.” An action policy or VLA mainly asks, **“Given the current observation and instruction, what action comes next?”** A robot agent addresses another time scale: **“Which skill should be used, what should we observe, how will success be checked, and what should change after a failure?”** The agent can orchestrate an existing VLA without replacing it.
-
-```mermaid
-flowchart TB
-    G[Language goal and success conditions] --> A[Task-level robot agent]
-    A --> P[Perception and state estimation]
-    A --> S[Skill program / VLA / motion planner]
-    P --> S
-    S --> C[Real-time tracking controller]
-    C --> R[Physical robot and environment]
-    R --> P
-    R --> V[Independent verification and safety monitoring]
-    V --> A
-```
-
-| Layer | Responsibility | Typical time scale and output |
-|:--|:--|:--|
-| **Task-level agent** | Decompose tasks, retrieve skills, write and repair programs, replan. | Event driven; tool calls or program changes. |
-| **Perception and skills** | Localize targets, select grasp and manipulation strategies, branch on feedback. | Observation/skill steps; poses and action goals. |
-| **Control and safety** | Track motion, enforce constraints, handle abnormal hardware behavior. | High-rate feedback; commands and stop states. |
-
-**The guiding principle:** A task-level agent may reason slowly, but the robot cannot wait for it at every servo cycle. Let the controller close the physical loop while the agent manages exploration, composition, and improvement. [1–3]
-
-
-
-### 1.2 Agents, VLAs, and classical planners are complementary
-
-- **VLA or end-to-end policy:** Predicts actions or action chunks from observations and instructions. Long-term memory, tool use, and explicit failure attribution are not guaranteed by the model interface alone.
-- **Classical task and motion planning:** Provides explicit reasoning about reachability, geometry, and collision constraints, but may need additional components for new semantic goals or unexpected failures.
-- **Coding robot agent:** Composes sensing, planning, and control APIs into executable programs and debugs them from physical feedback. Its language-based reasoning does not replace reliable interfaces or low-level stability guarantees.
-
-For a screwdriver rotation, the agent may decide to secure the grasp before turning; perception estimates the object-to-hand transform; the skill defines grasp selection and when to re-localize; the controller tracks joint motion; and a verifier confirms that **the screwdriver itself** rotated by the required amount.
-
-### 1.3 Three different meanings of “success”
-
-| What is observed | What it actually means | Required follow-up |
-|:--|:--|:--|
-| A motion API returns `FINISHED`. | The command sequence ended. | Check physical postconditions. |
-| Fingers close while the object is occluded. | The object may be grasped or missed. | Re-observe; preserve uncertainty. |
-| The object is lifted, transported, and visibly rotated. | Evidence supports the task goal. | Store conditions, evidence, and version. |
-
-A useful **three-valued task verifier** is
-
-$$
-V(o_{0:T}) \in \{\mathrm{SUCCESS},\ \mathrm{FAILURE},\ \mathrm{UNKNOWN}\}.
-$$
-
-`UNKNOWN` is not the same as failure. It means that available sensor evidence cannot establish the physical outcome. The correct response may be another viewpoint, a safer inspection action, or escalation—not an invented success claim.
-
-### 1.4 Who has final authority to execute?
-
-The agent can only use **approved robot tools**. Workspace limits, joint constraints, force/velocity bounds, collision handling, and emergency stops must remain under independently enforced control and safety mechanisms. On physical hardware, **executable generated code is not automatically authorized code**. This boundary applies throughout the tutorial.
-
-
-
-<a id="agent-section-02"></a>
-
-## 2. RAX: Compiling Online Exploration into Independent Programs
-
-RAX (Robot Agent eXploration) lets a general-purpose coding agent observe and control a robot through APIs, preserve online discoveries in a workspace, and compile effective behavior into a repeatable program. It does **not** require new task-specific action demonstrations or updates to the underlying language-model weights. It still depends on robot APIs, sensors, controllers, and task feedback. [1,2]
-
-### 2.1 Explore: what is being learned, exactly?
-
-RAX does not relearn motor physics from scratch. The agent searches for useful decision sequences **within the perception and control tools already available** to that robot.
-
-| Question during exploration | Available feedback | Reusable lesson |
-|:--|:--|:--|
-| Where is the object; should the robot change viewpoint? | Images and estimated object pose. | Observation conditions and re-localization. |
-| Is a candidate approach reachable? | IK, planning, and collision status. | Feasible approach direction and failure causes. |
-| Did the contact action work? | Proprioception, object motion, task checks. | Success conditions and recovery choices. |
-| Does the procedure work from another starting pose? | Repeated executions after scene changes. | Parameterized logic, not one fixed pose. |
-
-The loop is **observe → propose a testable action → call robot tools → inspect physical feedback → revise the next attempt**. The agent can change the camera viewpoint, target pose, operation order, or grasp configuration. Its “learned model” resides primarily in **notes, code, and verified skills**, rather than gradient-updated neural parameters.
-
-### 2.2 Why must an exploration record explain causes?
-
-A log that says only “grasp failed” is not very useful; the next session may repeat the same command. A log that states “the candidate approach fell within the table's collision buffer; changing approach angle led to a successful plan” supports a decision in a new scene.
-
-A good record preserves **what was observed, what was attempted, what each tool returned, what was changed, and what physically happened**. Unrelated background details need not enter long-term skill memory. [1,2]
-
-
-
-### 2.3 Compile: from a successful interaction to a standalone procedure
-
-RAX's key step is not to store a successful trajectory. The agent turns useful decisions into a program with **fresh perception, parameter computation, execution, conditional branching, and explicit failure exits**. At runtime, the program can itself invoke sensing and control APIs instead of asking the coding agent to decide every motion.
-
-| Simple trajectory replay | Compiled closed-loop procedure |
-|:--|:--|
-| Reuses a fixed object coordinate. | Re-localizes the object in the current scene. |
-| Executes a predetermined motion sequence. | Checks reachability/contact feedback and branches. |
-| Stops after a failed step. | Includes bounded, authorized recovery branches. |
-| Has evidence from the original situation only. | Declares preconditions and is tested independently. |
-
-Here, **“compile” means synthesizing executable robot logic from exploration experience**. It is not just translating an English command to compiler bytecode. [1]
-
-### 2.4 Evaluate: why temporarily remove the agent?
-
-While debugging, an agent has access to the full interaction history and might silently compensate for gaps in the written program. A stronger evaluation **freezes the program** and runs it independently from new initial states or layouts, checking the physical result. The RAX project separates exploration from evaluation: held-out simulated layouts are used in simulation, and on hardware the scene is reset before an unattended end-to-end run. [1]
-
-Do not confuse three levels of evidence:
-
-1. **One successful run:** The particular sequence was feasible under one condition.
-2. **Repeatability in the same setup:** Some support for stability, but not broad generalization.
-3. **Unattended success after scene variation:** Stronger evidence of a useful scope of applicability.
-
-The official RAX materials illustrate the runtime distinction using an air-fryer task: roughly 72 minutes of agent-led exploration versus an 18-second compiled execution. These are **task-specific figures**, not a universal latency or real-time-control guarantee. [1,2]
-
-**Takeaway:** RAX turns *methods discovered through online interaction* into *programs that run without continuous coding-agent supervision while remaining observation-dependent*.
-
-
-
-<a id="agent-section-03"></a>
-
-## 3. ASPIRE: From Trace-Guided Debugging to Accumulated Skills
-
-ASPIRE (Agentic Skill Programming through Iterative Robot Exploration) also follows a **code-as-policy** approach: a coding agent writes robot-control programs and repairs them from execution feedback. Its distinctive components are a **fine-grained multimodal execution engine, a growing skill library, and evolutionary search over programs**, coordinated through a **Coordinator–Actor** organization. [3,4]
-
-### 3.1 Multimodal traces: locating the failing primitive
-
-A failed task can result from target detection, pose estimation, motion planning, grasping, contact mechanics, or a faulty success check. A final `FAILED` label does not locate the cause. ASPIRE logs evidence **per sensing, planning, or action-primitive call**, instead of returning only a rollout-level task score.
-
-| Trace component | Evidence inspected | Question it helps answer |
-|:--|:--|:--|
-| Tool invocation and parameters | Goal pose, grasp candidates, motion constraints. | Was the request itself wrong? |
-| API output and error status | Planning errors, contact/grasp results. | Did planning or contact fail? |
-| Before/after keyframes | Actual motion of object and robot. | Physical slip or perception drift? |
-| Estimated poses and overlays | Perception–motion consistency. | Frame mismatch, occlusion, or collisions? |
-
-The point is to **inspect selected evidence near suspected failures**, rather than overwhelm the agent with full video streams. Per-primitive feedback supports more targeted repairs. [3]
-
-### 3.2 Iterative debugging: a repair must produce new evidence
-
-The loop is **inspect the failing trace → form a hypothesis → patch the relevant program decision → rerun → compare outcomes**. If the planner reports an unreachable goal, first examine coordinate frames, collision margins, and approach direction; blindly increasing grip force would change the wrong subsystem. Smaller, causally motivated patches make the effect easier to assess.
-
-The central rule is to **repair an evidence-supported bottleneck, not simply silence the last error message**.
-
-
-
-### 3.3 Published example: the object is found, so why can't the robot reach it?
-
-The ASPIRE paper includes a radio pick-up example. Perception successfully identifies the radio, yet repeated navigation attempts return `PLANNING_ERROR`. From the traces, the agent discovers that candidate navigation targets violate a collision-avoidance buffer around the table. It then samples alternative approach directions, re-observes from a reachable side, and completes the grasp. The reusable result is **multi-angle approach near obstacle boundaries**, not a rigid script for that particular radio. [3]
-
-| Initial symptom | Root cause seen in trace | Targeted change | Transferrable idea |
-|:--|:--|:--|:--|
-| Object found, approach repeatedly fails. | Candidate goals conflict with collision buffers. | Change approach side and replan. | Try safe alternative approach directions. |
-
-### 3.4 Skill library: store when and why a fix works
-
-ASPIRE's library is not limited to full task programs. It stores **reusable repair patterns**, including object disambiguation, re-perception, navigation recovery, manipulation ordering, and debugging procedures. A useful item identifies a failure signature, applicability conditions, a repair strategy, and validation evidence. Future coding agents retrieve the item as **in-context guidance**, not as unconditionally reusable control gains or coordinates. [3]
-
-### 3.5 Coordinator–Actor and evolutionary search
-
-A **Coordinator** assigns different tasks to actor coding agents, reviews whether their repairs succeeded and respected permitted APIs, and curates a shared skill library. Each actor focuses on the current task, program, and traces; complete chat histories need not be pooled.
-
-When repeatedly patching one strategy stops helping, **evolutionary search** proposes several distinct candidate task sequences or programs. Each candidate executes and yields a score and trace. Later rounds use high-performing candidates and unresolved failure evidence to propose better variations. The objects of search are **robot programs and procedural decisions**; this is not, by itself, gradient fine-tuning of a VLA. [3,4]
-
-**Takeaway:** ASPIRE turns *precise execution evidence* into *verified fixes*, then consolidates transferable repairs as knowledge for future tasks.
-
-
-
-<a id="agent-section-04"></a>
-
-## 4. A Unified RAX + ASPIRE Workflow—with the Research Boundaries Intact
-
-This diagram is a **teaching-oriented reference design**: RAX-style exploration and compilation fill skill gaps; ASPIRE-style diagnosis and curation support continual improvement. **The two papers do not report joint experimental validation of this combined architecture.**
-
-```mermaid
-flowchart TB
-    U[User goal and physical success criteria] --> K[Retrieve skills and check applicability]
-    K --> D{Reusable skill available?}
-    D -->|Yes| X[Execute skill with re-observation]
-    D -->|No| E[RAX-style online exploration]
-    E --> B[Compile candidate procedure]
-    B --> X
-    X --> J{Verify physical outcome}
-    J -->|Success| M[Store evidence and update skill library]
-    J -->|Failure or unknown| T[ASPIRE-style trace diagnosis]
-    T --> F{Safe repair possible?}
-    F -->|Bounded retry| X
-    F -->|Not recoverable| H[Stop / human review]
-    J -->|Safety event| H
-    M --> K
-```
-
-### 4.1 Four loops with distinct ownership
-
-| Loop | What it owns | Failure mode to avoid |
-|:--|:--|:--|
-| **Control loop** | High-rate tracking, contact stabilization, hardware limits. | Asking a slow agent for motor torques. |
-| **Skill execution loop** | Re-observation, conditional branches, local recovery. | Reducing a compiled skill to trajectory playback. |
-| **Task-agent loop** | Retrieval, exploration, diagnosis, replanning. | Reinventing each action from scratch. |
-| **Continual-improvement loop** | Validation, versioning, reuse, retirement. | Treating incidental success as permanent fact. |
-
-These loops do not require four separate foundation models. Often **one agent can write or repair code at task boundaries, while validated programs operate during routine execution**, improving latency predictability and interpretability.
-
-
-
-### 4.2 RAX and ASPIRE: overlapping capabilities, different emphasis
-
-| Question | RAX emphasizes | ASPIRE emphasizes |
-|:--|:--|:--|
-| What is explored? | Effective decisions from online robot interaction. | Program improvements from trace debugging and diverse search. |
-| What is preserved? | Modular executable programs and run evidence. | Searchable failure signatures and repair knowledge. |
-| What reduces future effort? | Compilation reduces live coding-agent involvement. | Reusing fixes avoids rediscovering failure causes. |
-| What is verified? | Standalone program execution in new settings. | Individual repairs, candidates, and skill admission. |
-
-**Important:** RAX also handles errors and saves skills, and ASPIRE also explores and writes complete programs. The table contrasts **research priorities**, not exclusive capabilities. [1–4]
-
-### 4.3 A minimal contract for any reusable skill
-
-Whatever the file format, a skill should expose five categories of information:
-
-1. **Preconditions:** Embodiment, hand/arm API, calibration, object range, and allowed workspace.
-2. **Execution:** Parameters, permitted tool calls, time budget, and handoff to the local controller.
-3. **Verification:** Sensor-based criteria for `SUCCESS`, `FAILURE`, and `UNKNOWN`.
-4. **Recovery:** Recoverable errors, bounded retries, and mandatory stop conditions.
-5. **Evidence and version:** Unattended evaluations, known limitations, version provenance, and revocation.
-
-This is an **engineering teaching checklist**, not an exact schema mandated by either paper. As a concrete precedent, RAX's official skills library distinguishes `draft`, `verified`, and `deprecated` states with run evidence; ASPIRE emphasizes admitting generalizable repairs into a shared knowledge base. [2–4]
-
-### 4.4 Route different failures to different layers
-
-- **Insufficient observation:** Re-observe; if the outcome is still unobservable, report `UNKNOWN`.
-- **Planning infeasibility:** Check transforms, collision constraints, approach directions, and goal selection.
-- **Grasp slip or unsafe contact:** Let the control and safety layers stop hazardous motion first; only then consider regrasping.
-- **Changed task state:** If an object leaves the workspace, replan at the task layer or escalate.
-- **Hardware or safety alarm:** Stop. Do not bypass limits or attempt indefinite retries as a “repair.”
-
-
-
-<a id="agent-section-05"></a>
-
-## 5. Worked Example: A Dexterous Hand Manipulating a Screwdriver
-
-**Task:** Pick up a screwdriver from any permitted table location, transfer it to a target region, and achieve a specified rotation. If it drops, recover only when safe; otherwise terminate clearly. This is a **hypothetical teaching scenario**, not a published RAX or ASPIRE screwdriver experiment.
-
-### 5.1 Turn a language task into observable physical conditions
-
-| Subgoal | Evidence needed | Typical false success |
-|:--|:--|:--|
-| Identify the tool | Detection, object pose, tracking confidence. | The wrong tool is detected. |
-| Grasp and lift | Object leaves table and remains stable relative to hand. | Fingers close around empty space. |
-| Transport | Object reaches target tolerance region, still held. | End effector arrives but object has slipped. |
-| Rotate | Object turns around the intended reference axis. | Wrist turns while the object stays still. |
-
-To distinguish “rotated the wrist” from “rotated the object,” use **independent comparisons** of object pose and hand/end-effector state. With only head- and wrist-mounted cameras, occlusion and poor viewpoints matter. Visual relative motion and proprioception can compensate for missing tactile sensors, but uncertainty must remain explicit.
-
-### 5.2 Seven steps across the full agent life cycle
-
-1. **Define boundaries:** Establish allowed workspace, forces, actions, target rotation, and success/failure/unknown criteria.
-2. **Retrieve:** Search for locate–grasp–transport–rotate skills, then check compatibility with the current hand, camera extrinsics, and tool geometry.
-3. **Explore if needed:** A RAX-style agent tests allowed approach poses and grasp configurations through robot tools, documenting physical outcomes.
-4. **Compile closed-loop logic:** Convert effective trials into re-localize → choose grasp → check lift → transport → check rotation, with explicit branches.
-5. **A slip occurs:** The control layer first halts dangerous motion; the verifier observes abnormal object-to-hand motion and an unmet goal.
-6. **Diagnose the trace:** An ASPIRE-style agent compares keyframes, proprioception, and execution stages. Was the failure a slip, tracking drift, or conflicting motion? Repair only evidence-supported causes.
-7. **Recover and preserve:** When safe, re-localize and regrasp with bounded retries, then re-verify. Store the procedure, constraints, and evidence; otherwise stop.
-
-
-
-### 5.3 One failure, three levels of response
-
-| Scenario | First responder | Appropriate response |
-|:--|:--|:--|
-| Small tracking deviation | Real-time controller | Correct within limits, without invoking an LLM. |
-| Slow object slip | Skill monitor and local recovery | Stop unsafe motion; reassess grasp and observation. |
-| Screwdriver lands elsewhere | Task agent | Update state, replan, or declare unrecoverable. |
-| Object remains occluded | Perception and verifier | Report `UNKNOWN`; acquire a new view or stop. |
-
-### 5.4 Four unresolved challenges between demo and reliable deployment
-
-**State is only partially observable.** Occlusion, tracking failures, and unmeasured contact forces complicate fault attribution. The system needs cross-sensor evidence, explicit uncertainty, and active observation; an LLM explanation is not itself ground truth.
-
-**A compiled skill has a limited validity range.** Object dimensions, friction, joint limits, camera calibration, and dynamics can invalidate a learned procedure. Transfer **recovery ideas**, not unverified physical coordinates, gains, or forces.
-
-**Reasoning and servo control run on different clocks.** Program search or trace analysis may take substantial time, while fast tracking must remain local. During slow deliberation, a robot should be safely held or supervised in a paused state.
-
-**More memory does not automatically mean better knowledge.** Every skill needs provenance, versions, preconditions, and physical evidence. A stale skill must be withdrawable when the robot configuration changes, and generated programs need restrictive permissions and independent safety checks. [2,4]
-
-### 5.5 Which component should you choose?
-
-| Immediate need | Preferred mechanism | Rationale |
-|:--|:--|:--|
-| Known, repeated task requiring low-latency operation. | **Compiled RAX-style skill** or an existing controller program. | Routine execution need not call the coding agent. |
-| New task with no available demonstration. | **Bounded RAX-style exploration.** | Search task decisions using tool and physical feedback. |
-| Recurrent program failure with an unclear cause. | **ASPIRE-style multimodal trace debugging.** | Identify the failing primitive before editing the program. |
-| Similar failures appear in several tasks. | **Shared repair library and diverse search.** | Accumulate validated fixes instead of rediscovering them. |
-| High-rate contact manipulation or continuous control. | **VLA/RL policy, MPC, or local controller.** | Fast feedback should not depend on slow language inference. |
-
-**Decision order:** First ask whether a trustworthy skill already applies; next ask whether the failure is diagnosable from evidence; only then choose reuse, exploration, or repair. Every route still needs independent verification and safety constraints.
-
-### Final takeaway
-
-**The agent's role is not to replace policies or controllers at every timescale. It gives the overall system the ability to explore, compile, verify, diagnose, and accumulate task knowledge.** RAX demonstrates a route from online experience to standalone executable programs. ASPIRE demonstrates the benefits of detailed traces, shared repair knowledge, and diverse program search. Integrating them is a useful **systems-design proposal**, not an already established joint experimental result.
+1. [Robot agents: definition and responsibility boundaries](#agent-section-01)
+2. [How Claude, Codex, and Gemini 4 Argon participate](#agent-section-02)
+3. [A general foundation-model-driven robot-agent workflow](#agent-section-03)
+4. [RAX: from exploration to stand-alone programs](#agent-section-04)
+5. [ASPIRE: trace-guided repair and accumulating skills](#agent-section-05)
+6. [Gemini 4 Argon: control, Real2Sim, and self-improvement](#agent-section-06)
+7. [A unified system and a dexterous screwdriver example](#agent-section-07)
+8. [Papers and official resources](#agent-references)
 
 ---
 
-### Papers and Official Resources (clickable)
+<a id="agent-section-01"></a>
+## 1. Robot Agents: Definition and Responsibility Boundaries
 
-1. **RAX paper:** Huang et al., *Scaling Online Exploration for Robot Agents* (2026). [PDF](https://assets.robot-agent-exploration.com/paper/rax.pdf) · [Project](https://robot-agent-exploration.com/) · [Framework](https://github.com/robot-agent-exploration/rax).
-2. **RAX skill library:** [robot-agent-exploration/skills-lib](https://github.com/robot-agent-exploration/skills-lib), including preconditions, standalone run evidence, and skill states.
-3. **ASPIRE paper:** Lu et al., *ASPIRE: Agentic /Skills Discovery for Robotics* (2026). [arXiv](https://arxiv.org/abs/2607.00272) · [Paper PDF](https://arxiv.org/pdf/2607.00272) · [Project](https://research.nvidia.com/labs/gear/aspire/).
-4. **ASPIRE official repository:** [NVlabs/ASPIRE](https://github.com/NVlabs/ASPIRE), with debugging, evolutionary search, and skill reuse materials.
-5. **Source course notes:** [Robot Agent Workflow (Chinese PDF)](https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_ZH.pdf).
+### 1.1 From action prediction to task-level closed-loop reasoning
 
-*Scope note: This tutorial synthesizes published papers and official project documentation. The combined architecture and screwdriver example are explanatory constructs; there are no reproduction experiments, executable code, or original performance claims. Third-party materials retain their respective licenses.*
+Suppose the robot is instructed to “locate the screwdriver, pick it up, move it to the target area, and rotate it by 90 degrees.” A VLA or action policy mainly decides **what action to execute next**. A robot agent makes decisions at another level: **what should happen first, which tool should be called, how to check whether it worked, and what to change after a failure**. These are complementary components, not mutually exclusive alternatives.
+
+$$
+a_t = \pi_{\theta}(o_t,g), \qquad
+\mathcal P_{k+1}=\operatorname{Agent}_{M}(g,\mathcal H_k,\mathcal T,\mathcal E_k).
+$$
+
+Here $o_t$ denotes sensory observations, $g$ the task goal, and $a_t$ an action-policy output. $M$ is the foundation model, $\mathcal H_k$ the interaction history, $\mathcal T$ the available tools, $\mathcal E_k$ physical feedback, and $\mathcal P_{k+1}$ an updated plan or program. These expressions are **conceptual teaching abstractions**; they do not assert that RAX, ASPIRE, and Argon share an optimization objective.
+
+```mermaid
+flowchart TB
+  G[Language goal and success conditions] --> A[Task-level Robot Agent]
+  A --> P[Perception and state estimation]
+  A --> S[Skill program / VLA / motion planner]
+  P --> S
+  S --> C[Real-time control and independent safety layer]
+  C --> R[Physical robot and environment]
+  R --> P
+  R --> V[Independent verification of physical outcomes]
+  V --> A
+```
+
+**Figure 1.** A robot agent manages task-level decisions, while physical feedback and safety must remain closed-loop. The arrows show functional relationships; they do not imply that each component is a separately trained large model.
+
+| Layer | Main responsibility | Typical timing and output |
+|:--|:--|:--|
+| **Task-level agent** | Goal decomposition, tool choice, skill retrieval and generation, failure diagnosis, replanning | Event-driven; plans, programs, tool calls |
+| **Perception and skill execution** | Object localization, state estimation, conditional branching, grasp/manipulation policy | Observation or skill steps; poses, action chunks |
+| **Motion control and safety** | Joint/end-effector tracking, contact stabilization, constraints, emergency stop | High-rate feedback; position, velocity, or torque commands |
+
+**Key principle:** A foundation model may reason slowly; a robot cannot wait for it at every servo update. The safety and low-level feedback loops must not depend on a cloud model's latency or correctness.
+
+### 1.2 A robot agent is neither a VLA nor a classical planner
+
+- **VLA / action policy:** Maps observations and language to motions or action chunks and is well suited to continuous manipulation. Long-term memory, explicit tool use, and failure attribution depend on additional system design rather than being universal VLA properties.
+- **Classical task and motion planning:** Reasons explicitly about geometry, collision, reachability, and temporal constraints. An agent can complement it when the goal is semantically novel or the failure is not covered by the modeled problem.
+- **Coding robot agent:** Composes perception, simulation, planning, and robot APIs into programs and repairs those programs from physical feedback. Language reasoning alone supplies neither contact stability nor safety guarantees.
+
+### 1.3 What does task success mean?
+
+A motion API returning `FINISHED` only reports command completion. A closed gripper does not establish a grasp, and a wrist rotation does not prove that a screwdriver rotated. A stronger design independently checks physical postconditions:
+
+$$
+V(o_{0:T})\in\{\mathrm{SUCCESS},\mathrm{FAILURE},\mathrm{UNKNOWN}\}.
+$$
+
+`UNKNOWN` represents insufficient evidence: occlusion, pose-tracking drift, or an unobservable contact state. The proper next step may be active re-observation or a safe pause, not silently treating “no reported failure” as a success.
+
+---
+
+<a id="agent-section-02"></a>
+## 2. How Claude, Codex, and Gemini 4 Argon Participate
+
+### 2.1 Distinguish the model from the agent system
+
+**Claude denotes a foundation-model family, and Gemini 4 Argon is a general-purpose multimodal reasoning model. Claude Code and Codex, by contrast, are agentic coding products and harnesses through which models can inspect files, execute commands, use tools, and handle feedback.** Calling all three “foundation models” is imprecise. The name Codex can also occur in model-related contexts; throughout this chapter, **Codex means the coding-agent product and harness**. [5–7]
+
+| Name | Technical layer | Typical role in robotics | Common misconception |
+|:--|:--|:--|:--|
+| **Claude** | General-purpose foundation model | Reasoning over text/images, planning, program generation, failure interpretation | A model API call does not automatically control a robot |
+| **Claude Code** | Coding agent and harness | Workspace access, MCP/command and robot-tool calls, iterative edits and verification | It is not the Claude model weights themselves |
+| **Codex** | Model-powered coding agent and harness | Tool use, program generation and repair, sandboxing and approval | The product is not interchangeable with one specific base model |
+| **Gemini 4 Argon** | General-purpose multimodal reasoning model | Physical/video reasoning, robotic planning, code generation, Real2Sim | It is not inherently a fixed-rate joint-action VLA |
+| **Google Antigravity / custom harness** | Agent execution environment | Connects Argon to context, tools, and execution feedback | Argon can be deployed through different environments |
+| **RAX / ASPIRE** | Robot exploration and learning workflows | Organize exploration, verification, debugging, and memory | Neither is a newly trained universal foundation model |
+
+### 2.2 Six activities a foundation model can support
+
+Within a robotic task, the model can help **(1) interpret the language goal, (2) reason about images, video, and structured state, (3) select a tool call, (4) synthesize a conditional skill program, (5) diagnose a failed trace, and (6) summarize reusable experience.** Each activity still requires an agent runtime and robot interfaces. A model's ability to *write* a program is not equivalent to a system's permission or ability to *safely execute* that program on hardware.
+
+```mermaid
+flowchart TB
+  G[User goal] --> M[Foundation model: Claude / GPT / Gemini 4 Argon]
+  M <--> H[Agent harness: Claude Code / Codex / custom runtime]
+  H --> T[Robot tools: vision / IK / planning / sim / execution]
+  H --> W[Learning workflow: RAX / ASPIRE style]
+  T --> K[Skill program, VLA, or local planner]
+  W --> K
+  K --> C[Real-time control and safety]
+  C --> R[Robot and physical environment]
+  R --> F[Images, states, outcomes, and traces]
+  F --> H
+```
+
+**Figure 2.** The foundation model supplies reasoning, the harness implements the agent loop, robot tools expose action channels, and RAX/ASPIRE specify how experience is explored, tested, and accumulated. This is an **illustrative reference architecture**, not a claim that all three systems have been integrated in a published implementation.
+
+### 2.3 Why the harness matters as much as the model
+
+A harness is more than a prompt template. It manages **context, workspace state, tools and permissions, the interaction loop, execution traces, timeouts, failures, approvals, and termination conditions**. OpenAI documents Codex as an execution system between models and tools; Anthropic documents Claude Code's MCP, Skills, Hooks, and Agent SDK extension points. [5,6]
+
+Calling the same base model once for an answer and embedding it in an iterative loop of **observe → invoke tool → inspect output → choose next action** are substantially different capabilities. Still, harnesses do not eliminate model errors: robot state, hard constraints, and success verification should come from externally checkable mechanisms.
+
+### 2.4 Three practical technology paths
+
+**Claude path.** A Claude model accesses restricted robot services through Claude Code or a custom agent runtime. RAX-style exploration can be compiled into a stand-alone procedure, while ASPIRE-style traces support targeted repairs and reusable lessons. [2–5]
+
+**Codex path.** Codex already offers a coding-agent loop for reading workspaces, calling tools, generating programs, and iterating on feedback. The RAX implementation explicitly supports Codex CLI or Claude Code, while ASPIRE distributes agent skills compatible with Codex. [2,4,6]
+
+**Argon path.** Gemini 4 Argon can reason about robots and simulation through external tools and runtimes. Google has demonstrated robotics workflows involving control, Real2Sim, video analysis, and program improvement. Those demonstrations **do not establish that Argon is integrated into the official RAX/ASPIRE implementations or can replace servo controllers**. [7,8]
+
+**General lesson:** Selecting the model is only one design decision. What matters just as much is **which robot capabilities are exposed, how feedback is represented, how dangerous calls are prevented, and where verified experience is stored**.
+
+---
+
+<a id="agent-section-03"></a>
+## 3. A General Foundation-Model-Driven Robot-Agent Workflow
+
+### 3.1 From a goal to a bounded execution
+
+A useful lifecycle is:
+
+1. **Specify:** Convert natural-language goals into observable postconditions; define the workspace, budget, and safe-stop rules.
+2. **Observe:** Read RGB/RGB-D, joint state, known geometry, and planner feedback; preserve confidence and uncertainty.
+3. **Reason & Plan:** Use a foundation model through the harness to choose an existing skill, tool call, or procedure to explore.
+4. **Act:** Call approved robot services, IK/planning, or action policies; let the local controller track continuous motion.
+5. **Verify:** Check the actual physical goal rather than the completion flag of a command.
+6. **Repair & Remember:** Inspect failure traces, apply bounded patches, independently retest, and retain lessons backed by evidence.
+
+```mermaid
+flowchart LR
+  A[Specify] --> B[Observe]
+  B --> C[Reason and Plan]
+  C --> D[Act]
+  D --> E[Verify]
+  E -->|Success| F[Store evidence and reusable skill]
+  E -->|Failure or unknown| G[Trace diagnosis and bounded repair]
+  G --> B
+  E -->|Safety issue| H[Stop / human review]
+```
+
+**Figure 3.** The observe–decide–act–verify loop may repeat, but retries need explicit budgets, an independently enforced safety boundary, and an intelligible stopping condition.
+
+### 3.2 Tool calling connects reasoning to physics; it is not a controller
+
+| Tool group | What an agent may request or receive | Required interface behavior |
+|:--|:--|:--|
+| Sensing and state estimation | Images, detections, object poses, confidence | Timestamps, reference frames, uncertainty and failure flags |
+| Geometry and planning | IK solutions, collision checking, candidate approaches | Reachability, kinematic constraints, collision enforcement |
+| Skill or policy execution | Grasp, transport, rotation, VLA/RL action chunks | Preconditions, bounds, timeout and local recovery |
+| Simulation and evaluation | Replay, physical simulation, comparisons, task scores | Explicit sim-to-real limits; no conflation of sim and hardware success |
+| Logging and memory | Multimodal traces, program versions, applicability | Provenance, rollback, auditable records |
+
+### 3.3 Four loops should not be collapsed into one “super-model”
+
+The **control loop** handles rapid feedback and stability; the **skill loop** handles observation updates, action sequencing, and limited local recovery; the **task-agent loop** handles slower replanning, coding, and diagnosis; and the **long-term-learning loop** validates, versions, reuses, and retires skills. These are functional loops, not requirements for four distinct foundation models. For a previously validated task, it may be preferable to execute the compiled skill without invoking the large model again.
+
+### 3.4 What is learned? Program memory is not weight fine-tuning
+
+RAX and ASPIRE primarily improve the system by accumulating **programs, failure explanations, skill-library entries, and execution evidence**; they do not require online gradient updates to foundation-model weights. A different route uses simulation-generated demonstrations to train or post-train a VLA. In that case, the **action model's weights** change in a separate training stage. Robot interaction, self-improvement, online RL, and foundation-model fine-tuning are therefore **not synonyms**.
+
+---
+
+<a id="agent-section-04"></a>
+## 4. RAX: From Exploration to Stand-Alone Programs
+
+RAX (Robot Agent eXploration) lets a general-purpose coding agent with **frozen model weights** (the reference harness supports **Codex CLI or Claude Code**) explore through perception and control tools, keep what it learns in a workspace, and compile effective behavior into modular robot code that runs without continuous coding-agent intervention. Its organizing cycle is **Explore → Compile → Evaluate**. RAX does not retrain the language model for every newly encountered task. [1,2]
+
+### 4.1 Explore: learn conditional decisions, not motor physics again
+
+The agent can investigate which camera viewpoint to use, how to approach an object, whether a grasp direction is reachable, and when to confirm that the object is still held. Each attempt should preserve **the observation, invoked tool and parameters, error/output, physical outcome, and reason for a change**. A log that says only “grasp failed” transfers little. A log that says “the approach fell inside the table collision margin; a lateral approach then planned successfully” contains a reusable causal clue.
+
+### 4.2 Compile: a successful trajectory is not yet a reusable program
+
+| One successful motion replay | RAX-style compiled procedure |
+|:--|:--|
+| Reuses object coordinates from exploration | Re-observes and recomputes goals in the current scene |
+| Executes a fixed action list | Branches on IK, contact, and visual feedback |
+| Stops or asks the agent to rescue every failure | Includes bounded recovery and explicit abort conditions |
+| Establishes feasibility for one setup | Declares preconditions and is validated on changed layouts |
+
+In RAX, **compilation means synthesizing independent, conditional robot logic from exploration experience**, not translating a language prompt into processor instructions. The reference project uses `controller.py:main(ctx)` as an example program entry point; its name is cited to clarify the software boundary, not to introduce a coding assignment. [2]
+
+### 4.3 Evaluate: validation separate from the exploratory agent
+
+An agent that remains active during debugging might silently compensate for missing code. RAX therefore freezes the generated program and evaluates it independently on held-out simulated arrangements or reset hardware runs. Distinguish **one success**, **repeatability under identical conditions**, and **unattended success after initial-state variation**: they provide increasingly strong but still bounded evidence. The RAX project's air-fryer example reports roughly **72 minutes of exploration** and **18 seconds of compiled execution**. These are task-specific figures, not universal real-time-performance guarantees. [1,2]
+
+The official skill library additionally records preconditions, code, known failure modes, independent run records, and camera evidence. A working script should become a *verified skill* only under explicit review and repeat-test rules. [2,3]
+
+**Chapter takeaway:** RAX shows how methods discovered online can become **reusable, observation-dependent programs that no longer require step-by-step language-model control**.
+
+---
+
+<a id="agent-section-05"></a>
+## 5. ASPIRE: Trace-Guided Repair and Accumulating Skills
+
+ASPIRE also follows **code-as-policy**: a coding agent writes a robot program and revises it from physical or simulated execution feedback. Its distinctive elements are **multimodal execution traces, iterative debugging, growing skill libraries, Coordinator–Actor organization, and evolutionary program search**. The original studies used Claude Opus 4.6, while the maintained implementation includes agent skills for environments such as Claude Code and Codex. The workflow should not be equated with a single underlying model. [4,9]
+
+### 5.1 Traces: from an error label to a causal bottleneck
+
+| Trace evidence | Question it answers | Likely diagnostic direction |
+|:--|:--|:--|
+| Tool call and parameters | Was the pose, grasp direction, or constraint wrong? | Check parameters and coordinate transforms |
+| Planner return and error | Did IK, reachability, or collision checking fail? | Choose another approach or replan |
+| Keyframes and estimated poses | Did the object physically move, or was the grasp empty? | Re-observe and adjust contact timing |
+| Contact/proprioceptive timeline | Was there slip, or only estimator drift? | Prioritize the best-supported failure cause |
+| Verification outcome and confidence | Did the physical goal actually occur? | Seek another viewpoint or return `UNKNOWN` |
+
+A useful agent selectively inspects **evidence around the failing primitive** instead of filling its context window with every raw video frame. When the planner reports `PLANNING_ERROR`, inspecting the target, collision margin, and route is more relevant than blindly increasing grip force.
+
+### 5.2 Iterative debugging: each patch must be testable
+
+One repair iteration follows **select trace → formulate a local hypothesis → patch the program → rerun → compare evidence**. The ASPIRE paper's radio-retrieval example illustrates the logic: perception found the object, but navigation candidates conflicted with collision margins near a table. Changing the approach direction enabled the task to proceed. The generalizable lesson is not to add one fixed displacement everywhere, but to **search for a safe alternative viewpoint or approach when the intended route is obstructed**. [9]
+
+### 5.3 Skill library, Coordinator–Actor, and evolutionary search
+
+- **Skill library:** Retain verified programs, reusable repair patterns, applicability conditions, and supporting evidence. One accidental success is not a universal rule.
+- **Coordinator–Actor:** Organize multiple coding agents across tasks; check whether candidate solutions respect interfaces and actually work before sharing them.
+- **Evolutionary search:** Try alternative candidate programs or decision sequences, score their executions, and use traces to choose further improvements. The evolved objects are **programs and task logic**, not necessarily neural-network weights.
+
+**Chapter takeaway:** ASPIRE turns failures into diagnosable evidence, makes repairs independently testable, and helps transferable skills accumulate across tasks.
+
+---
+
+<a id="agent-section-06"></a>
+## 6. Gemini 4 Argon: Control, Real2Sim, and Self-Improvement
+
+On **October 13, 2026**, Google published a collection of robotic demonstrations using Gemini 4 Argon. Argon is a **general-purpose reasoning foundation model** that can process visual and video inputs and use tools. Once integrated with robot APIs, simulation tools, and repeated observations, the resulting system can act as a **robot agent**. The model itself is not a servo-rate action policy. [7,8]
+
+### 6.1 Four categories demonstrated by Google
+
+| Application | Published demonstration | What the model contributes |
+|:--|:--|:--|
+| **Robot control** | Spot manipulation with MuJoCo practice; uprighting a mug and inserting a napkin | Decomposed tool actions, visual checking, recovery from feedback |
+| **Real2Sim** | Building MuJoCo scenes from robot video, egocentric human video, or sketches | Scene/asset synthesis and iterative visual-contact consistency checks |
+| **Physical understanding** | Video hindsight labeling, contact-level events, task-progress estimation | Structured process labels and evidence useful for evaluation |
+| **Research and improvement** | Simulation-generated action datasets; SO-101 hardware improvement | Better programs, environments, and data-generation pipelines |
+
+### 6.2 How to interpret the case studies
+
+**Case A: Visual closed-loop manipulation.** In the mug-and-napkin task, Argon uses a calibrated wrist-camera representation and a set of existing action primitives. It selects the next operation and checks feedback after tool calls. This is **model reasoning + harness + robot tools**, not direct neural control of motor current. [8]
+
+**Case B: Real2Sim.** Google shows robot-teleoperation footage being used to construct a MuJoCo scene, tune object geometry, mass, friction, and other contact-related properties, and compare rendered views and force/tactile feedback. This is a **scene reconstruction and physics-consistency workflow**. Visual similarity does not, by itself, prove exact contact identification or general sim-to-real transfer. [8]
+
+**Case C: Data generation and post-training.** Argon can help build simulation tasks and generate trajectories subsequently used to improve a VLA. In that pipeline, **Argon constructs simulation/data, while any VLA parameter update is a separate learning process**. It would be incorrect to conclude that Argon's own weights were updated by online reinforcement learning. [8]
+
+**Case D: Hardware self-improvement.** In an SO-101 visual pick-and-place task, Google reports three execution iterations taking **58.9, 22.9, and 17.4 seconds**, respectively. This documents one showcased agentic optimization sequence, not a general statistical guarantee for robot success or reliability. [8]
+
+### 6.3 Complementarity with RAX and ASPIRE
+
+| System | What it is | Primary research emphasis | What it does not establish |
+|:--|:--|:--|:--|
+| **Gemini 4 Argon** | General multimodal foundation model | Physical reasoning, code generation, video understanding | Native high-rate servo control |
+| **RAX** | Online exploration and program-compilation framework | Stand-alone execution after skill discovery | Requirement for a newly trained foundation model |
+| **ASPIRE** | Trace-based debugging and continual skill-refinement framework | Failure diagnosis and transferable repair | VLA parameter post-training by definition |
+
+Conceptually, Argon could serve as a reasoning model in a RAX-like or ASPIRE-like architecture, but **a plausible combination is not an experimental result published by those projects**. Useful comparisons must separate the model's capability, the harness, the exposed robot API, and the independently verified physical outcome.
+
+---
+
+<a id="agent-section-07"></a>
+## 7. A Unified System and a Dexterous Screwdriver Example
+
+### 7.1 One reusable workflow without overstating the papers
+
+```mermaid
+flowchart TB
+  G[Goal with success and safety criteria] --> L[Retrieve skill and check preconditions]
+  L --> Q{Verified skill available?}
+  Q -->|Yes| X[Execute conditional skill program]
+  Q -->|No| E[RAX-style exploration and compile]
+  E --> X
+  X --> V{Independent physical verification}
+  V -->|Success| M[Store evidence, version, and skill]
+  V -->|Failure or unknown| T[ASPIRE-style trace diagnosis]
+  T --> F{Safe bounded repair?}
+  F -->|Yes| X
+  F -->|No| H[Safe stop / human review]
+  V -->|Safety event| H
+```
+
+**Figure 4.** RAX-style exploration fills skill gaps; ASPIRE-style debugging and memory address recurrent failures; Claude, Codex, or Argon-related model/harness components can provide higher-level reasoning. This is a **teaching reference architecture**, not a system whose joint performance has already been established by the cited papers.
+
+### 7.2 The minimum contract for a reusable skill
+
+1. **Preconditions:** Robot body, dexterous hand, sensing/calibration assumptions, object class, and permitted workspace.
+2. **Execution:** Parameter interface, approved tool calls, duration/budget, and delegated low-level control.
+3. **Verification:** Object-state postconditions, tolerance, and `SUCCESS / FAILURE / UNKNOWN` criteria.
+4. **Recovery:** Recoverable failures, retry limits, and safe exit for unrecoverable cases.
+5. **Evidence & Version:** Independent run records, failure-distribution limits, version history, and rollback path.
+
+This is an **engineering recommendation**, not a universal data structure prescribed by one paper. A script should not be promoted to a deployable skill without constrained independent tests and the required approvals.
+
+### 7.3 Worked example: grasp, transport, and rotate a screwdriver
+
+**Illustrative teaching scenario, not an experiment reported in the cited papers.** A screwdriver starts at an arbitrary permitted location on a table. A robot observes it through head and wrist cameras, uses a dexterous hand to grasp it, transports it to a fixed region, and rotates it through a desired angle. If it slips, dangerous motion must stop before the agent decides whether re-localization and recovery are safe.
+
+| Stage | Physical evidence required | Common false success and response |
+|:--|:--|:--|
+| **Locate** | Correct screwdriver identity, usable pose, and confidence | Misidentified tool or wrong camera frame: reconfirm |
+| **Grasp** | Object leaves the table and its hand-relative pose is plausible | Fingers close on empty space: compare vision and proprioception |
+| **Transport** | Object reaches the goal zone and remains held | End-effector arrives without object: stop and re-localize |
+| **Rotate** | **Object itself**, not just wrist, attains the target orientation | Independent object-pose tracking is necessary |
+| **Recover** | New location is authorized and the goal is re-established | Unobservable or unreachable: return `UNKNOWN` or stop |
+
+**What does the task-level agent do?** It specifies observable success, searches for existing skills, explores missing grasp/approach decisions using RAX-like tools, compiles conditional procedures, diagnoses failures from ASPIRE-like traces, and allows bounded repairs. Claude, Codex, or Argon may provide the reasoning and programming capabilities, **but this example does not assert that any of these particular models has been experimentally validated on this hand/arm platform**.
+
+**What does the lower stack do?** Perception estimates hand/object relative poses; IK and motion planning enforce reachability and collision conditions; VLA/RL skills or local controllers perform grasping and rotation; independent hardware safety enforces limits and emergency stops. With only head/wrist cameras and no tactile sensor, occlusion and unobservable contact must be represented explicitly in verification outcomes.
+
+### 7.4 Which component should solve which problem?
+
+| Practical issue | First component to consider | Main evaluation criterion |
+|:--|:--|:--|
+| Complex semantic goal, video interpretation, program synthesis | **Claude / Gemini 4 Argon or another foundation model** | Suitability of physical reasoning and program generation |
+| Persistent tool use, workspace handling, approval and logging | **Claude Code / Codex / custom harness** | Permissions, state management, auditability, failure recovery |
+| Novel task without an existing executable skill | **RAX-style exploration and compilation** | Conditional procedure with independent validation |
+| Recurrent failures whose causes are unclear | **ASPIRE-style traces and skill library** | Evidence-supported diagnosis, localized repair, transferable knowledge |
+| Continuous contact or high-rate trajectory tracking | **VLA / RL / MPC / real-time controller** | Latency, stability, constraints, physical safety |
+
+### Final takeaway
+
+**A robot agent is not simply a larger VLA or a model that can write robot code.** It is a task-level closed-loop system combining **foundation-model reasoning, an agent harness, robot tools, execution feedback, verifiable skill memory, and independently enforced safety**. Claude and Gemini 4 Argon may supply general reasoning, Claude Code and Codex provide agent execution environments, RAX emphasizes compiling exploration into independently runnable programs, and ASPIRE emphasizes trace-based repair and skill accumulation. Whether a real robot works reliably ultimately depends on **observability, tool quality, physical verification, and low-level control**, not on the model's name alone.
+
+---
+
+<a id="agent-references"></a>
+## Papers and Official Resources (Clickable)
+
+1. **RAX paper:** Huang et al., *Scaling Online Exploration for Robot Agents* (2026). [Paper PDF](https://assets.robot-agent-exploration.com/paper/rax.pdf) · [Project](https://robot-agent-exploration.com/).
+2. **RAX reference harness:** [robot-agent-exploration/rax](https://github.com/robot-agent-exploration/rax), documenting Codex CLI/Claude Code, exploration, compilation, and independent evaluation.
+3. **RAX skill library:** [robot-agent-exploration/skills-lib](https://github.com/robot-agent-exploration/skills-lib), with procedures, preconditions, and execution evidence.
+4. **ASPIRE reference implementation:** [NVlabs/ASPIRE](https://github.com/NVlabs/ASPIRE), including iterative debugging, agent skills, and evolutionary search.
+5. **Claude Code documentation:** [Anthropic, Claude Code Overview](https://code.claude.com/docs/en/overview), covering the agent runtime, MCP, and tool integrations.
+6. **Codex harness:** [OpenAI, *Codex as a platform: build on the open agent harness*](https://developers.openai.com/blog/codex-as-a-platform) (2026).
+7. **Gemini 4 Argon model:** [Google AI for Developers](https://ai.google.dev/gemini-api/docs/models/gemini-4-argon).
+8. **Gemini 4 Argon for Robotics:** [Google Developers Blog](https://developers.googleblog.com/gemini-4-argon-for-robotics/) (Oct. 13, 2026); source for the Argon robotic demonstrations discussed here.
+9. **ASPIRE paper:** Lu et al., *ASPIRE: Agentic /Skills Discovery for Robotics* (2026). [arXiv](https://arxiv.org/abs/2607.00272) · [Project page](https://research.nvidia.com/labs/gear/aspire/).
+
+*Attribution and scope: Revised from the Foundation of Embodied AI original course notes (CC BY 4.0; Xiong Zeng and contributors) and organized with the public resources above. Paper-supported mechanisms are distinguished from teaching reference architectures and the illustrative screwdriver case. No hardware performance guarantee is implied.*

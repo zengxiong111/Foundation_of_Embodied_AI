@@ -78,7 +78,7 @@ flowchart LR
 
 ## 先进 Robot Agent 的系统集成
 
-最终专题：[Robot Agent：规划、执行、验证与恢复](../md/Robot_Agent_Workflow_ZH.md)。内容涵盖 RAX 探索与编译、ASPIRE 执行轨迹诊断与修复、技能复用及灵巧手螺丝刀案例。融合工作流属于教学示例，不含代码或实验章节。
+最终专题：[Robot Agent：规划、执行、验证与恢复](../md/Robot_Agent_Workflow_ZH.md)。内容区分基础模型、Coding Agent 与 Agent Harness，介绍 Claude、Codex 与 Gemini 4 Argon 的角色，并涵盖模型驱动的工作流、RAX 探索与编译、ASPIRE 执行轨迹诊断与修复、Real2Sim/自我改进示例及灵巧手螺丝刀案例。融合工作流属于教学示例，不含代码或实验章节。
 
 <a id="map-section-09"></a>
 
@@ -92,4 +92,4 @@ flowchart LR
 | Flow Matching | CFM 数学、速度场与 ODE 推导 | 模仿学习只讲条件动作生成的损失接口 |
 | PPO / SAC 与运控 RL | RL 优化原理、运控任务设计与 Sim-to-Real | 模仿学习不重复奖励优化推导 |
 | RL Post-training | 预训练策略更新、离策略闭环、训练基础设施、真机反馈与开放问题 | 使用 PPO/SAC 基础与预训练模仿策略 |
-| Robot Agent | 任务级规划、工具选择、执行结果验证、失败恢复与技能记忆 | GR00T/SONIC 保留 System 1/System 0 实际系统案例 |
+| Robot Agent | 基础模型与 Harness 职责、模型驱动工作流、RAX/ASPIRE、验证、恢复与记忆 | GR00T/SONIC 保留 System 1/System 0 实际系统案例 |
