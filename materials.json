@@ -364,56 +364,6 @@
       }
     },
     {
-      "id": "efficient-inference",
-      "title_en": "Efficient Training & Inference",
-      "title_zh": "高效训练与实时推理",
-      "versions_en": "Transformer compute and memory; FlashAttention and online softmax; mixed precision, LoRA, checkpointing and distributed training; KV-cache validity, Flow Matching acceleration, action chunks, RTC and end-to-end VLA latency. No code or experiments.",
-      "versions_zh": "Transformer 计算与显存；FlashAttention 与 Online Softmax；混合精度、LoRA、检查点与分布式训练；KV Cache 有效条件、Flow Matching 加速、动作块、RTC 与端到端 VLA 时延。不含代码或实验。",
-      "reviewed_at": "2026-10-19",
-      "review_scope_en": "Supplied bilingual notes integrated; PDFs rebuilt with the shared academic cover and typography. Teaching content retained; no independent benchmarks, training or robot validation.",
-      "review_scope_zh": "整合用户提供的中英文讲义，PDF 按统一学术首页和字体重新排版。保留教学内容；未独立进行基准、训练或真机验证。",
-      "source_refs": [],
-      "documents": {
-        "en": {
-          "md": "md/Efficient_Training_Real_Time_Inference_EN.md",
-          "pdf": "pdf/Efficient_Training_Real_Time_Inference_EN.pdf",
-          "site_md": "files/Efficient_Training_Real_Time_Inference_EN.md",
-          "site_pdf": "files/Efficient_Training_Real_Time_Inference_EN.pdf"
-        },
-        "zh": {
-          "md": "md/Efficient_Training_Real_Time_Inference_ZH.md",
-          "pdf": "pdf/Efficient_Training_Real_Time_Inference_ZH.pdf",
-          "site_md": "files/Efficient_Training_Real_Time_Inference_ZH.md",
-          "site_pdf": "files/Efficient_Training_Real_Time_Inference_ZH.pdf"
-        }
-      }
-    },
-    {
-      "id": "rl-post-training",
-      "title_en": "RL Post-training",
-      "title_zh": "RL Post-training",
-      "reviewed_at": "2026-10-19",
-      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDFs rebuilt with a shared academic cover and typography; teaching content retained. No independent training, simulation or robot validation.",
-      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 采用统一学术首页和字体重新排版，教学内容保持不变；未独立进行训练、仿真或真机验证。",
-      "versions_en": "RL refinement of pretrained Diffusion, Flow Matching and VLA policies; generator updates versus frozen-generator interfaces; DPPO, OGPO, Q-VGM, DSRL, residual RL and RL Token; Actor–Critic loops, RLinf infrastructure and physical deployment boundaries. No from-scratch controllers or executable tutorials.",
-      "versions_zh": "预训练 Diffusion、Flow Matching 与 VLA 策略的 RL 后训练；更新生成器与冻结生成器接口；DPPO、OGPO、Q-VGM、DSRL、Residual RL 与 RL Token；Actor–Critic 闭环、RLinf 基础设施及真机部署边界。不含从零训练控制器或可执行教程。",
-      "source_refs": [],
-      "documents": {
-        "zh": {
-          "md": "md/RL_Post_Training_ZH.md",
-          "pdf": "pdf/RL_Post_Training_ZH.pdf",
-          "site_md": "files/RL_Post_Training_ZH.md",
-          "site_pdf": "files/RL_Post_Training_ZH.pdf"
-        },
-        "en": {
-          "md": "md/RL_Post_Training_EN.md",
-          "pdf": "pdf/RL_Post_Training_EN.pdf",
-          "site_md": "files/RL_Post_Training_EN.md",
-          "site_pdf": "files/RL_Post_Training_EN.pdf"
-        }
-      }
-    },
-    {
       "id": "groot-sonic",
       "title_en": "GR00T & SONIC",
       "title_zh": "GR00T 与 SONIC",
@@ -463,6 +413,72 @@
           "pdf": "pdf/World_Action_Models_ZH.pdf",
           "site_md": "files/World_Action_Models_ZH.md",
           "site_pdf": "files/World_Action_Models_ZH.pdf"
+        }
+      }
+    },
+    {
+      "id": "efficient-inference",
+      "title_en": "Efficient Training & Inference",
+      "title_zh": "高效训练与实时推理",
+      "versions_en": "VLA/WAM training compute and memory; FlashAttention; KV and DiT cache validity; DreamZero and DreamZero-Flash acceleration; few-step flow matching, asynchronous control, RTC, cloud latency and precision manipulation.",
+      "versions_zh": "VLA/WAM 训练算力与显存；FlashAttention；KV 与 DiT 缓存有效性；DreamZero 与 DreamZero-Flash 加速；少步流匹配、异步控制、RTC、云端时延与精密操作。",
+      "reviewed_at": "2026-10-20",
+      "review_scope_en": "Supplied bilingual notes integrated; PDFs rebuilt with the shared academic cover and typography. Teaching content retained; no independent training, benchmarks or robot validation.",
+      "review_scope_zh": "整合用户提供的中英文讲义，PDF 按统一学术首页和字体重新排版。保留教学内容；未独立进行训练、基准或真机验证。",
+      "source_refs": [],
+      "documents": {
+        "en": {
+          "md": "md/Efficient_Training_Real_Time_Inference_EN.md",
+          "pdf": "pdf/Efficient_Training_Real_Time_Inference_EN.pdf",
+          "site_md": "files/Efficient_Training_Real_Time_Inference_EN.md",
+          "site_pdf": "files/Efficient_Training_Real_Time_Inference_EN.pdf"
+        },
+        "zh": {
+          "md": "md/Efficient_Training_Real_Time_Inference_ZH.md",
+          "pdf": "pdf/Efficient_Training_Real_Time_Inference_ZH.pdf",
+          "site_md": "files/Efficient_Training_Real_Time_Inference_ZH.md",
+          "site_pdf": "files/Efficient_Training_Real_Time_Inference_ZH.pdf"
+        }
+      }
+    },
+    {
+      "id": "post-training",
+      "title_en": "Post-training",
+      "title_zh": "后训练",
+      "reviewed_at": "2026-10-20",
+      "review_scope_en": "Supplied bilingual notes integrated; PDFs rebuilt with the shared academic cover and typography. Teaching content retained; no independent training, benchmarks or robot validation.",
+      "review_scope_zh": "整合用户提供的中英文讲义，PDF 按统一学术首页和字体重新排版。保留教学内容；未独立进行训练、基准或真机验证。",
+      "versions_en": "SFT and RL for pretrained VLA and WAM models; six VLA RL routes; WAM supervised interfaces, WAM-RL and Flow-SDE; coordinated online video SFT, latent KL, actor-critic semantics, RLinf integration and deployment limits.",
+      "versions_zh": "预训练 VLA 与 WAM 的 SFT 和 RL；六类 VLA 强化学习路线；WAM 监督接口、WAM-RL 与 Flow-SDE；在线视频 SFT 协同更新、潜空间 KL、行动者–评论家语义、RLinf 集成与部署边界。",
+      "source_refs": [],
+      "documents": {
+        "zh": {
+          "md": "md/Embodied_Post_Training_ZH.md",
+          "pdf": "pdf/Embodied_Post_Training_ZH.pdf",
+          "site_md": "files/Embodied_Post_Training_ZH.md",
+          "site_pdf": "files/Embodied_Post_Training_ZH.pdf",
+          "site_aliases": {
+            "md": [
+              "files/RL_Post_Training_ZH.md"
+            ],
+            "pdf": [
+              "files/RL_Post_Training_ZH.pdf"
+            ]
+          }
+        },
+        "en": {
+          "md": "md/Embodied_Post_Training_EN.md",
+          "pdf": "pdf/Embodied_Post_Training_EN.pdf",
+          "site_md": "files/Embodied_Post_Training_EN.md",
+          "site_pdf": "files/Embodied_Post_Training_EN.pdf",
+          "site_aliases": {
+            "md": [
+              "files/RL_Post_Training_EN.md"
+            ],
+            "pdf": [
+              "files/RL_Post_Training_EN.pdf"
+            ]
+          }
         }
       }
     },

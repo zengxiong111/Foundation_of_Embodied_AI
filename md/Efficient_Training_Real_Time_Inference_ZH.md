@@ -1,34 +1,33 @@
 ---
 title: "具身基础模型的高效训练与实时推理"
-subtitle: "从 Transformer 优化到 VLA 机器人闭环执行"
+subtitle: "从 Transformer 优化到 VLA / WAM 机器人闭环执行"
 author: "Foundation of Embodied AI · Xiong Zeng and contributors"
-date: "2026-10-19"
+date: "2026-10-20"
 lang: zh-CN
 ---
 
 # 具身基础模型的高效训练与实时推理
 
+[课程仓库](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [English](Efficient_Training_Real_Time_Inference_EN.md) · [流匹配](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Flow_Matching_详细推导_精简版.md) · [后训练](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Embodied_Post_Training_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_ZH.pdf)
 
-[课程仓库](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [English](Efficient_Training_Real_Time_Inference_EN.md) · [Flow Matching](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Flow_Matching_详细推导_精简版.md) · [RL Post-training](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/RL_Post_Training_ZH.md)
+> **本章定位。** 本讲义衔接 Transformer、Flow Matching、VLA、WAM 与机器人控制课程，集中回答三个问题：基础模型如何更省算力地训练，生成模型如何低延迟地推理，以及较慢的 VLA / WAM 如何持续驱动真实机器人。不重复 WAM 架构综述或后训练算法的完整推导；不包含代码和实验操作。
 
-> **本章定位。** 本讲义接在 VLA、Flow Matching 与机器人策略学习之后。它不重复 Transformer 的完整推导，也不包含代码或实验步骤，而是回答三个工程与研究问题：训练为何昂贵、推理怎样变快，以及较慢的基础模型如何驱动要求连续控制的机器人。
+**证据边界。** 本文沿用 [Foundation of Embodied AI](https://github.com/zengxiong111/Foundation_of_Embodied_AI) 的学术讲义风格（[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)）。截至 2026-10-20 的模型数值均注明来源和统计口径；不宣称进行了独立复现。本文将 WAM 视为能够以未来世界预测辅助动作生成的模型族，不限定其一定采用视频扩散。
 
-**署名与核验边界。** 课程内容编排沿用 [Foundation of Embodied AI](https://github.com/zengxiong111/Foundation_of_Embodied_AI) 的学术讲义规范（[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)）。技术细节基于截至 2026-10-19 可查阅的原论文与官方文档；本讲义不宣称自行完成性能复现或机器人测试。
-
-**学习目标。** 完成本章后，应能够区分 FlashAttention 与 KV Cache，解释 π0/π0.5 风格动作模型中的前缀缓存，建立 VLA 的端到端时延预算，理解 RTC 的动作衔接机制，并判断何时值得采用 LoRA、Activation Checkpointing、模型蒸馏或推理服务优化。
+**学习目标。** 区分 FlashAttention、KV Cache 与 DiT Caching；理解视频 Token 和视频—动作联合生成的成本；解释 DreamZero-Flash 的解耦噪声训练；建立包含云端通信的时延预算；选择适合精密操作的闭环执行方案。
 
 ## 目录
 
 - [1. 先分清三个优化目标](#efficient-section-01)
-- [2. 为什么 Transformer 训练与推理昂贵？](#efficient-section-02)
-- [3. FlashAttention：为什么能高效计算精确 Attention？](#efficient-section-03)
-- [4. 高效训练：按瓶颈选择技术](#efficient-section-04)
-- [5. KV Cache：它缓存了什么、什么时候有效？](#efficient-section-05)
-- [6. Flow Matching 推理：除了 KV Cache，还能怎么加速？](#efficient-section-06)
-- [7. 实时机器人：为什么仅加速网络还不够？](#efficient-section-07)
-- [8. π0.5、GR00T 与 WAM 的优化差别](#efficient-section-08)
+- [2. 为什么 Transformer 与 WAM 训练昂贵？](#efficient-section-02)
+- [3. FlashAttention：高效而精确的 Attention](#efficient-section-03)
+- [4. 高效训练：VLA 与 WAM 分别优化什么？](#efficient-section-04)
+- [5. KV Cache 与 DiT Caching：复用的边界](#efficient-section-05)
+- [6. Flow Matching 与 WAM 少步推理](#efficient-section-06)
+- [7. 实时机器人：异步推理与闭环执行](#efficient-section-07)
+- [8. π0.5、GR00T、DreamZero 与 Dream-1 对比](#efficient-section-08)
 - [9. 实际技术选择：先诊断，再优化](#efficient-section-09)
-- [10. 五个容易混淆的问题](#efficient-section-10)
+- [10. 六个容易混淆的问题](#efficient-section-10)
 - [11. 结论](#efficient-section-11)
 - [参考资料](#efficient-section-12)
 
@@ -36,338 +35,363 @@ lang: zh-CN
 
 ## 1. 先分清三个优化目标
 
-具身基础模型通常包含视觉编码器、视觉—语言主干、动作生成器；WAM 还可能包含未来图像或潜在状态预测模块。这些模块可能都使用 Transformer，但优化目标并不相同。
+具身基础模型通常包含视觉编码、语言/时序主干与动作生成模块。VLA 主要从当前观测输出动作；一些 WAM 还预测未来视频、几何状态或紧凑潜在世界表征，并使世界预测与动作相互约束。**“是否使用 Transformer”与“是否预测未来世界”是两个不同维度。**
 
-| 场景 | 核心约束 | 最值得关心的指标 |
+| 场景 | 主要约束 | 应关注的指标 |
 |:--|:--|:--|
-| 大规模预训练 | GPU 算力、显存、数据吞吐 | 有效 token/s、step/s、显存峰值、收敛速度 |
-| VLA 微调 / 在线 RL | 数据与训练成本、策略更新效率 | GPU-hours、更新延迟、样本效率、策略质量 |
-| 机器人推理部署 | 端到端延迟与时延抖动 | 感知到动作延迟、p95/p99、动作更新率 |
-| 高频伺服控制 | 控制周期、状态反馈、稳定性 | 控制频率、跟踪误差、超时与安全约束 |
-
-**高频控制不要求 Transformer 高频运行。** 一种常见分层方式是：VLA 间歇生成一段动作（Action Chunk），低层位置、速度、力矩或阻抗控制器在更高频率执行与修正动作。VLA 更新频率、Action Chunk 大小和低层伺服频率应分别设计，不能混为一谈。
+| 预训练和微调 | 算力、显存、数据吞吐 | GPU-hours、step/s、峰值显存、验证任务表现 |
+| VLA / WAM 推理 | 前缀处理、迭代生成、视觉 Token | 每次请求的 p50/p95/p99、GPU 显存、Action Chunk 延迟 |
+| 机器人闭环执行 | 观测新鲜度、时延抖动、连续性 | 观测到动作时延、动作缓冲余量、跟踪误差 |
+| 高频底层控制 | 状态反馈、接触与安全 | 控制频率、力/位姿跟踪、超时保护 |
 
 <!-- course-visual:start -->
-**图 1：VLA 的计算与控制回路**
+**图 1：VLA / WAM 的计算与闭环控制链路（概念图）**
 
 ```mermaid
 flowchart LR
-    O["相机、任务指令、机器人状态"] --> P["VLM 前缀与 KV Cache"]
-    P --> A["N 次 Flow Matching 动作专家"]
-    A --> E["Action Chunk 与低层闭环"]
-    E -.新观测反馈.-> O
+    O[相机·状态·指令] --> B[视觉/语言条件编码]
+    B --> V[VLA：动作专家]
+    B --> W[WAM：世界与动作联合生成]
+    V --> C[Action Chunk]
+    W --> C
+    C --> L[高频底层控制器]
+    L -.真实反馈.-> O
 ```
 <!-- course-visual:end -->
 
-形式化地，将一次动作请求的粗略端到端延迟写作
+**高频控制不要求基础模型高频前向。** 一种可行的分层方式是：VLA / WAM 每隔一段时间生成动作块，低层位置、速度、力矩或阻抗控制器以较高频率执行和修正。必须区分模型请求频率、Action Chunk 覆盖时长、低层伺服频率与实际反馈频率。
+
+把一次请求的延迟粗略拆分为
 
 $$
-T_{\mathrm{req}} \approx T_{\mathrm{camera}} + T_{\mathrm{pre}} + T_{\mathrm{vision}} + T_{\mathrm{prefix}} + N T_{\mathrm{expert}} + T_{\mathrm{transfer}} + T_{\mathrm{queue}},
+T_{\mathrm{req}}\approx T_{\mathrm{camera}}+T_{\mathrm{pre}}+T_{\mathrm{encoder}}+T_{\mathrm{context}}+T_{\mathrm{generator}}+T_{\mathrm{transfer}}+T_{\mathrm{queue}}.
 $$
 
-其中 $N$ 是 Flow Matching 或 Diffusion 的积分/去噪步数。实际流水线存在重叠执行，上式是定位瓶颈的**粗略分项**，不能直接当作严格的串行时延恒等式。降低某一个算子的耗时，不代表端到端延迟一定按比例下降。
+这是**排查瓶颈的分项**；实际各阶段可能重叠执行，不能简单把任何单项加速比当成端到端加速比。WAM 的 $T_{\mathrm{generator}}$ 可能包含视频和动作联合去噪；是否真的解码视频像素供外部展示，取决于部署方式。
 
 <a id="efficient-section-02"></a>
 
-## 2. 为什么 Transformer 训练与推理昂贵？
+## 2. 为什么 Transformer 与 WAM 训练昂贵？
 
 ### 2.1 Attention 的计算与显存
 
-对于长度为 $L$ 的输入序列，Scaled Dot-Product Attention 为
+对于输入 $X\in\mathbb R^{L\times d}$，Scaled Dot-Product Attention 为
 
 $$
 Q=XW_Q,\quad K=XW_K,\quad V=XW_V,\qquad
 \operatorname{Attn}(Q,K,V)=\operatorname{softmax}\!\left(\frac{QK^\top}{\sqrt{d_k}}+M\right)V.
 $$
 
-这里 $M$ 表示因果性、模态或有效 Token 掩码。标准稠密 Attention 的计算复杂度通常随 $L^2$ 增长；直接物化注意力矩阵也引入与 $L^2$ 成比例的中间存储。多视角相机、高分辨率图像、视频历史和未来世界 Token 都可能明显增大 $L$。
+$M$ 表示因果、模态或有效 Token 掩码。标准稠密 Attention 的算术复杂度约为 $O(L^2d)$；显式中间注意力矩阵需要 $O(L^2)$ 存储。高分辨率多相机输入、视频历史和未来视频 Token 增大序列长度 $L$，因此长时域 WAM 更容易遇到 Attention 或激活显存瓶颈，但不是所有 WAM 都更慢。
 
-**FlashAttention** 通过分块和 IO-aware 计算，减少 GPU 高带宽显存与片上存储之间的数据移动，从而降低中间显存需求并常常提高速度；它仍计算精确 Attention，**不意味着标准稠密 Attention 的理论二次计算量消失**。现代 PyTorch 的 SDPA 可以在满足条件时自动选择优化后的 Attention 后端。[4–5]
+### 2.2 视频 Token 为什么可能成为 WAM 的独立瓶颈？
 
-### 2.2 训练显存到底花在哪里？
-
-粗略写作
+若潜在视频包含 $F$ 帧，每帧被编码为 $H'\times W'$ 个空间位置，再按 patch 分组，那么可用以下近似量级理解视频 Token 数：
 
 $$
-M_{\mathrm{train}} \approx M_{\mathrm{params}}+M_{\mathrm{grads}}+M_{\mathrm{optim}}+M_{\mathrm{act}}+M_{\mathrm{temp}}.
+L_{\mathrm{video}}\propto F\,H'W',\qquad
+L_{\mathrm{total}}=L_{\mathrm{context}}+L_{\mathrm{future}}+L_{\mathrm{action}}.
 $$
 
-其中梯度、优化器状态和反向传播需要保留的激活往往决定了“能否训练”；对多相机长序列模型，$M_{\mathrm{act}}$ 也可能成为主要瓶颈。不能把权重量化后模型的文件大小误认为全参数训练需要的显存。
+这里 $H',W'$ **已经包含** VAE 压缩与 patch 化带来的有效分辨率变化。未来视频即使最终不被显示，在联合视频—动作 DiT 中仍可能参与多轮计算。增加预测帧数、相机数或分辨率，可能同时提高训练激活、Attention 计算和推理延迟。高倍压缩又可能丢失手指接触、微小间隙和快速滑移信息，因此不能只追求 Token 数最小。
 
-### 2.3 为什么具身任务还有额外成本？
+### 2.3 训练显存与数据管线
 
-机器人训练不仅运行网络：多路相机解码、几何变换、数据加载、时间戳对齐和动作标签处理都会消耗 CPU、内存、PCIe/网络带宽。在线 RL 还要求采样端、回放缓冲区与学习端及时交换数据。**先区分 GPU 计算瓶颈与数据流水线瓶颈，才有意义选择加速技术。**
+$$
+M_{\mathrm{train}}\approx M_{\mathrm{params}}+M_{\mathrm{grads}}+M_{\mathrm{optim}}+M_{\mathrm{act}}+M_{\mathrm{temp}}.
+$$
 
+权重、梯度、优化器状态与中间激活应分别测量。量化 checkpoint 的文件大小不能代表全参数训练显存。视频模型还承担多视角解码、VAE 编码、帧率重采样、动作与图像时间戳对齐等成本。**当 GPU 利用率低时，优先排查 CPU 解码、SSD/网络吞吐及数据增强，而非直接叠加 GPU。**
 
 <a id="efficient-section-03"></a>
 
-## 3. FlashAttention：为什么能高效计算精确 Attention？
+## 3. FlashAttention：高效而精确的 Attention
 
-### 3.1 从标准 Attention 的显存问题出发
+### 3.1 问题源自中间矩阵与 HBM 访存
 
-考虑一个 Attention Head，令 $Q,K,V\in\mathbb R^{L\times d}$。朴素实现先计算
+对单个 Head，朴素实现为
 
 $$
-S=QK^\top/\sqrt d,\quad P=\operatorname{softmax}(S),\quad O=PV.
+S=QK^\top/\sqrt d,\qquad P=\operatorname{softmax}(S),\qquad O=PV.
 $$
 
-虽然输出 $O$ 仅有 $L\times d$ 个元素，分数矩阵 $S$ 与权重矩阵 $P$ 却各包含 $L^2$ 个元素。如果必须写入 GPU 高带宽显存（HBM），那么长序列、多相机或视频输入会造成很高的显存占用与访存流量。训练还要处理反向传播所需的中间量。**Attention 的 FLOPs 并不是唯一瓶颈；昂贵的片外数据搬运也可能支配耗时。**
-
-以 $L=4096$、单个 Head、BF16（每个元素 2 Byte）为例，**仅一张**显式 $L\times L$ 矩阵就需要约 $32\,\mathrm{MiB}$，尚不包括其他 Head、梯度、投影、临时张量或模型参数。此例只用于理解量级，并不代表具体模型的显存实测。
+虽然输出 $O$ 只有 $L\times d$ 个元素，$S$ 与 $P$ 却都含 $L^2$ 个元素。以 $L=4096$、BF16（2 Byte）为例，**仅一个 Head 的一张** $4096\times4096$ 矩阵就约需 $32\,\mathrm{MiB}$，还未计入其他 Head、梯度或临时张量。
 
 ### 3.2 Tiling 与 Online Softmax
 
-FlashAttention 不先保存完整的 $S$ 和 $P$，而是把 $Q$、$K$、$V$ 分为较小的块（tiles），在 GPU 片上存储中完成局部计算，并逐块更新 Softmax 的稳定统计量。对于某一行，设已经处理块的最大分数、指数和、未归一化加权输出分别为 $(m,\ell,u)$。新块分数为 $s_j$，则
+FlashAttention 分块处理 $Q,K,V$，在片上保存稳定的 Softmax 统计量，避免将完整 $S,P$ 物化到 HBM。设某一查询行已经累计最大值 $m$、指数和 $\ell$ 与未归一化值和 $u$；新块中的 logit 与 value 分别为 $s_j,v_j$，则
 
 $$
 \begin{aligned}
-m'&=\max\!\big(m,\max_j s_j\big),\\
+m'&=\max(m,\max_j s_j),\\
 \ell'&=e^{m-m'}\ell+\sum_j e^{s_j-m'},\\
 u'&=e^{m-m'}u+\sum_j e^{s_j-m'}v_j,\\
 o&=u'/\ell'\quad\text{（处理全部块后）}.
 \end{aligned}
 $$
 
-这里的重缩放因子使不同块的指数能够在数值稳定的条件下合并。**Online Softmax 保留了标准 Softmax 的数学结果（允许浮点舍入差异），而不是通过丢弃 Token 近似注意力。** FlashAttention 在反向传播阶段也利用重计算策略减少中间张量存储。[4]
+它在浮点舍入误差范围内仍计算**精确 Softmax Attention**；没有把常规稠密 Attention 的 $O(L^2d)$ 算术复杂度变为线性。FlashAttention-2 改进并行任务划分；PyTorch 的 `scaled_dot_product_attention`（SDPA）可以在兼容时调用优化内核。[4,5,10]
 
-### 3.3 为什么叫 IO-aware？什么时候收益显著？
-
-FlashAttention 的关键是减少 HBM 与片上存储之间的读写，而不是把标准稠密 Attention 的计算量从 $O(L^2d)$ 变为线性。FlashAttention-2 进一步改进并行工作划分和 GPU 利用率；具体性能取决于硬件、Head Dimension、序列长度、dtype、Mask 与实现后端。[10]
-
-对机器人视觉—语言模型而言，多视角高分辨率图像、长历史视频和 WAM 的未来视觉 Token 都可能增加序列长度；因此应先测量 Attention 在总推理时间中的占比。短序列、小网络或视觉编码器之外的瓶颈，使用更快的 Attention Kernel 可能对端到端时延帮助有限。
-
-**使用层面：** PyTorch 的 `scaled_dot_product_attention`（SDPA）可以按兼容性选择优化后端。研究者应理解为何启用、为何退回数学实现，以及不同 Attention Mask 或精度配置会改变后端选择；不必首先学习编写 CUDA/Triton Kernel。[5]
-
-| 对比 | 朴素 Attention | FlashAttention |
+| 技术 | 主要复用或节省什么？ | 是否近似？ |
 |:--|:--|:--|
-| 数学目标 | 精确 Softmax Attention | 精确 Softmax Attention（浮点差异除外） |
-| 中间矩阵 | 容易显式存储 $L\times L$ | 分块处理，避免物化整个矩阵 |
-| 主要优化 | 常规算子执行 | 减少 HBM 访存与中间激活 |
-| 算术复杂度 | 标准稠密计算 $O(L^2d)$ | 标准稠密计算仍为 $O(L^2d)$ |
-| 常见使用场景 | 基准或通用回退 | 长视觉 Token、训练和推理时高效 SDPA |
+| FlashAttention | 单次 Attention 内部的 HBM 访存/中间矩阵 | 否（舍入误差除外） |
+| KV Cache | 跨步骤**不变的上下文**所产生的 K/V | 严格不变时否 |
+| DiT Caching | 相邻去噪步中的速度/特征等计算 | 通常是近似复用 |
+| 少步生成 / 蒸馏 | 减少生成器的模型调用次数 | 通常改变生成轨迹或模型 |
+
+**对 WAM 的启示。** 先测量每个 Attention 层的时延和显存，再判断使用 SDPA / FlashAttention、压缩 Token，还是减少联合 DiT 的迭代次数。FlashAttention 加速单次 Attention，无法直接消除几十亿参数 DiT 的重复前向。
 
 <a id="efficient-section-04"></a>
 
-## 4. 高效训练：按瓶颈选择技术
+## 4. 高效训练：VLA 与 WAM 分别优化什么？
 
-| 技术 | 主要收益 | 代价与适用边界 |
+| 技术 | 适用收益 | 主要代价或边界 |
 |:--|:--|:--|
-| BF16 / 混合精度 | 降低部分显存与算力成本 | FP16 可能需要损失缩放；BF16 仍须检查数值稳定性与硬件支持 |
-| FlashAttention / SDPA | 加速长序列 Attention、减少中间显存 | 取决于 Attention Mask、数据类型、GPU 与算子实现 |
-| Activation Checkpointing | 不保存部分前向激活，减少训练显存 | 反向传播时重新计算，可能降低 step/s |
-| LoRA / PEFT | 降低可训练参数、梯度和优化器状态成本 | 不会自动消除完整主干网络的前向计算或激活成本 |
-| FSDP / 参数分片 | 将参数、梯度或优化器状态分散到多卡 | 需要通信、同步与显存—速度权衡 |
-| 减少视觉 / 视频 Token | 直接减轻 Attention 与图像管线负担 | 可能丢失接触点、细小物体或长时序信息 |
-| 数据预取 / 缓存 / 并行解码 | 减轻输入停顿，提高 GPU 利用率 | 依赖 CPU、SSD、内存与网络资源 |
+| BF16 / 混合精度 | 降低计算和部分显存成本 | 注意数值范围、支持的 GPU 与算子 |
+| FlashAttention / SDPA | 降低长序列 Attention 访存 | 效果依赖 Mask、长度与设备 |
+| Activation Checkpointing | 用重算换激活显存 | 反向传播更慢，不是自动提速 |
+| LoRA / 模块冻结 | 减少可训练权重和优化器状态 | 完整 Backbone 前向仍可能昂贵 |
+| FSDP / 参数分片 | 多卡分担参数及优化器显存 | 增加同步和通信 |
+| VAE 特征缓存 | 冻结视频编码器时避免重复编码 | 随机图像增强或时间采样改变时可能失效 |
+| 视频 Token 压缩 / 时间下采样 | 降低 DiT 的上下文长度 | 可能损失运动、接触与时间对齐细节 |
+| 数据预取 / 异步视频解码 | 避免 GPU 等待 CPU 或存储 | 需权衡 RAM、SSD 和 CPU 预算 |
 
-理解三个常见误区尤为重要。第一，**Activation Checkpointing 主要是“以计算换显存”**，并不是无条件训练加速。第二，**LoRA 降低可训练权重的内存成本，但并不保证训练或推理延迟线性下降**。第三，**FSDP 值得在多卡显存不足时考虑，不应在模型可以单卡高效运行时默认开启**。[6]
+### 4.1 VLA：分清视觉前缀与动作专家
 
-对于 π0.5 这类 VLA 微调，应先决定哪些模块真的需要更新：视觉编码器、VLM、动作专家可以采取不同的冻结或微调策略。对于在线 Off-policy RL，还应单独评估：策略推理是否阻塞环境采样、Learner 更新是否拖慢 Actor、Replay 中的观察与动作预处理是否足够高效。这里的问题不只是 Transformer 算子速度。
+在 $\pi0/\pi0.5$ 风格 VLA 微调中，视觉编码器、VLM 与动作专家不必采用相同的更新策略。冻结 Backbone 或使用 LoRA 可以减少可训练状态，但如果仍穿过完整网络做梯度传播，激活和前向计算不一定明显降低。在线 Off-policy RL 还应区分 Actor 推理、Replay 数据解码与 Learner 更新的瓶颈；这属于后训练基础设施问题，而非单一 Attention 算子问题。[1,7]
+
+### 4.2 WAM：把“视频计算成本”单独列账
+
+视频—动作联合训练可以抽象为
+
+$$
+\mathcal L_{\mathrm{joint}}=\mathcal L_{\mathrm{video}}+\lambda_a\mathcal L_{\mathrm{action}},
+$$
+
+但这只是**便于计算分析的概念式**，并不代表所有 WAM 都采用独立相加的训练损失；例如 DreamZero 使用带权重的联合 Flow Matching 速度场目标。[11] 对这种模型应单独测量：视频 VAE、时空 DiT、动作头、序列长度以及梯度回传。可优先缓存**冻结且输入预处理稳定**的视频特征，再考虑减少预测帧数或改变参数更新范围。
+
+**精密操作限制。** 在旋拧、插入与灵巧手接触任务中，视频降采样与激进的潜在压缩可能隐藏碰撞边缘、接触建立和滑移。必须同时观察动作预测误差、接触连续性和真实任务成功率，而不是只看 GPU-hours。
 
 <a id="efficient-section-05"></a>
 
-## 5. KV Cache：它缓存了什么、什么时候有效？
+## 5. KV Cache 与 DiT Caching：复用的边界
 
-### 5.1 最基本的思想
+### 5.1 KV Cache 的内存与有效性
 
-每个 Transformer 层都从输入生成 Key 与 Value。如果后续计算需要重复关注**不会变化的前文**，可以保存它们：
-
-$$
-\mathcal{C}^{(\ell)}_{t}=\bigl(K^{(\ell)}_{1:t},V^{(\ell)}_{1:t}\bigr).
-$$
-
-在自回归 LLM 中，新的 Token 可以读取历史 KV，而不必反复计算整个历史前缀。对于标准缓存布局，KV 显存随缓存的 Token 数量近似线性增长：
+对 Transformer 第 $\ell$ 层，可缓存历史前缀的 Key / Value：
 
 $$
-M_{\mathrm{KV}}\approx 2\,n_{\ell}\,B\,L\,h_{\mathrm{kv}}\,d_h\,b,
+\mathcal C_t^{(\ell)}=\bigl(K_{1:t}^{(\ell)},V_{1:t}^{(\ell)}\bigr),\qquad
+M_{\mathrm{KV}}\approx 2n_\ell BLh_{\mathrm{kv}}d_hb.
 $$
 
-其中 $n_{\ell}$ 为层数，$B$ 为 batch size，$L$ 为缓存长度，$h_{\mathrm{kv}}$ 为 KV Head 数，$d_h$ 为每头维度，$b$ 为每个元素字节数。这个量不是模型权重显存。
+其中 $n_\ell$ 为层数、$B$ 为批量、$L$ 为历史长度、$h_{\mathrm{kv}}$ 为 KV Head 数、$d_h$ 为每头维度、$b$ 为每元素字节数。举例：32 层、8 KV Heads、每头 128 维、BF16、batch=1、2048 Token，约占 $256\,\mathrm{MiB}$；这不包括模型权重。[1]
 
-
-### 5.2 Prefill、Decode 与缓存内存
-
-标准自回归解码分成 **Prefill**（先处理已知上下文，得到逐层 KV）与 **Decode**（依次输入新 Token，查询过去的 KV）。假设缓存长度为 $L$，增加新 Token 时通常只需要新算 Query、Key、Value，再将新的 KV 追加到缓存，而不是重新处理全部历史。它降低了重复计算，却增加了常驻显存和逐步读取缓存的带宽需求。
-
-缓存的显存与 *KV Head* 数量有关，不一定等于 Query Head 数量。对于 GQA / MQA，$h_{\mathrm{kv}}<h_{\mathrm q}$，因此可以明显减小缓存。以 32 层、8 个 KV Head、每头 128 维、BF16、batch=1、上下文 2048 Token 为例，上式给出约 $256\,\mathrm{MiB}$ 的 KV Cache；这**不包括**任何模型权重和其他缓存。
-
-KV 能够安全复用的重要条件不是“文字相同”，而是**待缓存 Token 在所有相关层的表示没有依赖于随后变化的 Token**，且模型参数、位置编码和 Mask 等配置保持一致。在标准 Causal Attention 中，历史 Token 不会读取未来 Token，所以它们的 KV 可直接保留。
-
-对前缀 $p$ 和逐步变化的动作后缀 $a^{(k)}$，可以抽象地把可缓存 Attention Mask 写为
+KV 能被**严格复用**的前提是缓存位置的深层表示不依赖后续变化的 Token，且权重、位置编码、Attention Mask 与输入语义保持一致。在条件前缀 $p$、变化的生成后缀 $g$ 的场景下，可以用依赖关系示意：
 
 $$
-M=\begin{bmatrix}M_{pp}&-\infty\\M_{ap}&M_{aa}\end{bmatrix},
-\qquad\text{行表示查询，列表示可读取的键。}
+M=\begin{bmatrix}M_{pp}&-\infty\\M_{gp}&M_{gg}\end{bmatrix}
+\quad\text{（行：Query；列：Key）}.
 $$
 
-左上角允许前缀内部根据设计相互关注，右上角屏蔽**前缀读取动作后缀**；这样前缀的深层表示不依赖动作迭代状态。如果让前缀在每一层都双向读取变化的动作 Token，旧缓存就不再严格有效。这里的矩阵是依赖关系示意，具体实现还需处理位置编码、padding、模态 Mask 与残差路径。
+右上角禁止**前缀读取可变后缀**，使前缀 KV 不受每次生成迭代影响。这个示意矩阵不是任意架构的通用 Mask。
 
-### 5.3 π0 / π0.5 风格 Flow Matching 如何使用？
+### 5.2 π0 / π0.5：固定前缀与可变动作
 
-设 $c=(I,l,s)$ 为当前视觉、语言与机器人状态条件，$a$ 为真实动作块，$\epsilon$ 为高斯噪声。一种常用约定为
-
-$$
-x_{\tau}=(1-\tau)a+\tau\epsilon,\qquad
-v^*(x_{\tau},\tau,c)=\epsilon-a,\quad \tau\in[0,1].
-$$
-
-训练动作专家预测速度场：
+令当前条件为 $c=(I,l,s)$，采用“$\tau=0$ 干净、$\tau=1$ 噪声”的约定：
 
 $$
-\mathcal{L}_{\mathrm{FM}}=\mathbb{E}_{a,\epsilon,\tau,c}
-\left[\bigl\|v_{\theta}(x_{\tau},\tau,c)-(\epsilon-a)\bigr\|^2\right].
+x_\tau=(1-\tau)a+\tau\epsilon,\quad
+v^*(x_\tau,\tau,c)=\epsilon-a,
+\qquad
+\mathcal L_{\mathrm{FM}}=\mathbb E\|v_\theta(x_\tau,\tau,c)-(\epsilon-a)\|^2.
 $$
 
-生成时从 $x_1\sim\mathcal N(0,I)$ 开始，以负时间步沿速度场积分：
+采样时从 $x_1\sim\mathcal N(0,I)$ 反向积分。**当前视觉/语言前缀在一次动作采样的多步积分中通常不变**，因此可先 Prefill，随后每个动作专家积分步骤只更新后缀并读取前缀 KV。传感器图像变化后，部分或全部缓存必须重算；“指令不变”并不保证图文混合前缀可继续原样复用。[1]
 
-$$
-x_{\tau+\Delta\tau}=x_{\tau}+\Delta\tau\,v_{\theta}(x_{\tau},\tau,c),\qquad \Delta\tau<0.
-$$
+### 5.3 WAM：自回归上下文缓存不等于冻结未来视频
 
-每一步**动作状态 $x_{\tau}$ 变化，条件输入 $c$ 却可保持不变**。因此一种高效实现是：
+自回归 WAM 可以缓存已确认的历史上下文，对下一个未来视频/动作块进行联合去噪。DreamZero 在执行一个块后**用真实观测更新作为上下文的历史视频信息**，以限制开环生成误差沿后续块累积。[11] 工程实现必须维护时间戳、Attention Mask 与缓存状态一致性；若新的真实观测改变了旧 KV 所依赖的输入，相关状态需要更新或重算，不能无限期地把预测视频视为真实历史。
 
-1. 对当前图像和语言前缀做一次 Transformer 前向计算，生成前缀 KV Cache。
-2. 每次 Flow Matching 积分，只更新动作相关 Token，并读取已经缓存的前缀 KV。
-3. 积分结束得到 Action Chunk；下一次传感器观测改变后，再判断哪些缓存失效。
-
-OpenPI 的 `pi0.py` 在 `sample_actions()` 中明确先执行前缀预填充，再于各积分步为动作后缀传入 `kv_cache`；默认参数中可见 `num_steps=10`，但**10 并非所有 π0.5 部署都必须采用的固定步数**。[1]
-
-### 5.4 缓存何时失效？三个必须知道的限制
-
-**一是 Cache 不是跨视频帧永久有效。** 新图像改变了视觉 Token；若语言与图像在同一前缀中使用双向 Attention，语言 Token 的深层 KV 也可能受图像影响，所以“指令不变”不意味着完整前缀可无条件复用。[1]
-
-**二是缓存不能消除动作专家计算。** 动作块与时间变量在每轮积分中改变，对应后缀通常仍须重新计算。
-
-**三是推理缓存不能直接套到训练。** 训练时权重、梯度和随机增强等可能改变计算图；跨更新复用旧 KV 可能使梯度错误或条件过时。冻结模型与严格不变的特征允许某些预计算，但需要验证正确性。
+**区别于 DiT Caching：** DreamZero 的 DiT Caching 利用相邻 Flow Matching 步的预测速度方向相似性，在满足阈值条件时复用部分速度计算。论文报告，在其配置下有效 DiT 前向次数由 16 降至约 4；这种近似复用与具有因果依赖保证的 KV Cache 不等价。[11]
 
 <a id="efficient-section-06"></a>
 
-## 6. Flow Matching 推理：除了 KV Cache，还能怎么加速？
+## 6. Flow Matching 与 WAM 少步推理
 
-将一次生成动作块的耗时粗略拆为
+### 6.1 先辨认两种不同的推理开销
+
+对以动作专家为主的 VLA，粗略分解为
 
 $$
-T_{\mathrm{chunk}}\approx T_{\mathrm{encode}}+T_{\mathrm{prefill}}+N T_{\mathrm{denoise}}+T_{\mathrm{overhead}}.
+T_{\mathrm{VLA}}\approx T_{\mathrm{encode}}+T_{\mathrm{prefill}}+N_aT_{\mathrm{expert}}+T_{\mathrm{overhead}}.
 $$
 
-在动作专家耗时占主导且单步成本近似不变时，降低积分步数 $N$ 通常有效，但实际效果还受 GPU 启动开销、编译、缓存、batch size 和其他并行部分影响。
+对视频—动作联合 DiT WAM，更接近
 
-| 优化方向 | 为什么有效 | 必须防范什么 |
+$$
+T_{\mathrm{WAM}}\approx T_{\mathrm{encode}}+T_{\mathrm{history}}+N_{\mathrm{eff}}T_{\mathrm{DiT}}(L_{\mathrm{video}}+L_{\mathrm{action}})+T_{\mathrm{overhead}}.
+$$
+
+两式均为**诊断用近似**，不预设各阶段严格串行。减少采样步数、缩短视频上下文、加速单步 DiT、合并 CPU—GPU 调度都可能有效。不能认为减少 $N$ 就按 $N$ 的比例降低端到端延迟。
+
+### 6.2 DreamZero：系统、实现、模型三级优化
+
+DreamZero 使用 14B 参数的预训练视频扩散主干，对未来视频与动作进行联合生成。论文对一项朴素推理实现报告约 **5.7 秒/动作块**，通过 CFG 两卡并行、DiT Caching、`torch.compile` / CUDA Graphs、内核与调度优化、量化以及 DreamZero-Flash，最终在其 GB200 配置下报告 **约 150 ms/动作块、累计 38× 加速、约 7 Hz 闭环动作更新**。[11,12]
+
+| 优化层级 | 核心思想 | DreamZero 论文的定位 |
 |:--|:--|:--|
-| 减少积分/去噪步数 | 减少动作专家前向次数 | 轨迹质量、接触细节、成功率可能下降 |
-| 更好的数值求解器 | 用较少的步取得相近近似精度 | 算法开销与训练分布是否匹配 |
-| 蒸馏 / 少步生成策略 | 将多步策略压缩为少步策略 | 需要额外训练，可能损失多模态动作覆盖 |
-| 缓存稳定条件特征 | 避免重复 VLM/前缀计算 | 避免缓存过时，正确处理 Attention Mask |
-| 编译、融合与推理引擎 | 降低 Kernel 启动及数据搬运 | 动态尺寸、设备后端与数值一致性问题 |
-| 优化摄像头与通信链路 | 降低模型之外的端到端时延 | 需要真实流水线时延分解 |
+| 系统：CFG 并行 | 将条件/无条件分支分配给多卡 | 减少每次去噪的墙钟时间 |
+| 系统：DiT Caching | 近似复用相邻去噪步的速度 | 降低有效 DiT 调用次数 |
+| 实现：编译/CUDA Graphs | 减少 Python 与 Kernel 启动开销 | 降低 CPU 调度等待 |
+| 实现：混合精度/量化 | 降低显存带宽与算力需求 | 需验证数值和动作质量 |
+| 模型：DreamZero-Flash | 调整联合视频—动作的训练噪声分布 | 使少步动作生成更加可靠 |
 
-**对精密装配和灵巧手任务，不应只以毫秒数决定积分步数。** 接触建立、滑移、松脱与物体姿态变化，可能对少量动作误差更敏感。有效的速度优化必须保持闭环任务表现。
+**统计口径。** 38× 是论文 Table 1 在指定硬件和优化链路下的累计速度比，不是 DreamZero-Flash 单独带来的 38×；论文 Table 3 的 **2.33×** 则是特定任务中 350 ms 与 150 ms 的比较，二者不能混用。
+
+### 6.3 DreamZero-Flash：为什么不能直接把四步砍成一步？
+
+视频与动作使用同一个去噪时间 $t$ 时，模型主要见到“两种模态噪声水平相近”的训练分布。但单步推理可能需要在**预测视频仍较嘈杂**的条件下输出**接近干净的动作**，形成训练—推理不匹配。
+
+DreamZero-Flash 在训练后期采用解耦时间采样，论文示例为
+
+$$
+t_{\mathrm{video}}=1-\eta,\quad \eta\sim\operatorname{Beta}(7,1),\qquad
+t_{\mathrm{action}}\sim\mathcal U(0,1),\qquad
+\mathbb E[t_{\mathrm{video}}]=0.125.
+$$
+
+**注意时间约定：这里 DreamZero 的 $t=0$ 对应高噪声，恰与第 5.2 节展示的 $\pi0$ 记号约定相反。** 因此，视频 $t$ 偏向 0 是让模型反复学习“视频仍含较强噪声时怎样预测动作”，而不是更快地生成高质量视频。这不是把视频分支简单关掉；世界预测仍为联合建模提供监督。[11]
+
+| 方法（论文 Table 3） | 去噪步数 | Table bussing 任务进度 | 每块推理时间 |
+|:--|--:|--:|--:|
+| DreamZero | 4 | $83\%\pm6.1\%$ | 350 ms |
+| DreamZero（直接改为一步） | 1 | $52\%\pm10.2\%$ | 150 ms |
+| DreamZero-Flash | 1 | $74\%\pm10.1\%$ | 150 ms |
+
+这些是**特定桌面清理任务的 Task Progress（均值 ± 标准误）**，不是跨任务成功率；150 ms 不是任意 GPU、任意分辨率下都可达到的普适推理时间。结果揭示：**改变训练噪声分布，可能比直接减少求解器步数更有效地改善速度—动作质量折中。**
 
 <a id="efficient-section-07"></a>
 
-## 7. 实时机器人：为什么仅加速网络还不够？
+## 7. 实时机器人：异步推理与闭环执行
 
-设低层控制频率为 $f_c$，每个动作块包含 $H$ 个控制动作，则名义动作覆盖时间为
+### 7.1 高频控制与动作块覆盖时间
 
-$$
-T_H=\frac{H}{f_c}.
-$$
-
-这里的 $f_c$ 是动作执行/低层控制频率，**不等于 VLA Transformer 的推理频率**。
-
-### 7.1 同步推理、朴素异步与 RTC
-
-- **同步执行**：完成当前 Action Chunk 后才计算下一块；逻辑简单，但每个块之间可能停顿。
-- **朴素异步**：旧动作块执行时预测新块；消除了等待，但直接切换可能产生位置、速度或接触策略不连续。
-- **RTC（Real-Time Chunking）**：保持异步推理，同时把已经确定要执行的动作作为新块的条件，通过冻结/修复（inpainting）生成剩余动作，从而提高动作块之间的一致性。[2–3]
-
-可以用下面的约束直观理解 RTC：
+设低层控制频率为 $f_c$，一个动作块含 $H$ 个动作，则名义覆盖时间为
 
 $$
-\widetilde a_{0:k-1}=a^{\mathrm{committed}}_{0:k-1},
-\qquad
-\widetilde a_{k:H-1}\sim p_{\theta}\bigl(\cdot\mid o_t,\,a^{\mathrm{committed}}_{0:k-1}\bigr).
+T_H=\frac H{f_c}.
 $$
 
-它表达“已承诺动作不再随意改变，新动作要与它们相容”；**这是概念式，不是 RTC 论文完整的积分更新公式**。RTC 还可对一部分重叠动作做软约束，以兼顾一致性和对新观测的响应。[3]
+例如 DreamZero 的一项双臂设置为 48 个动作、30 Hz，因此单块约覆盖 **1.6 秒**；但动作块长度 **不等于** 模型重新规划的间隔，也不等于闭环刷新率。[11]
 
-2025 年后续工作还研究了**在训练时直接进行动作前缀条件化**，使策略推理时不必再承受同样的 inpainting 代价。应区分原始的 inference-time RTC 与这种 training-time 方案。[8]
-
-### 7.2 不能只看平均延迟
-
-若发起新推理时，当前动作缓冲区还可执行 $R$ 个动作，则不发生缓冲区耗尽的保守条件为
+**同步生成**容易产生块间等待；**朴素异步**可重叠执行和推理，却可能在切换时不连续；**RTC（Real-Time Chunking）** 使用已经承诺执行的动作作为条件，通过约束/修复新块减少衔接突变。概念式为
 
 $$
-T^{\mathrm{p99}}_{\mathrm{inference}}+T_{\mathrm{network}}+T_{\mathrm{jitter}}+T_{\mathrm{margin}} < \frac{R}{f_c}.
+\widetilde a_{0:k-1}=a^{\mathrm{committed}}_{0:k-1},\qquad
+\widetilde a_{k:H-1}\sim p_\theta(\cdot\mid o_t,a^{\mathrm{committed}}_{0:k-1}).
 $$
 
-这是**调度安全裕度的工程判据**，不是保证机器人稳定或任务成功的充分条件。即便计算按时完成，输出仍可能基于过时的视觉观测；同时，推理抖动、丢包、相机队列积压也会带来风险。
+这是动作衔接约束的示意，不是 RTC 完整算法。RTC 不保证原始 Transformer 推理更快；训练时动作前缀条件化是不同于推理时 inpainting 的后续技术。[2,3,8]
 
-因此实际部署应同时关注：观测时间戳、p50/p95/p99 延迟、Action Chunk 覆盖时间、切换时的位置/速度连续性、低层跟踪误差，以及推理超时后的安全回退。对灵巧手接触任务，快速闭环控制与碰撞/力矩安全约束应由具备相应反馈的低层控制链路负责；不能把 RTC 视为安全控制器的替代。
+### 7.2 WAM：真实观测重置与异步生成
+
+WAM 还必须维护“**预测未来**”与“**实际发生**”的区别：执行当前 Action Chunk 的同时预测下一块；收到带时间戳的真实相机/状态反馈后，更新历史上下文，使下一次生成不再依赖已被证伪的视觉预测。该机制与 RTC 可以互补，但**DreamZero 的异步执行不应自动等同于已实现 RTC**。[11]
+
+对动作缓冲区剩余 $R$ 个控制动作的调度，实用的保守裕度条件为
+
+$$
+T^{\mathrm{p99}}_{\mathrm{infer}}+T_{\mathrm{network}}+T_{\mathrm{jitter}}+T_{\mathrm{margin}}<\frac R{f_c}.
+$$
+
+它仅说明在该时延预算下较不容易“饿死”动作缓冲区，**不能证明闭环稳定或接触安全**。还需监测观测年龄（Age of Information）、p95/p99、块切换的速度/加速度连续性、控制跟踪误差及通信超时后的安全回退。
+
+### 7.3 云端 WAM 的特殊问题
+
+远程 WAM 可以集中部署大型 GPU，但网络时延、图像上行带宽、模型队列和动作下行同时进入控制闭环。设计时应明确：是否发送压缩图像还是潜在特征；传感器和机器人是否共享时间基准；过时回复是否丢弃；无法按期收到新块时是否减速、保持或安全停止。**服务端“推理很快”不能替代端到端时延分布。**
+
+对于旋拧、插入和灵巧手接触，应让本地伺服与安全控制处理高频反馈、碰撞和力矩限制；网络模型负责相对低频的任务级动作更新，而不应独自承担高速力控稳定性。
 
 <a id="efficient-section-08"></a>
 
-## 8. π0.5、GR00T 与 WAM 的优化差别
+## 8. π0.5、GR00T、DreamZero 与 Dream-1 对比
 
-| 模型路线 | Transformer 主要任务 | 典型优化重点 |
-|:--|:--|:--|
-| π0/π0.5 风格 VLA | VLM 前缀与 Flow Matching 动作专家 | 前缀 KV Cache、积分步数、视觉 Token、RTC |
-| GR00T N1 风格 VLA | 视觉语言理解与 Diffusion Transformer 动作生成 | 视觉前处理、Attention 后端、DiT 推理、动作块调度 |
-| 自回归世界模型 | 逐步预测未来状态或视觉 Token | 自回归 KV Cache、时间上下文、视频 Token 压缩 |
-| 扩散式 / 联合视频动作 WAM | 多步预测未来世界与动作 | 反复去噪成本、条件复用、时序一致性与动作延迟 |
+### 8.1 不同模型族的瓶颈不同
 
-π0.5 的核心贡献是开放场景中的 VLA 泛化能力；GR00T N1 采用 VLM 与 Diffusion Transformer 联合建模的双系统架构。[7,9] WAM 不等于某一种固定网络：若未来世界是自回归生成，标准自回归 KV Cache 往往适用；若由扩散或 Flow Matching 反复更新整个预测块，更需要分析**哪些 Token 在每轮迭代中真正保持不变**。
+| 模型/架构路线 | 主要生成内容 | 优先优化项 | 核心部署限制 |
+|:--|:--|:--|:--|
+| $\pi0/\pi0.5$ 风格 VLA | Flow Matching 动作块 | 条件前缀 KV、积分步数、RTC | 视觉编码及块切换延迟 |
+| GR00T N1 风格 VLA | VLM 条件 + DiT 动作块 | SDPA、DiT 调度、视觉前处理 | 动作块延迟、显存和接口 |
+| 自回归世界模型 | 未来状态/视觉 Token | 因果 KV、历史长度、Token 压缩 | 长历史缓存与误差累积 |
+| DreamZero 类联合 WAM | 未来视频潜变量 + 动作 | 视频 Token、DiT Caching、Flash、异步 | 视频生成开销与系统复杂度 |
+
+不能简单得出“所有 WAM 都比 VLA 贵”的结论：WAM 可以在潜在状态、低分辨率视频或不同模型规模上运行；相应比较应固定任务、动作频率、硬件与质量目标。[7,9,11]
+
+### 8.2 Dream-1：云端服务的经济性不等于本地 GPU 成本
+
+Dream Labs 于 2026 年 10 月发布 Dream-1 的官方介绍，称其通过 API 控制未见过的新机器人；文章公开的**服务标价**为 Dream-1 **3 美元/小时**、Dream-1-flash **2 美元/小时**，并称每次调用返回 **1.6 秒的动作序列**。[13]
+
+这些数字只说明**官方公布的服务计费口径及返回动作时域**，不能用于推断其底层 GPU 数量、训练预算、单次请求真实网络延迟或本地部署能否达到同样的成本。特别是 $1.6$ 秒的动作时域，并不意味着服务器需要 $1.6$ 秒才产生动作。对云端服务，应单独测量 API 的 p99 端到端延迟、请求拥塞、图像上行和机器人执行接口。
+
+### 8.3 比较 VLA 与 WAM 时必须同时报告什么？
+
+至少报告：GPU 类型与数量、精度/量化方式、相机数与分辨率、历史/预测时域、去噪步数、Action Chunk 长度、模型实际推理延迟（最好 p50/p95/p99）、网络延迟、动作输出频率、低层执行频率，以及同一任务条件下的成功率/任务进度。**单独的 Tokens/s、模型参数量或每小时服务价格，都不足以判定哪种路线适合精密操作。**
 
 <a id="efficient-section-09"></a>
 
 ## 9. 实际技术选择：先诊断，再优化
 
-| 已经定位的瓶颈 | 优先采取的思路 | 不应先做的事 |
+| 已测得瓶颈 | 优先方案 | 不建议先做 |
 |:--|:--|:--|
-| 训练显存不足 | BF16、缩短序列、Checkpointing、PEFT/FSDP | 先编写自定义 CUDA Kernel |
-| GPU 利用率很低 | 检查数据加载、解码、CPU/网络、同步点 | 盲目增大模型或 GPU 数量 |
-| Attention 成本很高 | SDPA/FlashAttention、Token 压缩、Mask 检查 | 假设所有 Mask 都能走最快 Kernel |
-| Flow Matching 生成过慢 | Prefix KV Cache、优化积分步数、少步策略 | 一味降低步数而不看接触表现 |
-| 推理速度尚可但动作卡顿 | 异步执行、RTC/训练时动作条件化、改进块衔接 | 只继续优化 Transformer |
-| 远程推理时延高 | 就近部署、压缩数据、异步流水线、可靠缓冲 | 仅统计服务器 GPU forward 时间 |
-| 精密操作中失稳 | 提高观测新鲜度、加强低层闭环与安全约束 | 依靠 Action Chunk 本身保证接触稳定 |
+| 训练 OOM | BF16、缩短视频上下文、Checkpointing、PEFT/FSDP | 从自写 CUDA Kernel 开始 |
+| GPU 忙碌度低 | 视频解码、VAE 缓存、数据预取、同步点排查 | 未定位瓶颈就加 GPU |
+| Attention 占比高 | SDPA/FlashAttention、Mask 核验、Token 压缩 | 默认所有 Mask 都有最快内核 |
+| VLA 动作生成慢 | Prefix KV、积分步数、蒸馏、编译 | 只降步数，不测接触成功率 |
+| WAM 视频—动作 DiT 慢 | 预测 Token、DiT Caching、少步训练、量化 | 混淆 KV 与 DiT 缓存 |
+| 模型够快但动作断续 | 异步执行、RTC、时序同步、缓冲余量 | 继续只优化网络层 |
+| 云端推理偶发超时 | 端到端 p99、就近推理、丢弃过时回复、本地回退 | 只看服务端平均 latency |
+| 精密接触不稳定 | 提高观测频率、低层阻抗/力控、安全约束 | 把 WAM/RTC 视作安全控制器 |
 
-建议依次处理三层问题：**先保证闭环连续性与安全，再减少端到端推理延迟，最后在明确算子瓶颈时深入优化 Attention 或 Kernel。** 这通常比从 KV Cache 或 CUDA 优化直接入手更符合机器人系统的价值排序。
+**工程优先级：** 先确保连续执行与基本安全，继而测量观测到动作的全链路延迟，最后依据剖析结果决定优化 Attention、联合 DiT、动作采样或通信。WAM 的潜在优势是引入世界演化先验；它并不免除对时序、延迟和接触反馈的系统工程。
 
 <a id="efficient-section-10"></a>
 
-## 10. 五个容易混淆的问题
+## 10. 六个容易混淆的问题
 
-**Q1：KV Cache 只属于大语言模型吗？** 否。只要存在跨步骤可复用的 Key/Value 上下文就可能受益；Flow Matching 的固定前缀就是例子。
+**Q1：FlashAttention、DreamZero-Flash 是同一种“Flash”吗？** 不是。前者是在给定 Attention 运算中减少 IO；后者改变视频—动作联合生成的训练噪声分布，使少步推理更可靠。
 
-**Q2：FlashAttention 和 KV Cache 是同一种优化吗？** 否。FlashAttention 使一次 Attention 更高效；KV Cache 避免对稳定上下文重复计算。
+**Q2：KV Cache 和 DiT Caching 一样吗？** 不一样。前者在依赖关系允许时严格保留稳定的 K/V；后者通常近似复用相邻采样步骤的模型预测或特征。
 
-**Q3：KV Cache 能让相机图像一直不重新编码吗？** 不能。相机更新后条件发生改变，必须分析缓存的依赖关系以及是否允许近似复用。
+**Q3：WAM 是否必须把未来视频解码为 RGB 才能控制？** 不一定。联合生成时可以在潜在空间计算；是否显式渲染视频取决于结构和任务，但不渲染像素也未必消除生成视频潜变量的计算。
 
-**Q4：RTC 会让 Transformer 推理本身变快吗？** 不一定。原始 RTC 核心在于延迟容忍与动作连续执行；在某些实现中，inpainting 甚至增加计算成本。训练时动作条件化可以降低这部分额外开销。[8]
+**Q4：DreamZero 的 38× 是否就是一步生成带来的速度？** 不是。38× 是多级优化累计效果；Table 3 的四步到一步对比约为 2.33×，且伴随特定任务进度变化。
 
-**Q5：灵巧手、双臂和 WAM 研究都必须精通 CUDA 吗？** 不必。先理解 Attention、KV Cache、训练显存、时延剖析与异步控制；只有在证明确实受 Kernel 限制时再深入 Triton/CUDA。
+**Q5：150 ms/Chunk 是否等于机器人 30 Hz 闭环？** 不是。模型产生新动作块的频率和低层动作执行频率不同；时间戳、观测更新和异步调度决定真正的反应能力。
+
+**Q6：研究 VLA / WAM 必须先掌握 CUDA 与 KV Cache 实现吗？** 不必。应先理解工作负载、缓存有效性、训练显存、实时预算与本地安全控制；只有剖析证明确有算子瓶颈时，才深入 Triton/CUDA。
 
 <a id="efficient-section-11"></a>
 
 ## 11. 结论
 
-具身基础模型的高效性不是单一“每秒 Token 数”问题，而是**训练成本、动作生成延迟、观测新鲜度、动作连续性和闭环任务成功率**共同决定的系统问题。
+具身基础模型的“高效”不是单一推理毫秒数，而是**训练算力、模型延迟、观测新鲜度、动作连续性、真实任务成功率与部署成本**的共同约束。VLA 常聚焦视觉条件复用和动作专家的少步生成；WAM 还需管理视频 Token、联合 DiT 计算与历史世界状态的更新。
 
-**一句话记忆：FlashAttention 优化一次 Attention，KV Cache 减少重复计算，Flow Matching 少步推理减少动作专家调用，RTC 让较慢的策略与持续运动的机器人协同；高频低层控制负责跟踪与安全。**
+**一句话记忆：** FlashAttention 优化**一次** Attention；KV Cache 避免计算不变前缀；DiT Caching 近似复用**相邻去噪步**；DreamZero-Flash 用训练噪声调度支持**少步动作生成**；RTC 与异步执行让较慢的模型持续驱动机器人；高频反馈与安全仍由底层控制负责。
 
 <a id="efficient-section-12"></a>
 
 ## 参考资料
 
-1. Physical Intelligence, [OpenPI `pi0.py`：前缀 KV Cache 与 Flow Matching 推理实现](https://github.com/Physical-Intelligence/openpi/blob/215abfb217dbac7d5f1273282331b9b1866c0479/src/openpi/models/pi0.py)。
-2. Black, Galliker & Levine, [Real-Time Execution of Action Chunking Flow Policies](https://arxiv.org/abs/2506.07339), NeurIPS 2025。
-3. Physical Intelligence, [Real-Time Action Chunking with Large Models](https://www.pi.website/research/real_time_chunking), 2025。
-4. Dao et al., [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135), 2022。
-5. PyTorch, [Scaled Dot Product Attention 官方文档](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html)。
-6. PyTorch, [Maximizing Training Throughput Using PyTorch FSDP](https://pytorch.org/blog/maximizing-training/), 2024。
-7. Physical Intelligence et al., [π0.5: a Vision-Language-Action Model with Open-World Generalization](https://arxiv.org/abs/2504.16054), 2025。
-8. Black et al., [Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964), 2025。
-9. NVIDIA et al., [GR00T N1: An Open Foundation Model for Generalist Humanoid Robots](https://arxiv.org/abs/2503.14734), 2025。
-
-10. Dao, [FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691), 2023。
+1. Physical Intelligence, [OpenPI `pi0.py`: Prefix KV caching and flow-matching sampling](https://github.com/Physical-Intelligence/openpi/blob/215abfb217dbac7d5f1273282331b9b1866c0479/src/openpi/models/pi0.py).
+2. Black, Galliker & Levine, [Real-Time Execution of Action Chunking Flow Policies](https://arxiv.org/abs/2506.07339), NeurIPS 2025.
+3. Physical Intelligence, [Real-Time Action Chunking with Large Models](https://www.pi.website/research/real_time_chunking), 2025.
+4. Dao et al., [FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness](https://arxiv.org/abs/2205.14135), 2022.
+5. PyTorch, [Scaled Dot Product Attention 官方文档](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html).
+6. PyTorch, [Maximizing Training Throughput Using PyTorch FSDP](https://pytorch.org/blog/maximizing-training/), 2024.
+7. Physical Intelligence et al., [$\pi0.5$: a Vision-Language-Action Model with Open-World Generalization](https://arxiv.org/abs/2504.16054), 2025.
+8. Black et al., [Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964), 2025.
+9. NVIDIA et al., [GR00T N1: An Open Foundation Model for Generalist Humanoid Robots](https://arxiv.org/abs/2503.14734), 2025.
+10. Dao, [FlashAttention-2: Faster Attention with Better Parallelism and Work Partitioning](https://arxiv.org/abs/2307.08691), 2023.
+11. Ye et al., [World Action Models are Zero-shot Policies (DreamZero)](https://arxiv.org/abs/2602.15922), 2026；数值来自论文 Table 1、Table 3 与 §§3.1–3.2。
+12. DreamZero authors, [官方项目页](https://dreamzero0.github.io/), 2026.
+13. Dream Labs, [Zero-Shot to New Robots: Introducing Dream-1](https://dreamlabs.ai/research/dream-1/), 2026-10；价格为官方宣传的服务标价。

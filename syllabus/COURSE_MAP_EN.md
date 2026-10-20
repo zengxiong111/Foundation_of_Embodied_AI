@@ -21,7 +21,7 @@ Seventeen topics are organized as tools → calibration and deep learning → ph
 | 1. Tools | Git, ROS 2 | Manage code and understand ROS communication and TF |
 | 2. Physics, perception and neural foundations | Calibration, Deep Learning Basics, vision foundation models, dynamics, Isaac / MuJoCo | Relate calibrated geometry, neural networks, physical models and simulation |
 | 3. Reinforcement learning | Motion RL, PPO, SAC | Design observations, actions, rewards and data collection |
-| 4. Demonstrations and models | Imitation Learning, Flow Matching, Efficient Training & Inference, RL Post-training, GR00T / SONIC, World Action Models | Learn generative and predictive policies and connect efficient inference with hierarchical controllers |
+| 4. Demonstrations and models | Imitation Learning, Flow Matching, GR00T / SONIC, World Action Models, Efficient Training & Inference, Post-training | Learn generative and predictive policies and connect efficient inference with hierarchical controllers |
 | 5. Robot Agent integration | Robot Agent planning, tool use, verification and recovery | Orchestrate perception, policy and control for long-horizon tasks |
 
 <a id="map-section-02"></a>
@@ -50,7 +50,7 @@ flowchart LR
 
 1. Beginners: orientation → essential Git and ROS 2 → calibration → deep learning → dynamics → vision foundation models → simulation.
 2. Motion control: dynamics → simulation → deep learning → PPO / SAC → motion control RL.
-3. VLA: calibration → deep learning → vision foundation models → Imitation Learning → Flow Matching → efficient training and inference → RL Post-training → GR00T / SONIC → World Action Models → Robot Agent.
+3. VLA: calibration → deep learning → vision foundation models → Imitation Learning → Flow Matching → GR00T / SONIC → World Action Models → efficient training and inference → post-training → Robot Agent.
 4. Mathematical deep dives: full PPO, SAC, and Flow Matching derivations are reference material; hands-on learning does not require deriving everything first.
 
 <a id="map-section-04"></a>
@@ -105,21 +105,21 @@ flowchart LR
 
 [Flow Matching](../md/Flow_Matching_Step_by_Step_Derivation_EN.md) — Derive conditional Flow Matching, velocity fields and the training objective. Explain how ODE integration transforms noise into conditional robot action sequences.
 
-### 13. Efficient Training & Inference
-
-[Efficient Training & Inference](../md/Efficient_Training_Real_Time_Inference_EN.md) — Explain Transformer compute and memory, FlashAttention, training optimizations and valid KV-cache reuse. Connect Flow Matching acceleration, action chunks and RTC to end-to-end VLA latency and continuous robot control.
-
-### 14. RL Post-training
-
-[RL Post-training](../md/RL_Post_Training_EN.md) — Study RL refinement of pretrained Diffusion, Flow Matching and VLA policies. Compare trainable interfaces and Actor–Critic loops, then examine RLinf infrastructure, physical feedback and deployment boundaries.
-
-### 15. GR00T & SONIC
+### 13. GR00T & SONIC
 
 [GR00T & SONIC](../md/System1_System0_GR00T_SONIC_EN.md) — Use GR00T and SONIC to explain System 1/System 0 humanoid control. Connect high-level action chunks, motion representations, whole-body policies and low-level execution.
 
-### 16. World Action Models
+### 14. World Action Models
 
 [World Action Models](../md/World_Action_Models_EN.md) — Distinguish world models, VLAs and WAMs, then study DreamZero training and accelerated inference, Dream-1 cross-embodiment deployment, and VLA/WAM memory, compute and latency trade-offs. Connect these methods to contact-rich control, recovery and evaluation.
+
+### 15. Efficient Training & Inference
+
+[Efficient Training & Inference](../md/Efficient_Training_Real_Time_Inference_EN.md) — Connect Transformer and VLA/WAM training costs, FlashAttention and valid caching to DreamZero acceleration, few-step inference, asynchronous robot control, RTC and cloud latency.
+
+### 16. Post-training
+
+[Post-training](../md/Embodied_Post_Training_EN.md) — Compare SFT and RL for pretrained VLA and WAM models. Study six VLA RL routes, WAM-RL with online video SFT and Flow-SDE, then connect actor–critic semantics, RLinf integration and robot deployment limits.
 
 ### 17. Robot Agents / RPent
 
