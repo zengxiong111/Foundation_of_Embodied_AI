@@ -8,7 +8,6 @@
 
 > **Central questions:** How can Claude, Codex, and Gemini 4 Argon participate in robotics without being real-time robot controllers? What are the distinct contributions of RAX and ASPIRE, and how does RPent connect planners, perception, actions, memory, and physical robots? How can the resulting loop be made reusable and independently verifiable?
 
-**Learning outcomes:** Distinguish foundation models, coding agents, agent harnesses, robot agents, VLAs, and low-level controllers; understand how a general model processes observations, selects tools, writes programs, and incorporates execution feedback; explain RAX's Explore–Compile–Evaluate cycle, ASPIRE's trace-guided refinement, RPent's toolkit/memory/Flash/data-flywheel architecture, and the publicly demonstrated robotic applications of Gemini 4 Argon; and understand the responsibility and safety boundaries of a unified system. **No code listings or laboratory exercises are included.**
 
 ## Contents
 

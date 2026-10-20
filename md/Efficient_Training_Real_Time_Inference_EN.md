@@ -12,9 +12,7 @@ lang: en-US
 
 > **Scope.** This lecture connects Transformers, flow matching, vision-language-action models (VLAs), world action models (WAMs), and robot control. It addresses three questions: how to train with less compute, how to generate actions at low latency, and how to keep a physical robot moving continuously while a relatively slow VLA or WAM runs. Full WAM architectures, RL post-training algorithms, code, and hands-on experiments are outside its scope.
 
-**Attribution and evidence.** This chapter follows the academic-notes style of [Foundation of Embodied AI](https://github.com/zengxiong111/Foundation_of_Embodied_AI) ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)). Quantitative claims refer to original papers or official announcements available by October 20, 2026, and are not independent reproductions. A WAM denotes a family that aligns action generation with predictions of how the world evolves, not necessarily a video-diffusion architecture.
 
-**Learning outcomes.** Distinguish FlashAttention, KV caching, and DiT caching; identify video-token and joint video-action generation costs; explain DreamZero-Flash's decoupled training noise; construct an inference budget that includes networking; and select closed-loop execution mechanisms for contact-rich tasks.
 
 ## Contents
 

@@ -8,7 +8,6 @@
 
 > **核心问题：** Claude、Codex、Gemini 4 Argon 为什么能参与机器人操作，却又不等于机器人实时控制器？RAX 和 ASPIRE 各自解决什么问题，RPent 又如何把规划器、感知、动作、记忆和机器人连接起来？怎样实现可验证、可复用的物理闭环？
 
-**学习目标：** 区分基础模型、Coding Agent、Agent Harness、Robot Agent、VLA 与控制器；理解基础模型怎样读取机器人观测、调用工具、生成程序并从反馈中改进；掌握 RAX 的 Explore–Compile–Evaluate、ASPIRE 的 Trace 调试与技能库，理解 RPent 的 Toolkit、Memory、Flash Mode 与数据飞轮，以及 Gemini 4 Argon 的公开机器人应用；能理解统一系统中各回路的职责与安全边界。**本讲义不含代码或实验章节。**
 
 ## 目录
 

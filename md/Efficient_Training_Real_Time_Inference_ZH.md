@@ -12,9 +12,7 @@ lang: zh-CN
 
 > **本章定位。** 本讲义衔接 Transformer、Flow Matching、VLA、WAM 与机器人控制课程，集中回答三个问题：基础模型如何更省算力地训练，生成模型如何低延迟地推理，以及较慢的 VLA / WAM 如何持续驱动真实机器人。不重复 WAM 架构综述或后训练算法的完整推导；不包含代码和实验操作。
 
-**证据边界。** 本文沿用 [Foundation of Embodied AI](https://github.com/zengxiong111/Foundation_of_Embodied_AI) 的学术讲义风格（[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)）。截至 2026-10-20 的模型数值均注明来源和统计口径；不宣称进行了独立复现。本文将 WAM 视为能够以未来世界预测辅助动作生成的模型族，不限定其一定采用视频扩散。
 
-**学习目标。** 区分 FlashAttention、KV Cache 与 DiT Caching；理解视频 Token 和视频—动作联合生成的成本；解释 DreamZero-Flash 的解耦噪声训练；建立包含云端通信的时延预算；选择适合精密操作的闭环执行方案。
 
 ## 目录
 

@@ -16,7 +16,6 @@ updated: 2026-10-18
 | 文档核验日期 | 2026-10-18 |
 | 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-**核验边界：** 文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。 固定源码引用见[资料清单](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/materials.json)。原创教材采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)，第三方引用、图片及代码遵循其原有许可；注明来源不等于拥有再许可权。
 <!-- course-meta:end -->
 
 <!-- course-toc:start -->
@@ -44,7 +43,6 @@ updated: 2026-10-18
 
 ## 第一部分：30 分钟必学
 
-**学习目标：** 30 分钟内理解 Git 的工作方式，并能对已有的科研仓库完成一次安全的分支修改、提交和推送。只需按本部分顺序学习；第二部分随用随查。
 
 | 时间 | 内容 |
 |---|---|

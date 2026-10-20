@@ -12,7 +12,6 @@ lang: en-US
 | Documentation review | 2026-10-19 |
 | License | CC BY 4.0 · Xiong Zeng and contributors |
 
-> **Verification scope：** This no-code guide explains engineering decisions and workflows. It does not claim end-to-end execution on the stated software combinations or robots. Verify compatibility and APIs against official releases.
 
 > **Boundary with the companion course：** This guide asks how to build a reliable, efficient, reproducible simulation/training platform; the companion motion-control RL guide asks how to learn tracking, dynamic skills, and recovery.
 

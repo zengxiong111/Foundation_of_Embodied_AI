@@ -16,7 +16,6 @@ colorlinks: true
 
 **Scope.** This chapter follows the course material on imitation learning, flow matching, and GR00T/SONIC. It explains how predicted futures become executable robot actions. The original treatment of training data, inference options, efficiency, and deployment constraints is retained and augmented with two substantive case studies: **DreamZero, an open research method**, and **Dream-1, a cross-embodiment deployment system**, followed by a **systems-level VLA/WAM comparison of memory, compute, latency, and deployment costs**. We do not re-derive the flow-matching continuity equation, PPO, or general Transformer fundamentals; there are no programming exercises.
 
-**Evidence discipline.** DreamZero has a public research paper and released training/inference implementations. As of October 20, 2026, Dream-1 is primarily documented through an official technical announcement, API materials, demonstrations, and a partially specified evaluation. Throughout this chapter we distinguish published methods, officially disclosed product behavior, and schematic teaching abstractions. **Dream-1 must not be assumed to use DreamZero's disclosed backbone, exact loss, or hardware setup.**
 
 ## Contents
 

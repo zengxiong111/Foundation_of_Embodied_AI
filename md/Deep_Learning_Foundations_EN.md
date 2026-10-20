@@ -16,7 +16,6 @@ lang: en
 
 **Central questions.** How does a robot learn an action from demonstrations? How does an objective change network parameters through backpropagation? What are the distinct roles of an MLP and a Transformer? How do vision, language, and proprioception produce commands that a robot can execute?
 
-**Learning outcomes.** Derive a parameter update from labeled examples, a loss, and the chain rule; explain MLPs, Attention, positional information, Cross-Attention, and multimodal tokens; distinguish architecture, training objective, optimizer, and reinforcement learning algorithm; and connect behavior cloning, ACT, Flow Matching, PPO, SAC, and vision-language-action (VLA) models. **There are no programming exercises or laboratory sections.** Complete derivations of the downstream methods remain in their dedicated courses.
 
 ## Contents
 

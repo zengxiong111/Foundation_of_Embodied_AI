@@ -13,7 +13,6 @@ date: "2026-10-20"
 
 > **课程定位**：讨论如何在**已有预训练模型**上进行监督微调（SFT）和强化学习后训练（RL post-training）；分别讨论视觉–语言–动作模型（VLA）与世界动作模型（WAM）。VLA 的 RL 部分沿用原课程的 DPPO、OGPO、Q-VGM、DSRL、Residual RL、RL Token、RLinf 等内容，并补齐 SFT；WAM 部分以 Qian et al. 的 WAM-RL 为主线。只引入必要的数学公式，不涉及从零训练低层控制器或实验代码。
 >
-> **证据边界**：论文中的成功率属于指定模型、任务和评估设置；不能由一篇论文推断“WAM 普遍优于 VLA”，也不能把框架分别支持的组件视为可无修改组合。以下对尚未在原论文验证的扩展明确标为研究方向。本文不声称独立复现或真机验证。
 >
 > **署名**：改编自 Xiong Zeng and contributors 的 [Foundation of Embodied AI](https://github.com/zengxiong111/Foundation_of_Embodied_AI) 教学材料（[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)）；WAM-RL 的具体方法和数据引自 [Qian et al., 2026](https://arxiv.org/abs/2606.17906)。
 

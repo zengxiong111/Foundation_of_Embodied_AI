@@ -4,7 +4,6 @@
 
 *Foundation of Embodied AI · Expanded course notes · October 2026*
 
-> **Learning outcomes:** identify what each vision-model family actually produces; understand the core ideas behind SAM 2, SAM 3, FoundationPose, FoundationStereo, and SAM 3D; and select the smallest useful combination for a robot task, given the sensors and object priors available.
 >
 > **Scope:** conceptual mechanisms, inputs and outputs, usage workflows, model combinations, and limitations. Camera-calibration derivations, state-estimation filters, network training, code, and lab exercises are intentionally out of scope.
 

@@ -13,7 +13,6 @@ date: "2026-10-20"
 
 > **Scope.** This course starts from **pretrained models** and distinguishes supervised fine-tuning (SFT) from reinforcement learning (RL) post-training. It examines VLA and WAM architectures separately. The VLA RL material retains the six methods and RLinf infrastructure discussion from the original tutorial; the WAM part follows Qian et al., *WAM-RL* (2026). Low-level controller training from scratch and executable labs are outside the scope.
 >
-> **Evidence boundary.** Benchmark outcomes apply to the specified model and evaluation settings. Neither a WAM-RL result nor support for different components in one repository implies universal WAM superiority or plug-and-play compatibility. Extension proposals are distinguished from demonstrated capabilities; no independent reproduction or physical-robot validation is claimed.
 >
 > **Attribution.** Adapted from Xiong Zeng and contributors, [Foundation of Embodied AI](https://github.com/zengxiong111/Foundation_of_Embodied_AI) ([CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)); WAM-RL methods and metrics are attributed to [Qian et al.](https://arxiv.org/abs/2606.17906).
 
