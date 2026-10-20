@@ -93,7 +93,7 @@ L_{\mathrm{video}}\propto F\,H'W',\qquad
 L_{\mathrm{total}}=L_{\mathrm{context}}+L_{\mathrm{future}}+L_{\mathrm{action}}.
 $$
 
-Even when future RGB frames are never displayed, future-video latent tokens can still participate in every iteration of the joint video-action DiT. Increasing frame count, camera count, or resolution may raise training activation memory, attention compute, and inference time. Excessive compression, however, can remove fingertip contacts, small clearances, or rapid slip. **Minimizing token count is not equivalent to optimizing robotic competence.**
+Even when future RGB frames are never displayed, future-video latent tokens can still participate in every iteration of the joint video-action DiT. Increasing frame count, camera count, or resolution may raise training activation memory, attention compute, and inference time. Excessive compression, however, can remove contacts, small clearances, or rapid slip. **Minimizing token count is not equivalent to optimizing robotic competence.**
 
 ### 2.3 Training Memory and Input Pipelines
 
@@ -170,7 +170,7 @@ $$
 
 This is **only a conceptual cost decomposition**; not every WAM literally sums two independently defined losses. DreamZero, for example, trains a weighted joint flow-matching velocity field.[11] Such models should profile video VAE encoding, spatiotemporal DiT layers, action heads, sequence length, and gradient flow separately. Cache video features **only if the corresponding encoder is frozen and preprocessing semantics stay fixed**. Next consider prediction horizon, latent resolution, and trainable-module selection.
 
-**Contact-rich tasks impose a constraint.** In insertion, tool rotation, and dexterous manipulation, aggressive video subsampling or latent compression may hide collision edges, initial contact, and slip. GPU-hours alone are not sufficient: action error, contact continuity, and real-task success still matter.
+**Contact-rich tasks impose a constraint.** In insertion, tool rotation, aggressive video subsampling or latent compression may hide collision edges, initial contact, and slip. GPU-hours alone are not sufficient: action error, contact continuity, and real-task success still matter.
 
 <a id="efficient-section-05"></a>
 
@@ -310,7 +310,7 @@ This is a **buffer-deadline engineering criterion**, not a proof of control stab
 
 A remote WAM can centralize costly accelerators, but video upload, model queues, downlink actions, and network jitter all enter the effective feedback loop. The system should specify whether compressed frames or latent features are transmitted, how robot and server timestamps are reconciled, when stale replies are discarded, and whether missed deadlines trigger slowing, holding, or a controlled safe stop. **Server-side model throughput is not an adequate substitute for end-to-end latency distributions.**
 
-For insertion, tool rotation, and dexterous contact, high-rate feedback, collision handling, and torque/impedance constraints should remain in suitable local control and safety layers. A cloud WAM should not be expected to serve as a high-bandwidth force-stability controller by itself.
+For insertion, tool rotation, high-rate feedback, collision handling, and torque/impedance constraints should remain in suitable local control and safety layers. A cloud WAM should not be expected to serve as a high-bandwidth force-stability controller by itself.
 
 <a id="efficient-section-08"></a>
 

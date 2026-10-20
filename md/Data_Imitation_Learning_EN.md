@@ -93,7 +93,7 @@ There are several solutions: give the policy intent information or longer histor
 
 ### 1.4 Covariate shift and compounding errors
 
-BC is trained with states drawn from $d^{\pi_E}$ but deployed on $d^{\pi_\theta}$. A small reaching error may change fingertip contact, leading to slip, a different image, and additional errors. The policy can therefore fail closed-loop despite low held-out action regression error.
+BC is trained with states drawn from $d^{\pi_E}$ but deployed on $d^{\pi_\theta}$. A small reaching error may change contact, leading to slip, a different image, and additional errors. The policy can therefore fail closed-loop despite low held-out action regression error.
 
 A classic finite-horizon thought experiment assumes a probability $\epsilon$ of a *critical error* at an expert state. Once an early error sends the agent away from the expert trajectory, errors can compound over time. Under worst-case assumptions, accumulated cost can scale as
 

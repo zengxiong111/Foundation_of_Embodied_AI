@@ -29,7 +29,6 @@ colorlinks: true
 - [7. DreamZero versus Dream-1: a precise comparison](#wam-section-07)
 - [8. VLA versus WAM: a systems comparison of capability, compute, and deployment](#wam-section-08)
 - [9. Efficient inference: joining the model clock and robot clock](#wam-section-09)
-- [10. Contact-rich manipulation and recovery](#wam-section-10)
 - [11. Evaluating the contribution of a WAM](#wam-section-11)
 - [12. Boundaries within the course and reading order](#wam-section-12)
 - [13. References and official resources](#wam-section-13)
@@ -119,7 +118,7 @@ Record timestamps, action units, frames, controller mode, proprioception, and th
 | Simulation rollouts | States, contact, commands, reward | Rendering and contact sim-to-real gap |
 | Online robot interactions | Failures, recoveries, distribution shifts | Safety, expense, data governance |
 
-A video-only sample must receive a video or latent-prediction loss, **not fabricated action ground truth**. Loss masks should reflect the modalities actually observed. Retargeted or inverse-dynamics-inferred pseudo-actions must be labeled as such. Joint space, end-effector $SE(3)$ targets, finger positions, and latent actions are different control semantics and require separate metadata.
+A video-only sample must receive a video or latent-prediction loss, **not fabricated action ground truth**. Loss masks should reflect the modalities actually observed. Retargeted or inverse-dynamics-inferred pseudo-actions must be labeled as such. Joint space, end-effector $SE(3)$ targets, and latent actions are different control semantics and require separate metadata.
 
 <a id="wam-section-04"></a>
 
@@ -291,7 +290,7 @@ Dream Labs also cites an external RoboCurve RoboDojo-RC Tier 1 evaluation. That 
 
 ### 6.6 Fine-tuning-as-a-Service and its data-efficiency limits
 
-When zero-shot performance is insufficient, the company offers **Fine-tuning-as-a-Service (FaaS)**. The post shows two adaptation examples using around **five minutes of target-robot data each**. The harder examples include a Dexmate platform with Sharpa dexterous hands requiring a reported **77 minutes**, and a modified YAM end-effector setup requiring approximately **98 minutes**. In one simulation comparison across twelve beta-partner robots, fine-tuning improved language-following scores on ten.
+When zero-shot performance is insufficient, the company offers **Fine-tuning-as-a-Service (FaaS)**. The post shows two adaptation examples using around **five minutes of target-robot data each**. The harder examples include a modified YAM end-effector setup requiring approximately **98 minutes**. In one simulation comparison across twelve beta-partner robots, fine-tuning improved language-following scores on ten.
 
 These are **data durations used in specific case studies**, not a universal guarantee that five minutes suffices for an arbitrary robot or task. The fine-tuning loss, parameter-update scope, compute budget, uncertainty, and comprehensive safety validation are not fully provided. The phrase “one-shot embodiment learning” in the announcement must not be read as a rigorous claim of adaptation from exactly one demonstration trajectory.
 
@@ -299,7 +298,7 @@ These are **data durations used in specific case studies**, not a universal guar
 
 The Dream-1 announcement does **not** reveal a reproducible specification of its complete backbone, parameter count, prediction loss, action decoder, denoising scheduler, relative amounts of video versus robot data, detailed embodiment description protocol, or which parameters FaaS updates. It should not be asserted to be a simple repackaging of DreamZero's Wan2.1-I2V-14B or DreamZero-Flash.
 
-The product is currently positioned principally for **bimanual parallel-gripper manipulation**. Its Sharpa dexterous-hand examples involved **data collection and adaptation**, not general proof of zero-shot dexterous hand control. A multi-finger hand requires finger-joint and contact-control semantics that cannot be fully expressed by two EEF poses and binary gripper commands.
+The product is currently positioned principally for **bimanual parallel-gripper manipulation**.
 
 <a id="wam-section-07"></a>
 
@@ -408,8 +407,6 @@ Hence deployment choices form a continuum rather than a binary choice: **direct 
 
 On a single **RTX 3090/4090 with 24 GB**, reasonable starting points include SmolVLA, $\pi_0/\pi_{0.5}$ inference, appropriately configured OpenVLA, or **LoRA/partially frozen** VLA adaptation. However, openpi's $>22.5$ GB LoRA guideline already sits close to the 24 GB ceiling; measure the effect of batch size, camera count, and peak activation memory. **DreamZero's 14B core weights alone require about 28 GB in BF16**, so its unmodified BF16 model cannot reside wholly on one 24 GB card. Quantization and sharding may enable experiments, but do not inherit its two-GB200 latency figure. Four separate 24 GB cards do not constitute one 96 GB address space: tensor/model parallelism and interconnect costs must be planned.
 
-For a **robot arm, dexterous hand, and head/wrist RGB-D** performing precision manipulation, use the foundation model as a lower-frequency skill/goal/action-chunk generator, while keeping **joint servoing, IK, collision checks, tactile/current-based contact detection, and emergency stops** in a local high-rate loop. If predictive priors appear valuable, first test a **video-supervised WAM with action-only inference** or **one-pass future latent conditioning**. Pay for multistep video generation only when controlled ablations demonstrate gains in failure recovery, novel contacts, or disturbance robustness.
-
 A fair systems study should hold camera views/resolution, embodiment and action semantics, robot-demonstration budget, task distribution, initial states, action-chunk duration, precision, and replanning protocol fixed. Report **end-to-end $p50/p95/p99$, peak VRAM, GPU-seconds per action chunk, physical task success, out-of-distribution perturbation/regrasp recovery, and safety stops**. Video quality or mean model-only latency is insufficient.
 
 <a id="wam-section-09"></a>
@@ -428,20 +425,6 @@ Real deployments must coordinate camera sampling frequency $f_s$, model update f
 | Quantization/multi-GPU parallelism | GPU compute and memory constraints | Precision, communication, long-tail latency |
 
 **Two different caches:** the causal KV cache stores attention representations of past context; DiT cache methods reuse computations across denoising steps. Their validity depends on distinct invalidation rules. General derivations of FlashAttention and KV caching belong in the companion lecture on efficient training and real-time inference.
-
-<a id="wam-section-10"></a>
-
-## 10. Contact-rich manipulation and recovery
-
-Visual alignment between a predicted and observed video does not reveal normal force, friction margin, or incipient slip. A practical dexterous manipulation stack should combine world predictions with joint/motor feedback, optional current and tactile sensing, and uncertainty estimates. One abstract state is
-
-$$z_t=(T_{\rm obj},T_{\rm hand},q_t,\hat c_t,\Sigma_t),$$
-
-where $\hat c_t$ denotes estimated contact mode and $\Sigma_t$ uncertainty. A hallucinated contact force must not be treated as a measured sensor value.
-
-Consider picking a screwdriver from an arbitrary pose and reorienting it at a fixed workstation. The world-prediction branch may anticipate motion and occlusion; the action branch chooses arm/hand targets; the low-level controller maintains grip and joint safety. Measured current residuals, pose deviations, or possible slip must be able to trigger re-observation, hold, and recovery rather than blindly continuing an old action chunk.
-
-Transferring Dream-1's bimanual-gripper ideas to a Tron2 + Revo3-type multi-finger configuration requires an explicit hand-action interface, camera-topology alignment, kinematic/collision checking, stable contact control, and an end-to-end network latency budget. **Current disclosures do not establish plug-and-play zero-shot control of arbitrary dexterous hands.**
 
 <a id="wam-section-11"></a>
 
@@ -464,7 +447,7 @@ Causal claims require separating the contributions of video pretraining, joint m
 
 This chapter covers WAMs from prediction supervision through executable actions, from DreamZero's detailed joint generation to Dream-1's shared robot interface. Refer to the Flow Matching lecture for general probability-path mathematics; imitation learning for BC, DAgger, ACT, and RTC; RL post-training for policy updates; GR00T/SONIC for System 1–System 0 execution; and Robot Agent for outer-loop planning, tool orchestration, success checks, and replanning. **DreamZero and Dream-1 are primarily learned action systems, not automatically complete tool-using Robot Agents.**
 
-Suggested progression: taxonomy $\rightarrow$ aligned data $\rightarrow$ DreamZero joint FM/KV/Flash $\rightarrow$ Dream-1 EEF/IK and zero-shot embodiment generalization $\rightarrow$ latency, safety, and contact boundaries. A central research question is whether visual dynamics priors can bridge not only arm kinematics, but also end-effector morphology and contact models, without losing the motor precision required for dexterous work.
+Suggested progression: taxonomy $\rightarrow$ aligned data $\rightarrow$ DreamZero joint FM/KV/Flash $\rightarrow$ Dream-1 EEF/IK and zero-shot embodiment generalization $\rightarrow$ latency, safety, and contact boundaries.
 
 <a id="wam-section-13"></a>
 

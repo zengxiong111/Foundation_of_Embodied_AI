@@ -69,7 +69,7 @@ lang: en-US
   - [12.3 Grasp-level validation](#course-section-45)
 - [13. Common Failure Modes and Troubleshooting](#course-section-46)
 - [14. Recommended Open-Source Tools and References](#course-section-47)
-- [15. Recommended Tron2 + Revo3 Implementation Plan](#course-section-48)
+- [15. Recommended Tron2 Implementation Plan](#course-section-48)
   - [Phase 1: Intrinsics and depth verification](#course-section-49)
   - [Phase 2: Head camera calibration](#course-section-50)
   - [Phase 3: Wrist camera and tool center point](#course-section-51)
@@ -408,16 +408,6 @@ $$
 $$
 
 The first term is obtained from FK; the second is estimated through eye-in-hand calibration. If the camera is mounted on `wrist_link` rather than the precise terminal frame used for FK, consistently compose the corresponding link transforms.
-
-#### What changes when installing the Revo3 hand?
-
-Keep the following transforms distinct:
-
-$$
-{}^B T_G,\quad {}^G T_{C_w},\quad {}^G T_{\mathrm{TCP}}.
-$$
-
-They describe the end-effector pose, wrist-camera mount, and tool-center-point (TCP) mount, respectively. If changing the hand does **not** move the camera relative to the same gripper frame, the prior camera extrinsic can remain valid. However, the TCP and fingertip geometry may change. Recheck calibration if the camera bracket moved, the flange/gripper frame was redefined, or the hardware became loose.
 
 <a id="course-section-20"></a>
 
@@ -903,7 +893,6 @@ Also evaluate screwdriver grasp success, repeatability, orientation error, and d
 | RGB-depth pixel mismatch | Alignment or camera-model mismatch | Check alignment and intrinsics |
 | Vision axes disagree with control axes | Incorrect optical-frame mapping | Inspect TF frame conventions |
 | Static tests succeed but moving tests fail | Image/joint timestamp mismatch | Query TF at exposure time |
-| Grasp offset after hand replacement | TCP or flange definition changed | Inspect ${}^G T_{\mathrm{TCP}}$ |
 | Simulation succeeds; robot fails | Camera, dynamics, or control sim-to-real gap | Diagnose perception and actuation separately |
 
 A conservative data-collection sequence is: **move into pose $\rightarrow$ wait until stable $\rightarrow$ acquire image and corresponding robot state $\rightarrow$ save sample**. This reduces motion blur and time-alignment error.
@@ -926,7 +915,7 @@ For this two-camera system, prioritize TF, PnP, and hand-eye calibration.
 
 <a id="course-section-48"></a>
 
-## 15. Recommended Tron2 + Revo3 Implementation Plan
+## 15. Recommended Tron2 Implementation Plan
 
 A four-phase rollout helps isolate different error sources instead of combining them from the start.
 
@@ -966,7 +955,6 @@ If experiments currently use only one head orientation, start by locking the hea
 2. Save the matched end-effector FK and target pose observations.
 3. Run `calibrateHandEye()`.
 4. Validate board-pose constancy on unseen robot poses.
-5. Recheck tool and fingertip geometry after mounting the Revo3 hand.
 
 <a id="course-section-52"></a>
 
@@ -982,7 +970,7 @@ Head RGB-D / Wrist RGB
   -> Robot-base object pose
   -> Policy / grasp planner
   -> IK / control
-  -> Tron2 + Revo3
+  -> Tron2
   -> Visual feedback / replanning
 ```
 
@@ -1016,10 +1004,9 @@ Use the following checklist before deployment:
 - [ ] RGB-D data are aligned, and depth definitions/scales are known.
 - [ ] Extrinsics are evaluated with independent poses, not just the fit data.
 - [ ] Camera exposure times are aligned with joint-state and TF timestamps.
-- [ ] TCP and fingertip frames have been checked after any hand replacement.
 - [ ] Final quality is tested using real 3D points and actual grasps.
 
-**For a Tron2 manipulation stack, OpenCV PnP, hand-eye calibration, robot forward kinematics, and ROS TF2 are the four most valuable foundations.** Together, they enable head/wrist vision and dexterous closed-loop manipulation without requiring an external Vicon system.
+**For a Tron2 manipulation stack, OpenCV PnP, hand-eye calibration, robot forward kinematics, and ROS TF2 are the four most valuable foundations.** Together, they enable head/wrist vision without requiring an external Vicon system.
 
 ---
 

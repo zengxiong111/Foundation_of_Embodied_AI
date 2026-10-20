@@ -60,10 +60,6 @@ lang: en-US
   - [8.3 The friction cone determines whether an object stays grasped](#course-section-35)
   - [8.4 An impact produces a rapid velocity change](#course-section-36)
   - [8.5 Distinguish four modes during a grasp](#course-section-37)
-- [Chapter 9. Dexterous manipulation is a coupled arm–hand–object system](#course-section-38)
-  - [9.1 Why controlling the fingers alone may be insufficient](#course-section-39)
-  - [9.2 When an object may be treated as extra payload](#course-section-40)
-  - [9.3 Practical lessons for Tron2 with a Revo3 hand](#course-section-41)
 - [Chapter 10. Humanoids: from fixed-base to floating-base dynamics](#course-section-42)
   - [10.1 Why the torso cannot be driven like an ordinary joint](#course-section-43)
   - [10.2 Balance requires external support forces](#course-section-44)
@@ -104,7 +100,7 @@ flowchart LR
 
 ## Reading guide: follow the physical chain, not a collection of formulas
 
-Robot dynamics answers an immediate question in embodied intelligence: **after a policy issues an action, why do the robot and its environment move as they do?** A single task connects the entire tutorial: a robot arm with a dexterous hand picks up a screwdriver, rotates it, and picks it up again after a drop. A humanoid that stands and reaches for the same object follows the same physical laws, except that its base is floating and its feet establish additional contacts.
+Robot dynamics answers an immediate question in embodied intelligence: **after a policy issues an action, why do the robot and its environment move as they do?** A humanoid that stands and reaches for the same object follows the same physical laws, except that its base is floating and its feet establish additional contacts.
 
 The tutorial draws on the structure of Wei Zhang's [MEE5114 Advanced Control for Robotics][r1], especially the lectures on rigid-body motion, dynamics, and control. It is **not a reproduction or translation of those lecture notes**. We also use *Modern Robotics*, Featherstone's rigid-body dynamics work, and official MuJoCo / Isaac Lab documentation, focusing only on material with a clear role in robot learning.[1–8]
 
@@ -137,7 +133,6 @@ Dynamics asks: what acceleration follows from an applied torque? How does the ta
 | Where should a fingertip go? | Forward/inverse kinematics | Convert object pose into target joint motion |
 | What actually drives the finger? | Actuators + dynamics | Explain torque, acceleration, and delay |
 | Why does the screwdriver stay in the hand? | Contacts + friction | Check whether forces lie inside the friction cone |
-| Why does a replacement hand change tracking? | Mass, inertia, gravity | Payload and center of mass have changed |
 | Why do humanoid feet need ground forces? | Floating base + centroidal dynamics | Internal motors cannot suspend the whole body |
 
 <a id="course-section-04"></a>
@@ -224,7 +219,7 @@ For rotation about a fixed axis, $\tau=I_O\ddot q$ when other torques are ignore
 
 $$\boxed{I_O=I_C+mr^2.}$$
 
-Two hands with identical masses but different mounting offsets can produce different effective joint inertia. Replacing an end-effector can therefore alter the dynamic behavior of the entire arm.
+Replacing an end-effector can therefore alter the dynamic behavior of the entire arm.
 
 <a id="course-section-13"></a>
 
@@ -515,38 +510,6 @@ Contact solvers handle not only sustained support forces but also velocity chang
 
 This explains why **drop recovery is not ordinary trajectory tracking**: the contact mode has changed, and the controller must establish new contacts rather than continue an obsolete motion reference.
 
-<a id="course-section-38"></a>
-
-## Chapter 9. Dexterous manipulation is a coupled arm–hand–object system
-
-<a id="course-section-39"></a>
-
-### 9.1 Why controlling the fingers alone may be insufficient
-
-Let $q_r$ be generalized robot coordinates, including arm and hand, and let $x_o$ be the object pose. Fingertip forces act on both the robot and the object, with action and reaction. On the robot side,
-
-$$M_r(q_r)\ddot q_r+h_r=\tau_r+J_r^T\lambda.$$
-
-On the object side, linear and angular momentum change in response to gravity and fingertip contact forces. Force signs must be chosen consistently: the two bodies do not both experience the same contact force in the same direction.
-
-When the palm transports a rigidly held object, combined payload mass, center of mass, and inertia dominate the arm response. When the object rolls or rotates within the fingers, contact locations, friction, and object orientation become central. The arm, hand, and object should be treated as **one coupled physical system**.
-
-<a id="course-section-40"></a>
-
-### 9.2 When an object may be treated as extra payload
-
-If an object remains firmly grasped and scarcely moves relative to the palm, it can be approximated as a rigid additional payload. Updating the total end-effector mass, center of mass, and inertia then supports gravity compensation and slow transport.
-
-The approximation fails when the object rotates in the fingers, slides, changes contact points, or drops. Those phases require explicit object degrees of freedom and contact constraints.
-
-<a id="course-section-41"></a>
-
-### 9.3 Practical lessons for Tron2 with a Revo3 hand
-
-After replacing a dexterous hand, verify at least: mounting frame and tool center point (TCP); payload mass, center of mass, and inertia; joint gains and force limits; fingertip collision geometry; fingertip–object friction; observation rate and command delay.
-
-Changing the TCP is primarily a **geometric and Jacobian change**, not a change in physical inertia. Replacing the actual hand changes the physical payload. Head and wrist cameras provide object-pose observations but do not directly measure accurate contact forces. Without tactile sensors, finger current, joint behavior, and visual motion can provide uncertain proxies for contact.
-
 <a id="course-section-42"></a>
 
 ## Chapter 10. Humanoids: from fixed-base to floating-base dynamics
@@ -571,7 +534,7 @@ For the whole-robot center of mass $c$,
 
 $$\boxed{m\ddot c=m\mathbf g+\sum_i f_i.}$$
 
-During quiet standing, $\ddot c\approx0$, so ground contact forces approximately balance gravity. Without foot contact, internal joint torques cannot prevent the entire robot's center of mass from falling. Reaching, walking, and dexterous grasping all involve **the relationship between external force and available actuation**.
+During quiet standing, $\ddot c\approx0$, so ground contact forces approximately balance gravity. Without foot contact, internal joint torques cannot prevent the entire robot's center of mass from falling. Reaching, walking all involve **the relationship between external force and available actuation**.
 
 <a id="course-section-45"></a>
 
@@ -619,7 +582,7 @@ Under ideal assumptions the resulting error dynamics are $\ddot e+K_d\dot e+K_pe
 
 ### 11.3 Impedance control supports compliant contact
 
-In dexterous manipulation, infinitely stiff position tracking is undesirable. A simplified desired Cartesian impedance force is
+A simplified desired Cartesian impedance force is
 
 $$F_d=K_x(x_d-x)+D_x(\dot x_d-\dot x),$$
 
@@ -639,7 +602,7 @@ Model predictive control (MPC) predicts several future steps using dynamics and 
 
 ### 12.1 What each platform contributes
 
-**MuJoCo** is well suited to building mechanical intuition, measuring sensitivity to physical parameters, investigating contact behavior, and running comparatively lightweight arm and hand experiments. Its efficient simulation does not eliminate the need to understand contact models and solver settings.
+**MuJoCo** is well suited to building mechanical intuition, measuring sensitivity to physical parameters, investigating contact behavior, and running comparatively lightweight arm experiments. Its efficient simulation does not eliminate the need to understand contact models and solver settings.
 
 **Isaac Sim** provides robot and scene simulation capabilities. **Isaac Lab** organizes robot-learning environments, parallel experiments, action/observation/reward pipelines, and domain randomization on top of simulation capabilities. Isaac Sim and Isaac Lab are not two independent physics engines. The active physics backend, version, and actuator semantics must be taken from the documentation matching the local installation.[4–7]
 

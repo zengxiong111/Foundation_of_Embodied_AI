@@ -84,7 +84,7 @@ A practical engineering design separates these responsibilities:
 ```mermaid
 flowchart TD
     A[Language + Images + Robot State] --> B[System 1: GR00T VLA]
-    B -->|Motion tokens + hand commands| C[System 0: SONIC Policy]
+    B -->|Motion tokens| C[System 0: SONIC Policy]
     D[IMU / Joint Positions / Joint Velocities] --> C
     C --> E[Target Joint Positions]
     E --> F[PD / Motor Servo]
@@ -442,7 +442,7 @@ This is a typical **loco-manipulation** task: the robot must locomote, grasp wit
 |:---|:---|:---|
 | Find the can | Perceive and select the target | Does not recognize the object |
 | Approach table | Generate short-horizon approach actions | Execute gait and maintain support |
-| Reach and grasp | Produce arm motion and finger commands | Coordinate torso, arms, and legs |
+| Reach and grasp | Produce arm motion | Coordinate torso, arms, and legs |
 | Approach bin | Update motion based on visual feedback | Balance during locomotion |
 | Press foot pedal | Specify intended foot/body movement | Coordinate single-leg support and contact |
 | Dispose of can | Generate the placement / throwing action | Execute coordinated body motion |

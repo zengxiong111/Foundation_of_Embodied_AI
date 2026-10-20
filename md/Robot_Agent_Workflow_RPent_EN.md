@@ -19,7 +19,7 @@
 5. [ASPIRE: trace-guided repair and accumulating skills](#agent-section-05)
 6. [RPent: from research workflows to composable agent infrastructure](#agent-section-06)
 7. [Gemini 4 Argon: control, Real2Sim, and self-improvement](#agent-section-07)
-8. [A unified system and a dexterous screwdriver example](#agent-section-08)
+8. [A unified system](#agent-section-08)
 9. [Papers and official resources](#agent-references)
 
 ---
@@ -305,9 +305,7 @@ Three improvement assets should be kept conceptually distinct: **external memory
 
 ### 6.5 Physical deployment: what still needs engineering
 
-RPent documentation covers LIBERO, RoboCasa365, RoboTwin, RoboDojo, and examples involving single- and dual-arm Franka robots. Such support **does not make every arm, dexterous hand, or contact-rich task plug-and-play**. [10,15] A new platform needs a matching `RobotSpec` and toolkit, plus calibrated camera frames, coordinate transforms, IK/collision checks, motion timing, reliable error propagation, explicit operator permissions, and hardware-enforced emergency stops.
-
-For dexterous manipulation, important gaps remain: partially observed contact and slip, primitive precondition drift across embodiments, the mismatch between slow agent reasoning and high-frequency action stabilization, unverified memory transfer, and reliability under changed scenes or objects. **RPent provides a framework in which these questions can be studied; it does not establish that they are solved.**
+RPent documentation covers LIBERO, RoboCasa365, RoboTwin, RoboDojo, and examples involving single- and dual-arm Franka robots. Such support **does not make every arm, or contact-rich task plug-and-play**. [10,15] A new platform needs a matching `RobotSpec` and toolkit, plus calibrated camera frames, coordinate transforms, IK/collision checks, motion timing, reliable error propagation, explicit operator permissions, and hardware-enforced emergency stops.
 
 **Chapter takeaway:** RAX and ASPIRE explain *what a task agent should explore, validate, and improve*. RPent shows *how a planner, tool interface, memory system, and robot service can be assembled and operated*. These are complementary levels, but integrating particular implementations still requires dedicated adapters, tests, and physical verification.
 
@@ -351,7 +349,7 @@ Conceptually, Argon could serve as a reasoning model in a RAX-like or ASPIRE-lik
 ---
 
 <a id="agent-section-08"></a>
-## 8. A Unified System and a Dexterous Screwdriver Example
+## 8. A Unified System
 
 ### 8.1 One reusable workflow without overstating the papers
 
@@ -375,29 +373,13 @@ flowchart TB
 
 ### 8.2 The minimum contract for a reusable skill
 
-1. **Preconditions:** Robot body, dexterous hand, sensing/calibration assumptions, object class, and permitted workspace.
+1. **Preconditions:** Robot body, sensing/calibration assumptions, object class, and permitted workspace.
 2. **Execution:** Parameter interface, approved tool calls, duration/budget, and delegated low-level control.
 3. **Verification:** Object-state postconditions, tolerance, and `SUCCESS / FAILURE / UNKNOWN` criteria.
 4. **Recovery:** Recoverable failures, retry limits, and safe exit for unrecoverable cases.
 5. **Evidence & Version:** Independent run records, failure-distribution limits, version history, and rollback path.
 
 This is an **engineering recommendation**, not a universal data structure prescribed by one paper. A script should not be promoted to a deployable skill without constrained independent tests and the required approvals.
-
-### 8.3 Worked example: grasp, transport, and rotate a screwdriver
-
-**Illustrative teaching scenario, not an experiment reported in the cited papers.** A screwdriver starts at an arbitrary permitted location on a table. A robot observes it through head and wrist cameras, uses a dexterous hand to grasp it, transports it to a fixed region, and rotates it through a desired angle. If it slips, dangerous motion must stop before the agent decides whether re-localization and recovery are safe.
-
-| Stage | Physical evidence required | Common false success and response |
-|:--|:--|:--|
-| **Locate** | Correct screwdriver identity, usable pose, and confidence | Misidentified tool or wrong camera frame: reconfirm |
-| **Grasp** | Object leaves the table and its hand-relative pose is plausible | Fingers close on empty space: compare vision and proprioception |
-| **Transport** | Object reaches the goal zone and remains held | End-effector arrives without object: stop and re-localize |
-| **Rotate** | **Object itself**, not just wrist, attains the target orientation | Independent object-pose tracking is necessary |
-| **Recover** | New location is authorized and the goal is re-established | Unobservable or unreachable: return `UNKNOWN` or stop |
-
-**What does the task-level agent do?** It specifies observable success, searches for existing skills, explores missing grasp/approach decisions using RAX-like tools, compiles conditional procedures, diagnoses failures from ASPIRE-like traces, and allows bounded repairs. With RPent, the robot-specific `RobotSpec`, perception tools, and motion/action primitives would first need to be implemented for this platform. Claude, Codex, or Argon may provide reasoning and programming capabilities, **but this example does not assert that any of these particular models has been experimentally validated on this hand/arm platform**.
-
-**What does the lower stack do?** Perception estimates hand/object relative poses; IK and motion planning enforce reachability and collision conditions; VLA/RL skills or local controllers perform grasping and rotation; independent hardware safety enforces limits and emergency stops. With only head/wrist cameras and no tactile sensor, occlusion and unobservable contact must be represented explicitly in verification outcomes.
 
 ### 8.4 Which component should solve which problem?
 

@@ -109,7 +109,7 @@ A typical VLA pipeline is **image + language + robot state → visual-language r
 
 ### 3.2 Data, time alignment, and evaluation
 
-A useful supervised sample includes $(o_t,g_t,A_t)$ along with embodiment information, action units (joint versus end-effector versus finger commands), normalization, acquisition rates, camera calibration, and timestamps. Multi-task SFT requires a sensible mixture across robots, instructions, successes, and recovery segments. **Only imitating idealized successful demonstrations is often insufficient for recovery**.
+A useful supervised sample includes $(o_t,g_t,A_t)$ along with embodiment information, action units (joint versus end-effector), normalization, acquisition rates, camera calibration, and timestamps. Multi-task SFT requires a sensible mixture across robots, instructions, successes, and recovery segments. **Only imitating idealized successful demonstrations is often insufficient for recovery**.
 
 The practical logic is: **multimodal data → spatial/temporal alignment → chunked supervision → selective fine-tuning → independent closed-loop evaluation**. SFT can be connected to RL only if observation, executed action, termination, reward, and model-version semantics agree. A lower supervised loss is not a substitute for real task success or contact safety.
 
@@ -162,7 +162,7 @@ $$
 A_{\mathrm{cmd}}=\operatorname{Safe}(A_0+\lambda\Delta A_\phi).
 $$
 
-Residual RL is an **architecture**, not one specified on- or off-policy algorithm. Safe action scaling, coordinate frames, chunk boundaries, and contact stability matter, especially for dexterous manipulation.
+Residual RL is an **architecture**, not one specified on- or off-policy algorithm. Safe action scaling, coordinate frames, chunk boundaries, and contact stability matter.
 
 **RL Token — lightweight feature-based actor–critic.** [RL Token](https://arxiv.org/abs/2604.23073) constructs a compact VLA feature interface and then supports online off-policy actor–critic updates with the main representation network frozen. Creating this feature interface may itself require demonstration-based adaptation. It should not be confused with an action residual.
 
@@ -399,7 +399,7 @@ These gaps span **limits of validated model/algorithm combinations** and **open 
 
 ## 10. Real-robot deployment and unresolved questions
 
-A training reward is not a safety controller. Simulated rollouts must not be silently identified with physical interactions, and large-model inference is distinct from high-frequency servo control. For a platform with **manipulator + dexterous hand + head/wrist cameras**, coordinate calibration, sensor timestamps, chunk arbitration, finger safety, and reset/recovery are first-class requirements.
+A training reward is not a safety controller. Simulated rollouts must not be silently identified with physical interactions, and large-model inference is distinct from high-frequency servo control.
 
 | Risk domain | Independent checks and metrics |
 |:---|:---|

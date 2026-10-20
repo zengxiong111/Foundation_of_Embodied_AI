@@ -43,7 +43,6 @@ lang: en-US
 | Research goal | Suggested starting point | Why |
 |---|---|---|
 | Dynamics, PD/MPC, inverse dynamics | MuJoCo | Direct access to physical behavior and straightforward single-step debugging |
-| Many parallel dexterous-hand PPO environments | Isaac Lab or MuJoCo Playground | Vectorized rollouts and structured tasks |
 | Replay-buffer-based SAC | A compatible MuJoCo RL stack or supported Isaac Lab integration | Confirm that SAC and vectorized replay are actually implemented |
 | Head and wrist RGB-D, lighting and occlusions | Isaac Sim / Isaac Lab | Integrated rendering and camera modeling |
 | High-throughput state-based contact simulation | Suitable Isaac Lab backend or MJX/MJWarp | Depends on scene complexity, hardware, and data movement |
@@ -101,14 +100,14 @@ Official Isaac Sim 5.1 requirements specify supported Ubuntu configurations, GPU
 3. **Build a simple scene:** Ground, table, fixed-base arm, manipulated object, and lighting.
 4. **Validate sensors:** Place head and wrist cameras; verify intrinsics, extrinsics, depth semantics, occlusions, and synchronization.
 5. **Study the Isaac Lab task abstraction:** Scene, robot assets, observations, actions, rewards, terminations, and events/domain randomization.
-6. **Try maintained benchmark tasks:** Cartpole, Franka Reach, Franka Lift, then dexterous reorientation.
+6. **Try maintained benchmark tasks:** Cartpole, Franka Reach, Franka Lift.
 7. **Add RL gradually:** Start with state-based policies and limited randomization before adding vision and difficult contacts.
 
 **Manager-based vs. Direct workflows:** Manager-based tasks emphasize reuse of observation, reward, reset, and event components. Direct tasks offer more explicit control for unusual contact phases or research algorithms. Both support reinforcement learning; the difference is software organization rather than inherent learning power. [7]
 
 ### 2.6 A shared exercise: Panda, cube, and table
 
-Do not begin by comparing two entirely different robots in different engines. Fix the robot, cube dimensions, table height, tool frame, initial pose distribution, and action definition. Progress through **single-joint response → end-effector tracking → cube grasping → perturbed regrasping**. The same evaluation sequence can later be used with Tron2 and a Revo3 hand.
+Do not begin by comparing two entirely different robots in different engines. Fix the robot, cube dimensions, table height, tool frame, initial pose distribution, and action definition. Progress through **single-joint response → end-effector tracking → cube grasping → perturbed regrasping**.
 
 
 ## 3. Robot Assets: URDF, MJCF, and USD
@@ -128,8 +127,6 @@ Maintain a **canonical physical parameter sheet** covering joint names, axis ori
 ### 3.2 Ten checks after import
 
 1. Base and world frames; 2. joint names and ordering; 3. positive rotation directions; 4. angle and length units; 5. tool-center-point definition; 6. mass and center of mass; 7. physically plausible inertias; 8. collision simplification; 9. appropriate self-collision filtering; and 10. actuation limits, stiffness, damping, and control period.
-
-**Additional dexterous-hand checks:** Coupled joints, differential mechanisms, tendons, underactuation, fingertip material properties, and finger-joint friction. Matching the visible hand geometry is not enough to establish valid contact physics.
 
 
 ## 4. Dynamics, Control, Contact, and Sensors
@@ -166,36 +163,6 @@ Example: 500 Hz physics and 50 Hz policy inference imply **10 physics steps per 
 
 Hold four things constant: **action meaning in joint or task space, action scaling, low-level controller semantics, and effective sampling period**. Without those controls, measured differences cannot be cleanly attributed to the physics engine.
 
-### 4.5 Why dexterous contact is difficult
-
-Contact dynamics are highly nonlinear. Collision geometry, friction, compliance, integration time step, control stiffness, inertia, and the solver jointly determine whether an object can be held. Two engines using an identically named friction coefficient need not produce identical sliding behavior.
-
-**Debug contacts by isolation:** First verify object free fall, then sliding under a known normal force, then static pinch grasps, and finally dynamic lifting and rotation. Increasing friction is not a universal fix for unstable contact simulation.
-
-### 4.6 Standard contact validation tests
-
-| Test | Measurements | Typical failure |
-|---|---|---|
-| Free fall | Impact time, rebound, resting position | Penetration or excessive bounce |
-| Planar sliding | Deceleration, stopping distance | Unrealistic slip or jitter |
-| Fingertip grasp | Slip, contact force, holding time | Implausibly strong grasp or violent ejection |
-| In-hand rotation | Object pose relative to hand | Unstable contacts, grasp loss |
-| Perturbation recovery | Rediscovery and regrasp after a drop | Episode incorrectly terminates at first drop |
-
-### 4.7 Four sources of visual closed-loop error
-
-1. **Geometry:** Intrinsics, lens distortion, extrinsics, TCP, and object CAD/mesh scale.
-2. **Coordinate frames:** World/base/optical frames, transform multiplication order, quaternion convention.
-3. **Perception:** Missing depth, lighting, occlusions, blur, and pose-estimator drift.
-4. **Timing:** Unsynchronized camera and joint readings, network delay, action holding, and reuse of stale frames.
-
-Depth along the optical axis is not equivalent to Euclidean distance from the camera center. Align Isaac Lab depth semantics with the real sensor and any downstream pose estimator rather than relying on a generic variable name. [8]
-
-### 4.8 Should a policy observe vision or privileged state?
-
-For debugging control and reward design, start with simulator state. If the real task uses head and wrist cameras, the final deployed actor must depend only on available visual and proprioceptive observations. A useful pipeline is **privileged-state teacher → visual student**: first establish that the mechanics and control task can be learned, then introduce partial observability and sensor error. Never silently include simulator ground-truth object pose in a supposedly deployable visual policy.
-
-
 ## 5. The Engineering Contract of an RL Environment
 
 This section specifies an **engineering contract for simulation interfaces** rather than repeating reward-design theory. For mathematical control objectives, see the companion motion-control RL tutorial.
@@ -226,7 +193,7 @@ PPO commonly uses synchronized, high-throughput rollouts. SAC requires replay bu
 
 ### 6.1 From a benchmark to a custom manipulation task
 
-**Step 1 — Pick a starting task.** Cartpole demonstrates the end-to-end RL loop; Franka Reach checks controls and observations; Lift adds contacts; dexterous manipulation introduces multi-stage objectives.
+**Step 1 — Pick a starting task.** Cartpole demonstrates the end-to-end RL loop; Franka Reach checks controls and observations; Lift adds contacts.
 
 **Step 2 — Fix the backend and release.** Established 2.x PhysX tasks and new 3.0 multi-backend workflows are not automatically interchangeable. Reproduce one supported baseline first.
 
@@ -272,7 +239,7 @@ Use classic MuJoCo to validate the robot model, reward, reset, contact behavior,
 
 **MJX-JAX** uses JAX/XLA for batched computation. **MJWarp** targets NVIDIA GPU parallel simulation, especially many independent robot environments. Higher *aggregate throughput* does not imply lower *single-step latency*: MJWarp focuses on throughput, while classic MuJoCo is often preferable for low-latency single-system control. The current MJX-Warp route does not target automatic differentiation. [3][4]
 
-**MuJoCo Playground** provides locomotion, dexterous manipulation, some vision-enabled tasks, and RL baselines built around MJX/MJWarp. It is a useful counterpart to Isaac Lab for evaluating state-control tasks and cross-engine robustness. [10]
+**MuJoCo Playground** provides locomotion, some vision-enabled tasks, and RL baselines built around MJX/MJWarp. It is a useful counterpart to Isaac Lab for evaluating state-control tasks and cross-engine robustness. [10]
 
 ### 7.3 Ten steps for a MuJoCo RL project
 
@@ -361,21 +328,6 @@ Use multiple random seeds, report central estimates and uncertainty, and avoid c
 **Unloaded joint motion → contact-free tracking → slow approach → low-force grasp → object lift → object rotation → small supervised disturbance → controlled drop-and-regrasp.** Apply limits, protection, and human supervision before advancing to each stage.
 
 **If hardware results lag behind simulation:** First inspect frames and synchronization, then action meaning and servo period, then contacts and mechanical parameters. Only afterward should you consider a larger neural network or more complex RL hyperparameter search.
-
-
-## 11. Shared Case Study: Tron2 + Revo3 Assets and Scenes
-
-This case focuses on creating **comparable simulation environments with shared assets, sensors and control semantics**. The learning of grasping, tracking and recovery skills is covered in the companion motion-control RL guide.
-
-| Layer | MuJoCo / MJCF checks | Isaac Sim / Isaac Lab checks |
-|---|---|---|
-| Tron2 + Revo3 | Joint ordering/axes, transmission, inertia, finger collision and constraints | URDF-to-USD articulation, joint drives, collision approximations |
-| Screwdriver/table | Equivalent mass, contact geometry, friction, gravity, release | Materials, table height, USD units, collision geometry |
-| Actuators | Joint target semantics and speed/torque limits | Matching servo semantics, action range and rate limits |
-| Sensors | Ground-truth state for model diagnostics; optional camera wrapper | Head/wrist camera calibration, depth convention, exposure, occlusion, timestamps |
-| Cross-engine checks | Free fall, single-joint steps, grip/slip, release, regrasp | Repeat from identical states with matched control inputs |
-
-For reproducibility, record joint configuration, TCP and camera extrinsics, object dimensions and materials, action latency, camera visibility, and solver-specific contact differences. Event-biased resets, residual control and recovery training are addressed in the companion tutorial.
 
 
 ## 12. Troubleshooting and Readiness Checks

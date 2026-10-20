@@ -61,10 +61,9 @@
   - [8.2 Real-world deployment needs integration](#course-section-44)
   - [8.3 Consistent semantics matter more than transport](#course-section-45)
   - [8.4 Frequency and latency](#course-section-46)
-- [9. A Tron2 + Revo3 Dexterous Manipulation Architecture](#course-section-47)
+- [9. A Tron2 Architecture](#course-section-47)
   - [9.1 Suggested ROS node architecture](#course-section-48)
   - [9.2 Suggested workspace layout](#course-section-49)
-  - [9.3 Splitting arm and hand actions](#course-section-50)
   - [9.4 Integrating FoundationPose](#course-section-51)
 - [10. Common ROS Issues in Robot Learning](#course-section-52)
   - [10.1 ROS 2 and Conda environments](#course-section-53)
@@ -92,13 +91,13 @@ flowchart LR
 
 Despite its name, the Robot Operating System (ROS) is not an operating system in the sense of Ubuntu or Windows. It is a robotics software framework and ecosystem. Its central role is to allow separate robot software components to communicate, share information, and work together.
 
-A robot may have cameras, a manipulator, a dexterous hand, an object pose estimator, a neural policy, and low-level controllers. The components can be written in different languages, run in different processes, or even live on different computers. ROS supplies a common messaging, communication, and tooling layer.
+A robot may have cameras, a manipulator, an object pose estimator, a neural policy, and low-level controllers. The components can be written in different languages, run in different processes, or even live on different computers. ROS supplies a common messaging, communication, and tooling layer.
 
 <a id="course-section-03"></a>
 
 ### 1.2 A typical robot learning system
 
-Consider a Tron2 arm with a Revo3 hand performing a screwdriver pick-up and rotation task:
+Consider a Tron2 arm performing a screwdriver pick-up and rotation task:
 
 ```text
                  Real Robot
@@ -106,7 +105,7 @@ Consider a Tron2 arm with a Revo3 hand performing a screwdriver pick-up and rota
           +----------+----------+
           |                     |
           v                     v
-     RGB-D / RGB Cameras     Arm + Hand
+     RGB-D / RGB Cameras     Arm
           |                     |
           v                     v
         Images               Joint States
@@ -125,7 +124,7 @@ Consider a Tron2 arm with a Revo3 hand performing a screwdriver pick-up and rota
                      v
            Low-level Control / SDK
                      v
-                Arm + Hand
+                Arm
                      +----> Next Observation
 ```
 
@@ -156,7 +155,7 @@ No. If a task only involves Python and a physics simulator, ROS may be unnecessa
 | SAC training in MuJoCo | No | Python environment and algorithm can interact directly |
 | Offline Diffusion Policy / VLA training | No | Dataset loader plus PyTorch is sufficient |
 | Controlling a single arm through its SDK | Not necessarily | Direct vendor SDK calls may be sufficient |
-| Multi-camera + arm + hand integration | Recommended | Simplifies modularity, monitoring, and synchronization |
+| Multi-camera + arm integration | Recommended | Simplifies modularity, monitoring, and synchronization |
 | Teleoperation data collection | Recommended | Simplifies multimodal recording and replay |
 | Real-robot deployment of RL policies | Recommended, not mandatory | Standardizes observation/action and device boundaries |
 | Distributed or multi-robot systems | Recommended | Facilitates inter-process and inter-machine communication |
@@ -276,7 +275,7 @@ velocity     # Joint velocities
 effort       # Joint torques or forces
 ```
 
-Whether Revo3 exposes this standard message and the correct joint ordering depends on the actual driver or adapter. **Never assume that array indices have the same joint meaning across devices.**
+**Never assume that array indices have the same joint meaning across devices.**
 
 <a id="course-section-12"></a>
 
@@ -709,7 +708,7 @@ Sensor Callback -> Observation Buffer
 
 ### 6.1 Teleoperation data collection architecture
 
-For example, collecting demonstrations by teleoperating Tron2 + Revo3 with PICO:
+For example, collecting demonstrations by teleoperating Tron2 with PICO:
 
 ```text
 Human Operator / PICO / Glove
@@ -833,7 +832,7 @@ HDF5 / Parquet / LeRobot-compatible Dataset
 Policy Training
 ```
 
-Example rates (not specifications for Tron2 or Revo3):
+Example rates (not specifications for Tron2):
 
 | Modality | Illustrative rate |
 |---|---|
@@ -861,10 +860,6 @@ Tron2
  |-- Shoulder Joint
  |-- Elbow Joint
  |-- Wrist Joint
- `-- Revo3 Hand
-      |-- Finger / Joint 1
-      |-- Finger / Joint 2
-      `-- ...
 ```
 
 Common XML elements include:
@@ -898,7 +893,7 @@ robot_state_publisher <- /joint_states
              RViz
 ```
 
-For Tron2, this helps inspect the end effector, Revo3 hand base, head camera, and wrist camera. Incorrect URDF extrinsics will not be corrected by TF2 automatically.
+For Tron2, this helps inspect the end effector, head camera, and wrist camera. Incorrect URDF extrinsics will not be corrected by TF2 automatically.
 
 <a id="course-section-40"></a>
 
@@ -955,7 +950,7 @@ Once a compatible `controller_manager` is running:
 ros2 control list_controllers
 ```
 
-**Installing ros2_control alone does not provide a Tron2/Revo3 driver.** You still need a compatible Hardware Interface or your own vendor-SDK adapter. A standalone ROS driver node without ros2_control is also possible.
+**Installing ros2_control alone does not provide a Tron2 driver.** You still need a compatible Hardware Interface or your own vendor-SDK adapter. A standalone ROS driver node without ros2_control is also possible.
 
 ---
 
@@ -1050,9 +1045,9 @@ Python ROS 2 nodes do not automatically provide hard real-time execution. For ro
 
 <a id="course-section-47"></a>
 
-## 9. A Tron2 + Revo3 Dexterous Manipulation Architecture
+## 9. A Tron2 Architecture
 
-Target task: **pick a screwdriver up from a table, carry it to a specified location, and rotate it.** The proposed system contains Tron2, BrainCo Revo3, a head RGB-D camera, a wrist RGB camera, FoundationPose, and a PPO/SAC policy.
+Target task: **pick a screwdriver up from a table, carry it to a specified location, and rotate it.** The proposed system contains Tron2, a head RGB-D camera, a wrist RGB camera, FoundationPose, and a PPO/SAC policy.
 
 <a id="course-section-48"></a>
 
@@ -1084,7 +1079,7 @@ Target task: **pick a screwdriver up from a table, carry it to a specified locat
                                 v
                         Robot Driver / SDK
                                 v
-                          Tron2 + Revo3
+                          Tron2
 ```
 
 <a id="course-section-49"></a>
@@ -1095,7 +1090,6 @@ Target task: **pick a screwdriver up from a table, carry it to a specified locat
 robot_learning_ws/
 `-- src/
     |-- tron2_driver/
-    |-- revo3_driver/
     |-- camera_driver/
     |-- robot_description/
     |-- pose_estimation/
@@ -1107,30 +1101,6 @@ robot_learning_ws/
 ```
 
 This is a proposed engineering layout, **not** a claim that the vendors distribute packages with these names. If a vendor only provides a Python/C++ SDK, wrap it in a ROS driver or adapter.
-
-<a id="course-section-50"></a>
-
-### 9.3 Splitting arm and hand actions
-
-A joint policy may produce:
-
-`a_t = [ a_t^arm, a_t^hand ]`
-
-Here the arm action dimension is `n_a`, and the hand action dimension is `n_h`. Actions can then be routed as:
-
-```text
-          RL Policy
-              |
-              v
-            Action
-           +--+--+
-           v     v
-        Arm Cmd Hand Cmd
-           v     v
-       Tron2 SDK Revo3 SDK
-```
-
-The design could use separate topics for the two subsystems or a unified Robot Action message with a dispatcher. Either approach must specify time alignment, joint ordering, command semantics, and failure handling across the arm and hand.
 
 <a id="course-section-51"></a>
 
@@ -1234,14 +1204,14 @@ The value of ROS 2 in robot learning can be grouped into three areas:
 |---|---|---|
 | **Data collection** | Gather and record camera, state, and teleoperation streams | BC, Diffusion Policy, VLA |
 | **Policy deployment** | Connect observations, policy inference, and controllers | PPO, SAC, Sim2Real |
-| **System integration** | Frame transforms, device communication, visualization, diagnostics | Dexterous manipulation, visual feedback, real-robot experiments |
+| **System integration** | Frame transforms, device communication, visualization, diagnostics | visual feedback, real-robot experiments |
 
-For a **Tron2 + Revo3** research platform, prioritize five skills:
+For a **Tron2** research platform, prioritize five skills:
 
 1. **Topics + rclpy:** Connect state and camera observations to the RL policy.
 2. **rosbag2:** Record teleoperation demonstrations for offline datasets.
 3. **TF2 + URDF:** Maintain the head-camera, wrist-camera, end-effector, and object frames.
-4. **Robot SDK / Hardware Interface:** Control Tron2 and Revo3 reliably.
+4. **Robot SDK / Hardware Interface:** Control Tron2 reliably.
 5. **Sim2Real deployment:** Transfer policies trained in Isaac Lab / MuJoCo to a physical closed-loop system.
 
 **The goal is not to put more ROS into training. It is to build an observable, reproducible, maintainable sensor -> policy -> controller -> robot pipeline.**

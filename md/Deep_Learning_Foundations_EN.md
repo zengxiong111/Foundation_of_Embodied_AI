@@ -40,7 +40,7 @@ lang: en
 
 ### 1.1 Learn a conditional mapping, not merely the next word
 
-At physical time $t$, let $o_t$ denote visual observations, $q_t$ denote proprioception (joint position, velocity, gripper or dexterous-hand state), and $g$ denote the task condition. A minimal policy is
+At physical time $t$, let $o_t$ denote visual observations, $q_t$ denote proprioception (joint position, velocity, gripper state), and $g$ denote the task condition. A minimal policy is
 
 $$
 \hat a_t=f_\theta(o_t,q_t,g),\qquad
@@ -386,7 +386,7 @@ Here $v_\theta$ is a **generative velocity field** and $\tau$ is artificial samp
 
 ### 6.3 The network cannot guess an incorrectly specified action interface
 
-Robot execution time, camera sampling time, inference time, and future action horizon are different quantities. If a policy predicts an end-effector displacement $\Delta x$, deployment must not interpret it as an absolute pose $x$. For dexterous hands, desired actuator positions, measured joint angles, current/tactile signals, and physical contact must also be distinguished. **A neural architecture learns only within the input, label, and control contracts provided to it.**
+Robot execution time, camera sampling time, inference time, and future action horizon are different quantities. If a policy predicts an end-effector displacement $\Delta x$, deployment must not interpret it as an absolute pose $x$. **A neural architecture learns only within the input, label, and control contracts provided to it.**
 
 <a id="deep-section-07"></a>
 

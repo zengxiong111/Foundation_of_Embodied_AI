@@ -417,7 +417,7 @@ $$
 \max_{a'\in\mathcal A}Q_\phi(s',a').
 $$
 
-对离散动作可以枚举；对机器人 $a\in\mathbb R^d$（例如机械臂与灵巧手的多个关节目标或力矩），高维动作很难枚举，而且 $Q_\phi(s,a)$ 往往非凸。每个 TD Target 都重新做一个高维内层优化，通常计算昂贵且可能陷入局部极值。
+对离散动作可以枚举；对机器人 $a\in\mathbb R^d$（例如机械臂的多个关节目标或力矩），高维动作很难枚举，而且 $Q_\phi(s,a)$ 往往非凸。每个 TD Target 都重新做一个高维内层优化，通常计算昂贵且可能陷入局部极值。
 
 <a id="course-section-26"></a>
 
@@ -961,7 +961,7 @@ $$
 (\log\pi_\theta(a\mid s)+\mathcal H_{\mathrm{target}})\right].}
 $$
 
-更新温度时必须将 $\log\pi_\theta$ 视为常数（停止梯度），否则温度损失可能意外更新 Actor。常见启发式 $\mathcal H_{\mathrm{target}}=-d$（对 $d$ 维归一化动作）**不是定理**；高维灵巧手、动作相关维度和动作约束场景应审慎解释。
+更新温度时必须将 $\log\pi_\theta$ 视为常数（停止梯度），否则温度损失可能意外更新 Actor。常见启发式 $\mathcal H_{\mathrm{target}}=-d$（对 $d$ 维归一化动作）**不是定理**；动作相关维度和动作约束场景应审慎解释。
 
 <a id="course-section-58"></a>
 
@@ -1072,7 +1072,7 @@ PPO 的常用策略更新方向由 $\nabla_\theta\log\pi_\theta(a\mid s)\,\hat A
 
 ### 15.1 为什么机器人任务特别需要重视 Q 外推？
 
-机械臂、灵巧手操作往往有接触模式切换、强非线性、稀疏奖励、视觉状态误差与动作边界。Replay Buffer 缺少某些接触状态或恢复动作时，Critic 可以在未覆盖区域给出很高的错误值；Actor 梯度会主动寻找这些错误高值区域，从而形成 **Actor–Critic Feedback Loop**。双 Q 只缓解部分高估，不能替代状态动作覆盖、奖励检查、安全约束与在线分布监测。
+机械臂操作往往有接触模式切换、强非线性、稀疏奖励、视觉状态误差与动作边界。Replay Buffer 缺少某些接触状态或恢复动作时，Critic 可以在未覆盖区域给出很高的错误值；Actor 梯度会主动寻找这些错误高值区域，从而形成 **Actor–Critic Feedback Loop**。双 Q 只缓解部分高估，不能替代状态动作覆盖、奖励检查、安全约束与在线分布监测。
 
 <a id="course-section-67"></a>
 

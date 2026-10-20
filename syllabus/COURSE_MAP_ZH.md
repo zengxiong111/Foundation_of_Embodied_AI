@@ -83,7 +83,7 @@ flowchart LR
 
 ### 7. Isaac / MuJoCo 仿真
 
-[Isaac / MuJoCo 仿真](../md/Isaac_MuJoCo_RL_完整教程_中文.md)：理解 Isaac Sim、Isaac Lab 与 MuJoCo 作为仿真和训练工具的分工，学习资产导入、环境契约、强化学习训练库选择、并行吞吐率、部署接口及 Tron2 + Revo3 场景案例。
+[Isaac / MuJoCo 仿真](../md/Isaac_MuJoCo_RL_完整教程_中文.md)：理解 Isaac Sim、Isaac Lab 与 MuJoCo 作为仿真和训练工具的分工，学习资产导入、环境契约、强化学习训练库选择、并行吞吐率、部署接口。
 
 ### 8. 运动控制强化学习
 

@@ -61,10 +61,9 @@
   - [8.2 真机部署需要连接各个模块](#course-section-44)
   - [8.3 Sim2Real 最关键的是接口语义一致](#course-section-45)
   - [8.4 控制频率与延迟](#course-section-46)
-- [九、Tron2 + Revo3 灵巧操作项目架构](#course-section-47)
+- [九、Tron2 项目架构](#course-section-47)
   - [9.1 推荐节点与信息流](#course-section-48)
   - [9.2 推荐 Workspace 组织](#course-section-49)
-  - [9.3 机械臂与灵巧手的动作分发](#course-section-50)
   - [9.4 FoundationPose 的 ROS 接入](#course-section-51)
 - [十、机器人学习中的 ROS 常见问题](#course-section-52)
   - [10.1 ROS 2 与 Conda 的关系](#course-section-53)
@@ -92,20 +91,20 @@ flowchart LR
 
 ROS（Robot Operating System）虽然叫“机器人操作系统”，但并不是 Ubuntu、Windows 这样的传统操作系统。它是机器人软件开发框架及其生态系统，核心作用是让机器人中的不同软件模块通信、共享数据并协作运行。
 
-一套机器人通常包含相机、机械臂、灵巧手、物体位姿估计器、神经网络策略和底层控制器。它们可能用不同语言开发、运行在不同进程中，甚至分布在不同计算机上。ROS 通过统一的消息、通信和工具链连接这些组件。
+一套机器人通常包含相机、机械臂、物体位姿估计器、神经网络策略和底层控制器。它们可能用不同语言开发、运行在不同进程中，甚至分布在不同计算机上。ROS 通过统一的消息、通信和工具链连接这些组件。
 
 <a id="course-section-03"></a>
 
 ### 1.2 一个典型的机器人学习系统
 
-假设 Tron2 + Revo3 需要完成“拿起螺丝刀并旋转”的任务，闭环结构如下：
+假设 Tron2 需要完成“拿起螺丝刀并旋转”的任务，闭环结构如下：
 
 ```text
                  真实机器人
                      │
           ┌──────────┴──────────┐
           ▼                     ▼
-     RGB-D / RGB 相机      机械臂 + 灵巧手
+     RGB-D / RGB 相机      机械臂
           │                     │
           ▼                     ▼
        图像数据                关节状态
@@ -124,7 +123,7 @@ ROS（Robot Operating System）虽然叫“机器人操作系统”，但并不�
                      ▼
              底层控制器 / SDK
                      ▼
-            机械臂 + 灵巧手执行
+            机械臂执行
                      └──→ 下一次观测
 ```
 
@@ -155,7 +154,7 @@ ROS（Robot Operating System）虽然叫“机器人操作系统”，但并不�
 | MuJoCo 中训练 SAC | 不需要 | 环境与算法可以在 Python 内交互 |
 | 离线训练 Diffusion Policy 或 VLA | 不需要 | 直接使用数据加载器和 PyTorch |
 | 使用机器人厂商 SDK 控制单台机械臂 | 不一定 | 可以直接调用 SDK |
-| 多相机 + 机械臂 + 灵巧手集成 | 推荐 | 方便模块解耦、监控和同步 |
+| 多相机 + 机械臂集成 | 推荐 | 方便模块解耦、监控和同步 |
 | 遥操作数据采集 | 推荐 | 方便多模态数据记录与回放 |
 | 强化学习策略真机部署 | 推荐但非必需 | 规范 Observation/Action 与设备接口 |
 | 多机器人或分布式系统 | 推荐 | 便于跨进程、跨计算机通信 |
@@ -275,7 +274,7 @@ velocity     # 关节速度
 effort       # 关节力矩或作用力
 ```
 
-Revo3 是否直接发布 `JointState`、各关节的名字与顺序是什么，需要由实际驱动或包装层确定。**不要只凭数组下标假定不同设备的关节顺序一致。**
+**不要只凭数组下标假定不同设备的关节顺序一致。**
 
 <a id="course-section-12"></a>
 
@@ -708,7 +707,7 @@ Sensor Callback → Observation Buffer
 
 ### 6.1 遥操作数据采集架构
 
-以 PICO 遥操作 Tron2 + Revo3 为例：
+以 PICO 遥操作 Tron2 为例：
 
 ```text
 人类操作员 / PICO / Glove
@@ -826,7 +825,7 @@ HDF5 / Parquet / LeRobot-compatible Dataset
 Policy Training
 ```
 
-示意频率（并非 Tron2 / Revo3 的设备规格）：
+示意频率（并非 Tron2 的设备规格）：
 
 | 模态 | 示例频率 |
 |---|---|
@@ -854,10 +853,6 @@ Tron2
  ├── Shoulder Joint
  ├── Elbow Joint
  ├── Wrist Joint
- └── Revo3 Hand
-      ├── Finger / Joint 1
-      ├── Finger / Joint 2
-      └── ...
 ```
 
 典型 XML 元素：
@@ -891,7 +886,7 @@ robot_state_publisher ← /joint_states
            RViz
 ```
 
-在 Tron2 项目中，这一流程适合检查机械臂末端、Revo3 手基座、头部相机及腕部相机的位置关系。URDF 外参错误不会被 TF2 自动修复。
+在 Tron2 项目中，这一流程适合检查机械臂末端、头部相机及腕部相机的位置关系。URDF 外参错误不会被 TF2 自动修复。
 
 <a id="course-section-40"></a>
 
@@ -944,7 +939,7 @@ sudo apt install \
 ros2 control list_controllers
 ```
 
-**重要：安装 ros2_control 本身不代表已经具备 Tron2 / Revo3 的硬件适配。** 必须找到兼容 Hardware Interface，或基于厂商 SDK 编写适配器。也可以在不使用 ros2_control 的情况下封装独立 ROS 2 驱动节点。
+**重要：安装 ros2_control 本身不代表已经具备 Tron2 的硬件适配。** 必须找到兼容 Hardware Interface，或基于厂商 SDK 编写适配器。也可以在不使用 ros2_control 的情况下封装独立 ROS 2 驱动节点。
 
 ---
 
@@ -1032,9 +1027,9 @@ Python 的 ROS 2 节点不是天然硬实时系统。为减少延迟与提高稳
 
 <a id="course-section-47"></a>
 
-## 九、Tron2 + Revo3 灵巧操作项目架构
+## 九、Tron2 项目架构
 
-任务：**机器人从桌面拿起螺丝刀，移动到指定位置，完成旋转。** 系统包含 Tron2、BrainCo Revo3、头部 RGB-D、腕部 RGB、FoundationPose 和 PPO/SAC 策略。
+任务：**机器人从桌面拿起螺丝刀，移动到指定位置，完成旋转。** 系统包含 Tron2、头部 RGB-D、腕部 RGB、FoundationPose 和 PPO/SAC 策略。
 
 <a id="course-section-48"></a>
 
@@ -1066,7 +1061,7 @@ Python 的 ROS 2 节点不是天然硬实时系统。为减少延迟与提高稳
                                 ▼
                        Robot Driver / SDK
                                 ▼
-                         Tron2 + Revo3
+                         Tron2
 ```
 
 <a id="course-section-49"></a>
@@ -1077,7 +1072,6 @@ Python 的 ROS 2 节点不是天然硬实时系统。为减少延迟与提高稳
 robot_learning_ws/
 └── src/
     ├── tron2_driver/
-    ├── revo3_driver/
     ├── camera_driver/
     ├── robot_description/
     ├── pose_estimation/
@@ -1089,29 +1083,6 @@ robot_learning_ws/
 ```
 
 这是建议的工程目录，不代表厂商提供同名官方 Package。如果厂商只提供 Python/C++ SDK，可以编写 ROS Wrapper 转换为统一的消息接口。
-
-<a id="course-section-50"></a>
-
-### 9.3 机械臂与灵巧手的动作分发
-
-联合策略可以输出：
-
-`a_t = [ a_t^arm, a_t^hand ]`
-
-其中机械臂动作维度为 `n_a`，灵巧手动作维度为 `n_h`。分发方案：
-
-```text
-          RL Policy
-              ▼
-           Action
-          ┌───┴───┐
-          ▼       ▼
-      Arm Cmd   Hand Cmd
-          ▼       ▼
-     Tron2 SDK  Revo3 SDK
-```
-
-可用两个独立命令 Topic，也可以定义统一 Robot Action 消息由一个控制节点分发。无论哪种方案，都需要明确两个设备的控制时钟、关节顺序、目标模式和异常处置。
 
 <a id="course-section-51"></a>
 
@@ -1210,14 +1181,14 @@ ROS 2 在机器人学习中的价值可以归为三类：
 |---|---|---|
 | **数据采集** | 采集与记录相机、机器人状态和遥操作动作 | BC、Diffusion Policy、VLA |
 | **策略部署** | 连接 Observation、Policy、Controller | PPO、SAC、Sim2Real |
-| **系统集成** | TF、硬件通信、可视化、诊断 | 灵巧操作、视觉闭环、真机实验 |
+| **系统集成** | TF、硬件通信、可视化、诊断 | 视觉闭环、真机实验 |
 
-对于 **Tron2 + Revo3**，最优先掌握的五项是：
+对于 **Tron2**，最优先掌握的五项是：
 
 1. **Topic + rclpy**：连接关节状态、相机与 RL 策略。
 2. **rosbag2**：采集遥操作数据，构建离线训练数据集。
 3. **TF2 + URDF**：管理头部相机、腕部相机、末端和物体坐标系。
-4. **Robot SDK / Hardware Interface**：可靠控制 Tron2 与 Revo3。
+4. **Robot SDK / Hardware Interface**：可靠控制 Tron2。
 5. **Sim2Real Deployment**：将 Isaac Lab / MuJoCo 中的策略转换为真机闭环控制。
 
 **最终目标不是“在训练中使用更多 ROS”，而是建立可观测、可复现、便于维护的“传感器 → 策略 → 控制器 → 机器人”系统。**

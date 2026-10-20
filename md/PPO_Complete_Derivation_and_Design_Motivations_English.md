@@ -231,8 +231,6 @@ $V^\pi(s)$ measures expected return when continuing with the current policy. $Q^
 - $A^\pi(s,a)<0$: the action is worse than average; it should become less likely.
 - $A^\pi(s,a)=0$: this estimate supplies no relative preference signal.
 
-**Robot grasping example.** At a given grasping state, suppose $V^\pi(s)=10$. Refining a finger contact has $Q=15$ and advantage $+5$; maintaining the current posture has $Q=10$ and advantage $0$; prematurely closing the fingers has $Q=3$ and advantage $-7$. Learning should reflect **relative quality**, not merely whether a reward is positive.
-
 Using the exact value baseline yields the advantage policy-gradient formula:
 
 $$
@@ -1070,7 +1068,7 @@ For an unclipped sample, gradient **ascent** on the policy objective multiplies 
 
 Two common continuous-control parameterizations are:
 
-1. **State-independent log standard deviation.** The network predicts $\mu_\theta(s)$, while trainable parameters $\eta_i$ supply one log standard deviation per action dimension. This is simple and common in locomotion and dexterous-control implementations.
+1. **State-independent log standard deviation.** The network predicts $\mu_\theta(s)$, while trainable parameters $\eta_i$ supply one log standard deviation per action dimension. This is simple and common in locomotion implementations.
 2. **State-dependent log standard deviation.** The network predicts both $\mu_\theta(s)$ and $\eta_\theta(s)$. This can be more expressive but has different stability considerations.
 
 Practical implementations may bound log standard deviations and monitor both entropy and executed control noise. Training typically samples stochastic actions; evaluation/deployment often uses the mean or another deterministic mapping, but PPO does not mathematically require this deployment convention. A tanh-squashed Gaussian requires consistently transformed log densities.
@@ -1093,7 +1091,7 @@ $$
 \boxed{a_t=a_t^{\mathrm{base}}+\Delta a_t}. \tag{46}
 $$
 
-The residual may adjust joint targets, velocities, end-effector pose, or finger closing actions. In a screwdriver grasp-and-rotation task, a base trajectory provides the broad motion while PPO residual actions compensate for contact-location errors, initial-pose perturbations, changes in friction, and slippage.
+The residual may adjust joint targets, velocities, end-effector pose.
 
 The ratio must correspond to the **residual action distribution**:
 

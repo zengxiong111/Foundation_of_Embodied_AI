@@ -69,7 +69,7 @@ lang: zh-CN
   - [12.3 实际抓取测试](#course-section-45)
 - [十三、常见问题与排查](#course-section-46)
 - [十四、推荐开源工具与官方资料](#course-section-47)
-- [十五、针对 Tron2 + Revo3 的实施路线](#course-section-48)
+- [十五、针对 Tron2 的实施路线](#course-section-48)
   - [阶段一：设备内参与深度检查](#course-section-49)
   - [阶段二：头部相机几何标定](#course-section-50)
   - [阶段三：腕部相机与 TCP](#course-section-51)
@@ -408,16 +408,6 @@ $$
 $$
 
 其中 ${}^B T_G(q_a)$ 来自 FK，${}^G T_{C_w}$ 由 Eye-in-Hand 标定。若腕相机安装在 `wrist_link` 而非用于运动学记录的 $G$ 坐标系，应使用一致的链接并正确组合固定变换。
-
-#### 更换 Revo3 灵巧手的影响
-
-必须区分
-
-$$
-{}^B T_G,\quad {}^G T_{C_w},\quad {}^G T_{\mathrm{TCP}}.
-$$
-
-第一项是机械臂末端位姿；第二项是腕部相机外参；第三项是 TCP 相对于末端的安装变换。更换灵巧手而**没有改变相机相对末端的安装位置**时，相机外参原则上仍有效，但 TCP 与指尖几何可能变化。若相机支架移动、末端坐标系定义改变或安装发生松动，应重新检查相机标定。
 
 <a id="course-section-20"></a>
 
@@ -902,7 +892,6 @@ $$
 | RGB 与深度图错位 | 对齐或帧模型错误 | 检查 alignment 和内参 |
 | 图像方向与机器人方向不一致 | optical frame 混用 | 检查 TF 坐标轴 |
 | 机器人运动时标定误差变大 | 图像与关节时间戳不一致 | 查询曝光时刻的 TF |
-| 更换灵巧手后抓取偏移 | TCP/法兰坐标变更 | 检查 ${}^G T_{\mathrm{TCP}}$ |
 | 仿真正常、真机失败 | 相机/动力学/控制存在 gap | 分别验证视觉与执行 |
 
 手眼采样的简单保守策略是：**运动到位 $\rightarrow$ 等待稳定 $\rightarrow$ 同时记录图像和对应机器人状态 $\rightarrow$ 保存样本**。这样可以减少运动模糊、时间偏移及末端弹性形变影响。
@@ -925,7 +914,7 @@ $$
 
 <a id="course-section-48"></a>
 
-## 十五、针对 Tron2 + Revo3 的实施路线
+## 十五、针对 Tron2 的实施路线
 
 建议分成四个阶段进行，避免一开始把所有误差来源混合在一起。
 
@@ -965,7 +954,6 @@ $$
 2. 保存末端 FK 与相机看到的板位姿；
 3. 运行 `calibrateHandEye()`；
 4. 用未见姿态验证固定目标板的一致性；
-5. 核对更换 Revo3 之后的工具坐标系和指尖几何。
 
 <a id="course-section-52"></a>
 
@@ -981,7 +969,7 @@ Head RGB-D / Wrist RGB
   -> Robot-base object pose
   -> Policy / grasp planner
   -> IK / control
-  -> Tron2 + Revo3
+  -> Tron2
   -> Visual feedback / replanning
 ```
 
@@ -1015,10 +1003,9 @@ $$
 - [ ] RGB-D 已对齐，且知道深度代表的轴向距离和尺度。
 - [ ] 对外参使用独立的多姿态数据验证，而非只看训练数据残差。
 - [ ] 动态实验时，图像与关节角/TF 时间戳严格对应。
-- [ ] 更换灵巧手后已核查 TCP 与指尖坐标。
 - [ ] 最终使用三维位置测试和真实抓取表现闭环验证。
 
-**对于 Tron2 操作系统，最值得优先掌握的是 OpenCV PnP、Hand-Eye Calibration、机器人 FK 和 ROS TF2。** 这四项结合起来，就能构建不依赖 Vicon、适合头部/腕部视觉感知与灵巧手闭环操作的相机标定基础设施。
+**对于 Tron2 操作系统，最值得优先掌握的是 OpenCV PnP、Hand-Eye Calibration、机器人 FK 和 ROS TF2。** 这四项结合起来，就能构建不依赖 Vicon、适合头部/腕部视觉感知的相机标定基础设施。
 
 ---
 

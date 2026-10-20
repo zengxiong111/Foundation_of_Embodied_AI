@@ -213,8 +213,8 @@
       "reviewed_at": "2026-10-19",
       "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDFs rebuilt with a shared academic cover and typography; teaching content retained. No independent training, simulation or robot validation.",
       "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 采用统一学术首页和字体重新排版，教学内容保持不变；未独立进行训练、仿真或真机验证。",
-      "versions_en": "No-code simulation and RL tooling guide: Isaac Lab 2.3.2 / Isaac Sim 5.1 and Lab 3.0 Early Access / Sim 6.1; MuJoCo/MJX/MJWarp; assets, environment contracts, library selection, throughput, calibration, Sim-to-Sim and a Tron2 + Revo3 asset/scene case.",
-      "versions_zh": "无代码仿真与 RL 工具指南：Isaac Lab 2.3.2 / Isaac Sim 5.1 与 Lab 3.0 Early Access / Sim 6.1；MuJoCo/MJX/MJWarp；资产、环境契约、训练库选择、吞吐率、标定、Sim-to-Sim 及 Tron2 + Revo3 资产与场景案例。",
+      "versions_en": "No-code simulation and RL tooling guide: Isaac Lab 2.3.2 / Isaac Sim 5.1 and Lab 3.0 Early Access / Sim 6.1; MuJoCo/MJX/MJWarp; assets, environment contracts, library selection, throughput, calibration, Sim-to-Sim.",
+      "versions_zh": "无代码仿真与 RL 工具指南：Isaac Lab 2.3.2 / Isaac Sim 5.1 与 Lab 3.0 Early Access / Sim 6.1；MuJoCo/MJX/MJWarp；资产、环境契约、训练库选择、吞吐率、标定、Sim-to-Sim。",
       "source_refs": [
         "isaac-sim/IsaacLab@v2.3.2",
         "isaac-sim/IsaacLab@release/3.0.0"
@@ -489,8 +489,8 @@
       "reviewed_at": "2026-10-19",
       "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDFs rebuilt with a shared academic cover and typography; teaching content retained. No independent training, simulation or robot validation.",
       "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 采用统一学术首页和字体重新排版，教学内容保持不变；未独立进行训练、仿真或真机验证。",
-      "versions_en": "Foundation models and agent harnesses; RAX Explore–Compile–Evaluate; ASPIRE trace repair; RPent toolkits, memory, Flash Mode and the RLinf data flywheel; model-driven robot workflows and a dexterous screwdriver case. No code listings or laboratory exercises.",
-      "versions_zh": "基础模型与 Agent Harness；RAX Explore–Compile–Evaluate；ASPIRE 轨迹修复；RPent 工具集、记忆、Flash Mode 与 RLinf 数据飞轮；模型驱动机器人工作流及灵巧手螺丝刀案例。不含代码清单或实验练习。",
+      "versions_en": "Foundation models and agent harnesses; RAX Explore–Compile–Evaluate; ASPIRE trace repair; RPent toolkits, memory, Flash Mode and the RLinf data flywheel; model-driven robot workflows. No code listings or laboratory exercises.",
+      "versions_zh": "基础模型与 Agent Harness；RAX Explore–Compile–Evaluate；ASPIRE 轨迹修复；RPent 工具集、记忆、Flash Mode 与 RLinf 数据飞轮；模型驱动机器人工作流。不含代码清单或实验练习。",
       "source_refs": [],
       "documents": {
         "zh": {

@@ -1070,7 +1070,7 @@ PPO typically uses $\nabla_\theta\log\pi_\theta(a\mid s)\,\hat A(s,a)$ along wit
 
 ### 15.1 Why critic extrapolation is especially important in manipulation
 
-Robot arms and dexterous hands involve mode-switching contacts, nonlinear dynamics, sparse rewards, estimation errors, and action saturation. If replay lacks some contact configurations or recovery motions, the critic may assign unrealistically high values to out-of-coverage actions. An actor that follows Q-gradients may then move toward precisely those spurious values, creating an **actor-critic feedback loop**. Twin critics mitigate part of this risk; they do not replace coverage analysis, safety constraints, reward checks, or monitoring of distribution shift.
+Robot arms involve mode-switching contacts, nonlinear dynamics, sparse rewards, estimation errors, and action saturation. If replay lacks some contact configurations or recovery motions, the critic may assign unrealistically high values to out-of-coverage actions. An actor that follows Q-gradients may then move toward precisely those spurious values, creating an **actor-critic feedback loop**. Twin critics mitigate part of this risk; they do not replace coverage analysis, safety constraints, reward checks, or monitoring of distribution shift.
 
 <a id="course-section-67"></a>
 

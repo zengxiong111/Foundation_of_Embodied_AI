@@ -99,7 +99,7 @@ $$
 x\sim p_{\mathrm{data}}(x).
 $$
 
-In image generation, $x$ represents an image; in video generation, it represents a video; in robot control, it may represent an **action chunk**; and in dexterous manipulation, it may represent a sequence of joint actions over several future timesteps.
+In image generation, $x$ represents an image; in video generation, it represents a video; in robot control, it may represent an **action chunk**.
 
 Our goal is to learn a generative model such that
 
@@ -1190,7 +1190,7 @@ $$
 v_\theta(A_t,t,o)\in\mathbb R^{50\times18}.
 $$
 
-This velocity describes how the entire **noisy action chunk** changes with generative time; it is not the physical joint velocity of the robot arm or dexterous hand.
+This velocity describes how the entire **noisy action chunk** changes with generative time; it is not the physical joint velocity of the robot arm.
 
 <a id="course-section-37"></a>
 

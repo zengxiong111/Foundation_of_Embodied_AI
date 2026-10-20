@@ -108,7 +108,7 @@ VLA 的典型路径为 $\text{image} + \text{language} + \text{robot state}\righ
 
 ### 3.2 怎样组织 SFT 数据
 
-示教样本除了 $(o_t,g_t,A_t)$，还应包含机器人构型、动作表达（关节/末端/手指）、归一化统计、采集频率、相机标定与时间戳。多任务 SFT 要合理平衡机器人、任务和成功/恢复轨迹；对真正需要闭环恢复的任务，**只看理想成功演示往往不够**。
+示教样本除了 $(o_t,g_t,A_t)$，还应包含机器人构型、动作表达（关节/末端）、归一化统计、采集频率、相机标定与时间戳。多任务 SFT 要合理平衡机器人、任务和成功/恢复轨迹；对真正需要闭环恢复的任务，**只看理想成功演示往往不够**。
 
 SFT 的常见训练路径是：**原始多模态数据 → 坐标与时间对齐 → 动作块监督 → 选定可训练层 → 独立闭环评估**。要将它与后续的 RL 相接，必须使 observation、action、reward、done、版本号等语义一致。SFT 的损失降低并不能替代真实成功率或接触安全的评估。
 
@@ -362,7 +362,7 @@ flowchart LR
 | [DSRL + 冻结 $\pi_0$](https://rlinf.readthedocs.io/en/latest/rst_source/examples/embodied/dsrl.html) | 冻结基础策略、训练噪声 Actor 的案例 | 新模型噪声接口无需改动 |
 | [SAC-Flow](https://rlinf.readthedocs.io/en/latest/rst_source/examples/embodied/sac_flow.html) | 专用 Flow Actor 的 SAC 更新 | 冻结 $\pi_{0.5}$ 使用 SAC 已验证 |
 | [RLT / RL Token](https://rlinf.readthedocs.io/en/latest/rst_source/examples/embodied/rlt.html) | 表示适配与轻量 Actor–Critic | 它是无须预处理的残差方法 |
-| [RLinf-USER 与真机指南](https://rlinf.readthedocs.io/en/latest/rst_source/guides/realworld_robot.html) | 异步、多机器人、真机数据工作流的部分案例 | 新机械臂/灵巧手已完成驱动和安全验证 |
+| [RLinf-USER 与真机指南](https://rlinf.readthedocs.io/en/latest/rst_source/guides/realworld_robot.html) | 异步、多机器人、真机数据工作流的部分案例 | 新机械臂已完成驱动和安全验证 |
 | [RTC](https://rlinf.readthedocs.io/en/latest/rst_source/guides/rtc.html) | 推理和动作执行重叠可降低等待 | 自动提供硬实时控制或安全保证 |
 | [Adding a Robot](https://rlinf.readthedocs.io/en/latest/rst_source/extending/new_robot.html) | 机器人适配接口和开发路径 | 任意厂商 SDK、坐标系与手部控制即插即用 |
 
@@ -398,7 +398,7 @@ RLinf 已包含 SFT 与多类 RL 工作流，不能声称“它只支持 RL”�
 
 ## 10. 真机部署与研究难题
 
-训练奖励不能替代执行时的安全约束；仿真和真实机器人交互必须区分；模型生成频率与底层伺服频率也必须分离。特别是“机械臂 + 灵巧手 + 头/腕相机”这种平台，需要同时处理：视觉/动作时间同步、手眼标定、末端与关节动作语义、Chunk 切换、手指电流或接触异常以及失败后恢复。
+训练奖励不能替代执行时的安全约束；仿真和真实机器人交互必须区分；模型生成频率与底层伺服频率也必须分离。
 
 | 风险层 | 需要独立验证的指标或机制 |
 |:---|:---|
