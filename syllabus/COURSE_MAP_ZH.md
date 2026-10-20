@@ -119,7 +119,7 @@ flowchart LR
 
 ### 16. 世界动作模型
 
-[世界动作模型](../md/World_Action_Models_ZH.md)：通过四类预测—动作耦合范式区分世界模型、VLA 与 WAM，学习训练数据与目标、显式想象和纯动作推理，以及机器人部署中的时延、接触与恢复约束。
+[世界动作模型](../md/World_Action_Models_ZH.md)：区分世界模型、VLA 与 WAM，学习 DreamZero 训练与加速推理、Dream-1 跨本体部署，以及 VLA/WAM 的显存、算力与时延权衡，连接接触控制、恢复与评估。
 
 ### 17. Robot Agent
 

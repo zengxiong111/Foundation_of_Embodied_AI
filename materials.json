@@ -445,11 +445,11 @@
       "id": "world-action",
       "title_en": "World Action Models",
       "title_zh": "世界动作模型",
-      "reviewed_at": "2026-10-19",
+      "reviewed_at": "2026-10-20",
       "review_scope_en": "Supplied bilingual notes integrated; PDFs rebuilt with the shared academic cover and typography. Teaching content retained; no independent model training, benchmarks or robot validation.",
       "review_scope_zh": "整合用户提供的中英文讲义，PDF 按统一学术首页和字体重新排版。保留教学内容；未独立进行模型训练、基准或真机验证。",
-      "versions_en": "World models, VLAs and WAMs; four prediction–action coupling paradigms; training data, predictive and action objectives, adaptation and optional RL; explicit imagination, joint video-action and action-only inference; latency, contact, recovery and evaluation.",
-      "versions_zh": "世界模型、VLA 与 WAM；四类预测—动作耦合范式；训练数据、预测与动作目标、适配及可选 RL；显式想象、视频动作联合及纯动作推理；时延、接触、恢复与评估。",
+      "versions_en": "World models and WAMs; DreamZero training and DreamZero-Flash inference; Dream-1 cross-embodiment interfaces; VLA/WAM memory, compute, latency and deployment comparisons; contact-rich control and evaluation.",
+      "versions_zh": "世界模型与 WAM；DreamZero 训练与 DreamZero-Flash 推理；Dream-1 跨本体接口；VLA/WAM 显存、算力、时延与部署比较；接触控制与评估。",
       "source_refs": [],
       "documents": {
         "en": {

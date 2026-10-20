@@ -119,7 +119,7 @@ flowchart LR
 
 ### 16. World Action Models
 
-[World Action Models](../md/World_Action_Models_EN.md) — Distinguish world models, VLAs and WAMs through four prediction–action coupling paradigms. Study training data and objectives, explicit imagination versus action-only inference, and latency, contact and recovery constraints in robot deployment.
+[World Action Models](../md/World_Action_Models_EN.md) — Distinguish world models, VLAs and WAMs, then study DreamZero training and accelerated inference, Dream-1 cross-embodiment deployment, and VLA/WAM memory, compute and latency trade-offs. Connect these methods to contact-rich control, recovery and evaluation.
 
 ### 17. Robot Agents
 
