@@ -1,7 +1,6 @@
 ---
 title: "Efficient Training and Real-Time Inference for Embodied Foundation Models"
 subtitle: "From Transformer Optimization to Closed-Loop VLA / WAM Robot Execution"
-author: "Foundation of Embodied AI · Xiong Zeng and contributors"
 date: "2026-10-20"
 lang: en-US
 ---

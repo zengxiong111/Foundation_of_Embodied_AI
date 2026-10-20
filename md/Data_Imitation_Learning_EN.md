@@ -1,7 +1,6 @@
 ---
 title: "Robot Imitation Learning: BC, DAgger, ACT, and RTC"
 subtitle: "From Supervised Policies to Generative Action Chunks and Real-Time Execution"
-author: "Foundation of Embodied AI · Xiong Zeng and contributors"
 date: "2026-10-18"
 lang: en-US
 ---
@@ -404,4 +403,4 @@ RTC does **not** eliminate the underlying sensing-to-action latency. It helps a 
 
 ---
 
-*Attribution and scope: Adapted and reorganized from the Foundation of Embodied AI course notes “Data Collection and Imitation Learning.” The former independent chapters 1, 2, 6, and 7 were removed; essential material on action semantics and corrective labeling has been integrated into the main three chapters. Original instructional content: CC BY 4.0, Xiong Zeng and contributors. Third-party works retain their licenses. No experimental or robot-runtime validation is claimed.*
+*Attribution and scope: Adapted and reorganized from the Foundation of Embodied AI course notes “Data Collection and Imitation Learning.” The former independent chapters 1, 2, 6, and 7 were removed; essential material on action semantics and corrective labeling has been integrated into the main three chapters. Original instructional content: CC BY 4.0. Third-party works retain their licenses. No experimental or robot-runtime validation is claimed.*

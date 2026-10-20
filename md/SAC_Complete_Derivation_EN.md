@@ -1,7 +1,6 @@
 ---
 title: "From Q-learning to Soft Actor-Critic: A Complete Derivation"
 subtitle: "Bellman optimality, temporal differences, DQN, maximum-entropy policy iteration, and continuous robot control"
-author: "Foundation of Embodied AI · Revised Lecture Notes"
 date: "2026-10-18"
 lang: en-US
 toc-title: "Contents"

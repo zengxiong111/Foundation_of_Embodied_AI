@@ -1,7 +1,6 @@
 ---
 title: "具身基础模型的高效训练与实时推理"
 subtitle: "从 Transformer 优化到 VLA / WAM 机器人闭环执行"
-author: "Foundation of Embodied AI · Xiong Zeng and contributors"
 date: "2026-10-20"
 lang: zh-CN
 ---

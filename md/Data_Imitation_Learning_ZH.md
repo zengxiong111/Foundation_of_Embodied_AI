@@ -1,7 +1,6 @@
 ---
 title: "机器人模仿学习：BC、DAgger、ACT 与 RTC"
 subtitle: "从监督学习到生成式动作块与实时连续执行"
-author: "Foundation of Embodied AI · Xiong Zeng and contributors"
 date: "2026-10-18"
 lang: zh-CN
 ---
@@ -404,4 +403,4 @@ $$
 
 ---
 
-*来源与许可：基于 Foundation of Embodied AI 原《数据采集与模仿学习》讲义重构，删去了原第 1、2、6、7 章的独立框架，并将动作语义、纠错示教等必要概念并入核心章节。原创内容 CC BY 4.0 · Xiong Zeng and contributors；第三方论文及图文仍适用各自许可。本讲义不包含实验和已运行验证的声明。*
+*来源与许可：基于 Foundation of Embodied AI 原《数据采集与模仿学习》讲义重构，删去了原第 1、2、6、7 章的独立框架，并将动作语义、纠错示教等必要概念并入核心章节。原创内容 CC BY 4.0；第三方论文及图文仍适用各自许可。本讲义不包含实验和已运行验证的声明。*

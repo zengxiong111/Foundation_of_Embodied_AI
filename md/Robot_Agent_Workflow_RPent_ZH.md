@@ -2,7 +2,6 @@
 
 [课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English Markdown](Robot_Agent_Workflow_RPent_EN.md) · [中文版 PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_ZH.pdf)
 
-**Foundation of Embodied AI · 课程讲义（修订教学版）**  
 *从基础模型、在线探索到可组合的 Robot Agent 系统与可靠部署*  
 **修订日期：2026 年 10 月 19 日**
 
@@ -417,4 +416,4 @@ flowchart TB
 15. **RPent 机器人接口**：[添加机器人或仿真环境](https://rpent.readthedocs.io/zh-cn/latest/rst_source/development/add_robot.html)。
 16. **RPent Planner**：[规划器配置](https://rpent.readthedocs.io/zh-cn/latest/rst_source/guides/configure_planner.html)。
 
-*来源与许可：改编自 Xiong Zeng 等人的 Foundation of Embodied AI 课程材料（CC BY 4.0）；统一架构与螺丝刀案例仅供教学。*
+*来源与许可：改编自 Foundation of Embodied AI 课程材料（CC BY 4.0）；统一架构与螺丝刀案例仅供教学。*

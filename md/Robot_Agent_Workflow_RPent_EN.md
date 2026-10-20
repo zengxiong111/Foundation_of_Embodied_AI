@@ -2,7 +2,6 @@
 
 [Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [中文 Markdown](Robot_Agent_Workflow_RPent_ZH.md) · [English PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_EN.pdf)
 
-**Foundation of Embodied AI · Revised course notes**  
 *From foundation models and online exploration to composable agent systems and reliable execution*  
 **Revision: October 19, 2026**
 
@@ -417,4 +416,4 @@ This is an **engineering recommendation**, not a universal data structure prescr
 15. **RPent robot integration:** [Add a Robot or Simulator](https://rpent.readthedocs.io/en/latest/rst_source/development/add_robot.html).
 16. **RPent planners:** [Configuring the Planner](https://rpent.readthedocs.io/en/latest/rst_source/guides/configure_planner.html).
 
-*Attribution and scope: Revised from the Foundation of Embodied AI original course notes (CC BY 4.0; Xiong Zeng and contributors) and organized with the public resources above. Paper-supported mechanisms are distinguished from teaching reference architectures and the illustrative screwdriver case. No hardware performance guarantee is implied.*
+*Attribution and scope: Revised from the Foundation of Embodied AI original course notes (CC BY 4.0) and organized with the public resources above. Paper-supported mechanisms are distinguished from teaching reference architectures and the illustrative screwdriver case. No hardware performance guarantee is implied.*

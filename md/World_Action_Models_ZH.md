@@ -1,7 +1,6 @@
 ---
 title: "具身智能中的世界模型与世界动作模型：训练、推理与部署"
 subtitle: "从 DreamZero、Dream-1 到 VLA/WAM 算力比较：训练、推理与跨本体迁移"
-author: "Foundation of Embodied AI · 教学讲义"
 date: "2026-10-20"
 lang: zh-CN
 toc: true

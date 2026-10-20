@@ -1,7 +1,6 @@
 ---
 title: "从 Q-learning 到 Soft Actor-Critic：完整推导与设计动机"
 subtitle: "Bellman 最优性、TD、DQN、最大熵策略迭代与连续机器人控制"
-author: "Foundation of Embodied AI · 教学讲义（修订版）"
 date: "2026-10-18"
 lang: zh-CN
 toc-title: "目录"

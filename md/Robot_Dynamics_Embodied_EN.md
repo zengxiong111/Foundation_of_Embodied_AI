@@ -1,7 +1,6 @@
 ---
 title: "Robot Dynamics for Embodied Intelligence"
 subtitle: "From Joint Actions to Contact-Rich Manipulation | MuJoCo and NVIDIA Isaac Sim / Isaac Lab | Code-Free Edition"
-author: "An independent tutorial based on MEE5114, Modern Robotics, and official simulator documentation"
 date: "October 2026 · Revised Edition"
 lang: en-US
 ---

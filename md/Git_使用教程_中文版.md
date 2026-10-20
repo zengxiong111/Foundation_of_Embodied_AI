@@ -1,6 +1,5 @@
 ---
 title: Git 使用教程：30 分钟必学与科研进阶参考
-author: 技术教程
 language: zh-CN
 updated: 2026-10-18
 ---

@@ -1,7 +1,6 @@
 ---
 title: "Flow Matching：从数学原理到完整推导"
 subtitle: "逐步理解速度场、连续性方程、条件流匹配及机器人动作生成"
-author: "技术学习笔记"
 date: "2026年10月"
 lang: zh-CN
 ---

@@ -1,7 +1,6 @@
 ---
 title: "机器人动力学：面向具身智能的理论与仿真实践"
 subtitle: "从关节动作到接触操作｜MuJoCo 与 NVIDIA Isaac Sim / Isaac Lab｜无代码版"
-author: "基于 MEE5114、Modern Robotics 及官方仿真资料整理"
 date: "2026 年 10 月 · 修订版"
 lang: zh-CN
 ---

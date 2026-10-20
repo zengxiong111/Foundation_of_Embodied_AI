@@ -1,7 +1,6 @@
 ---
 title: "Reinforcement Learning for Motion Control in Embodied AI: A Complete Tutorial"
 subtitle: "Motion Tracking, Residual RL, Teacher–Student Learning, Universal Control, and Sim-to-Real"
-author: "Technical Tutorial"
 date: "2026-10-19"
 lang: en-US
 ---

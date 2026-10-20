@@ -1,6 +1,5 @@
 ---
 title: "Git Tutorial: 30-Minute Essentials and Research Reference"
-author: Technical Tutorial
 language: en
 updated: 2026-10-18
 ---

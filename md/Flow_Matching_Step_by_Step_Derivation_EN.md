@@ -1,7 +1,6 @@
 ---
 title: "Flow Matching: A Step-by-Step Mathematical Derivation"
 subtitle: "Understanding velocity fields, continuity equations, conditional flow matching, and robotic action generation"
-author: "Technical Study Notes"
 date: "October 2026"
 lang: en-US
 toc: true

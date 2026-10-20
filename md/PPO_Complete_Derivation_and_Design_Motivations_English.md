@@ -2,7 +2,6 @@
 ---
 title: "PPO: A Complete Derivation and Its Design Motivations"
 subtitle: "Including How Actors and Critics Learn: From Policy Gradients, PPO-Clip, and GAE to Robot Control"
-author: "Reinforcement Learning Research Tutorial"
 date: "October 18, 2026"
 lang: en-US
 ---
@@ -1348,5 +1347,5 @@ $$
 
 ---
 
-**Copyright and license:** Xiong Zeng and contributors. CC BY 4.0.  
+**Copyright and license:** CC BY 4.0.  
 **Code note:** Code fragments illustrate algorithmic mechanisms; they have not been validated as end-to-end training scripts.

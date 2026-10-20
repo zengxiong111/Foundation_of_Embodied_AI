@@ -1,7 +1,6 @@
 ---
 title: "具身智能中的运动控制强化学习：完整教程"
 subtitle: "Motion Tracking、Residual RL、Teacher–Student、通用运动控制与 Sim-to-Real"
-author: "技术教程"
 date: "2026-10-19"
 lang: zh-CN
 ---

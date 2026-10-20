@@ -1,7 +1,6 @@
 ---
 title: "World Models and World Action Models for Embodied AI"
 subtitle: "From DreamZero and Dream-1 to VLA/WAM Compute: Training, Inference, and Embodiment Transfer"
-author: "Foundation of Embodied AI · Lecture Notes"
 date: "2026-10-20"
 lang: en-US
 toc: true

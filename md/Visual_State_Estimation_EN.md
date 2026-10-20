@@ -2,7 +2,6 @@
 
 [Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Visual_State_Estimation_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Visual_State_Estimation_EN.pdf)
 
-*Foundation of Embodied AI · Expanded course notes · October 2026*
 
 >
 > **Scope:** conceptual mechanisms, inputs and outputs, usage workflows, model combinations, and limitations. Camera-calibration derivations, state-estimation filters, network training, code, and lab exercises are intentionally out of scope.
@@ -256,4 +255,4 @@ The robot should separately track whether the object is visible, the geometry is
 7. [Depth Anything 3 (ByteDance Seed, official model-family repository)](https://github.com/ByteDance-Seed/Depth-Anything-3).
 8. [Grounding DINO (IDEA-Research, official repository)](https://github.com/IDEA-Research/GroundingDINO).
 
-*Provenance: adapted from the Foundation of Embodied AI course's Visual Perception and State Estimation notes (Xiong Zeng and contributors, CC BY 4.0). Third-party models, code, weights, and materials retain their own licenses. Revised October 2026; always check the specific model version's official interfaces, licenses, and performance conditions.*
+*Provenance: adapted from the Foundation of Embodied AI course's Visual Perception and State Estimation notes (CC BY 4.0). Third-party models, code, weights, and materials retain their own licenses. Revised October 2026; always check the specific model version's official interfaces, licenses, and performance conditions.*

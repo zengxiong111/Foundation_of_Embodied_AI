@@ -1,7 +1,6 @@
 ---
 title: "Deep Learning Foundations for Embodied AI: From Gradient Descent to Transformers"
 subtitle: "Supervised Learning, Backpropagation, MLPs, Attention, and Robot Foundation Models"
-author: "Foundation of Embodied AI · Xiong Zeng and contributors"
 date: "2026-10-19"
 lang: en
 ---
@@ -10,7 +9,6 @@ lang: en
 
 [Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [中文 Markdown](Deep_Learning_Foundations_ZH.md) · [English PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Deep_Learning_Foundations_EN.pdf)
 
-**Foundation of Embodied AI · Course notes**  
 *Supervised learning, backpropagation, MLPs, Transformers, and robot policy networks*  
 **Updated: October 19, 2026**
 
@@ -516,4 +514,4 @@ After this course, follow two complementary paths in the repository. **Imitation
 9. Lipman et al. (2023), *Flow Matching for Generative Modeling*. [arXiv:2210.02747](https://arxiv.org/abs/2210.02747).
 10. Kim et al. (2024), *OpenVLA: An Open-Source Vision-Language-Action Model*. [arXiv:2406.09246](https://arxiv.org/abs/2406.09246).
 
-**Attribution and scope.** Foundation of Embodied AI · Xiong Zeng and contributors. Original instructional text is available under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Diagrams are conceptual, not official end-to-end architecture claims for a particular VLA. Papers and third-party projects retain their respective licenses.
+Original instructional text is available under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Diagrams are conceptual, not official end-to-end architecture claims for a particular VLA. Papers and third-party projects retain their respective licenses.

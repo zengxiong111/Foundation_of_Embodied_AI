@@ -2,7 +2,6 @@
 
 [课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Visual_State_Estimation_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Visual_State_Estimation_ZH.pdf)
 
-*Foundation of Embodied AI · 扩充版讲义 · 2026 年 10 月*
 
 >
 > **课程边界**：只讨论模型原理、输入输出、使用流程、组合策略和适用边界。不展开相机标定、复杂滤波推导、网络训练，不设置代码或实验章节。
@@ -256,4 +255,4 @@
 7. [Depth Anything 3（ByteDance Seed，官方仓库与模型家族）](https://github.com/ByteDance-Seed/Depth-Anything-3)。
 8. [Grounding DINO（IDEA-Research，官方仓库）](https://github.com/IDEA-Research/GroundingDINO)。
 
-*课程来源与署名：改写自《Foundation of Embodied AI》课程原有《视觉感知与状态估计》讲义（Xiong Zeng and contributors，CC BY 4.0）。第三方模型、代码、权重及资料遵循各自许可证。2026 年 10 月修订；具体模型接口、许可与性能请以使用版本的官方资料为准。*
+*课程来源与署名：改写自《Foundation of Embodied AI》课程原有《视觉感知与状态估计》讲义（CC BY 4.0）。第三方模型、代码、权重及资料遵循各自许可证。2026 年 10 月修订；具体模型接口、许可与性能请以使用版本的官方资料为准。*

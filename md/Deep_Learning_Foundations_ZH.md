@@ -1,7 +1,6 @@
 ---
 title: "具身智能中的深度学习基础：从梯度下降到 Transformer"
 subtitle: "监督学习、反向传播、MLP、注意力与机器人基础模型"
-author: "Foundation of Embodied AI · Xiong Zeng and contributors"
 date: "2026-10-19"
 lang: zh-CN
 ---
@@ -10,7 +9,6 @@ lang: zh-CN
 
 [课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [English Markdown](Deep_Learning_Foundations_EN.md) · [中文 PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Deep_Learning_Foundations_ZH.pdf)
 
-**Foundation of Embodied AI · 课程讲义**  
 *监督学习、反向传播、MLP、Transformer 与机器人策略网络*  
 **更新日期：2026 年 10 月 19 日**
 
@@ -514,4 +512,4 @@ KV Cache 可在**自回归生成**时复用历史 Token 的 Key/Value，减少�
 9. Lipman et al. (2023), *Flow Matching for Generative Modeling*. [arXiv:2210.02747](https://arxiv.org/abs/2210.02747).
 10. Kim et al. (2024), *OpenVLA: An Open-Source Vision-Language-Action Model*. [arXiv:2406.09246](https://arxiv.org/abs/2406.09246).
 
-**版权与定位：**Foundation of Embodied AI · Xiong Zeng and contributors，原创教学文字按 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 许可共享。示意图用于概念教学，并不表示某一特定 VLA 的完整官方架构；所引论文与第三方项目遵循各自许可。
+原创教学文字按 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 许可共享。示意图用于概念教学，并不表示某一特定 VLA 的完整官方架构；所引论文与第三方项目遵循各自许可。

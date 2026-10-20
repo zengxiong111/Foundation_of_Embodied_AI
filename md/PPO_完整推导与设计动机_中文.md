@@ -2,7 +2,6 @@
 ---
 title: "PPO 完整推导与设计动机"
 subtitle: "含 Actor 与 Critic 学习机制：从策略梯度、PPO-Clip、GAE 到机器人控制"
-author: "强化学习研究教程"
 date: "2026 年 10 月 18 日"
 lang: zh-CN
 toc-title: "目录"
@@ -1351,5 +1350,5 @@ $$
 
 ---
 
-**版权与许可**：Xiong Zeng and contributors，CC BY 4.0。  
+**版权与许可**：CC BY 4.0。  
 **代码说明**：代码片段仅用于解释算法机制，并非经过完整环境验证的可直接训练脚本。
