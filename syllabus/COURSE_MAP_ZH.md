@@ -99,7 +99,7 @@ flowchart LR
 
 ### 11. 模仿学习
 
-[模仿学习](../md/Data_Imitation_Learning_ZH.md)：介绍 BC、DAgger 与 ACT，理解扩散策略和流匹配的动作块生成，并学习时序集成、推理时与训练时 RTC。
+[模仿学习](../md/Data_Imitation_Learning_ZH.md)：介绍 BC、DAgger 与纠错示教，理解 ACT、扩散策略和流匹配的动作块生成；进一步学习 VLA 架构与动作监督、时序集成，以及推理时与训练时 RTC。
 
 ### 12. 流匹配
 

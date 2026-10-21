@@ -1,27 +1,35 @@
 ---
-title: "Robot Imitation Learning: BC, DAgger, ACT, and RTC"
-subtitle: "From Supervised Policies to Generative Action Chunks and Real-Time Execution"
-date: "2026-10-18"
+title: "Robot Imitation Learning: BC, DAgger, ACT, VLA, and RTC"
+subtitle: "From Supervised Policies to VLAs and Real-Time Action Execution"
+date: "2026-10-20"
 lang: en-US
 ---
 
-# Robot Imitation Learning: BC, DAgger, ACT, and RTC
+# Robot Imitation Learning: BC, DAgger, ACT, VLA, and RTC
 
-[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Data_Imitation_Learning_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Data_Imitation_Learning_EN.pdf)
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](Data_Imitation_Learning_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Data_Imitation_Learning_EN.pdf)
 
-**Scope.** These notes focus on the learning objectives of imitation learning, models that generate action chunks, and how to execute those chunks continuously under inference latency. Demonstration hardware, camera calibration, human-video retargeting, comprehensive deployment engineering, and hands-on experiments are not standalone topics here. Equations explain mechanisms and assumptions; not every equation reproduces a particular implementation line for line.
+| Item | Details |
+|---|---|
+| Topic | BC, DAgger, ACT, VLA and RTC |
+| Revision | 2026-10-21 |
+| License | CC BY 4.0 · Xiong Zeng and contributors |
 
-**Reading path.** Behavior cloning and covariate shift → DAgger and corrective supervision → ACT, diffusion, and flow matching → temporal ensembling → inference-time and training-time real-time chunking.
+**Scope.** These notes connect imitation-learning objectives, generative action-chunk policies, VLA action supervision, and continuous real-time execution under inference latency. Demonstration hardware, camera calibration, human-video retargeting, comprehensive deployment engineering, and hands-on experiments are not standalone topics here. Equations explain mechanisms and assumptions; not every equation reproduces a particular implementation line for line.
+
+**Reading path.** Behavior cloning and covariate shift → DAgger and corrective supervision → ACT, diffusion, and flow matching → VLA architectures and supervised action learning → temporal ensembling → inference-time and training-time real-time chunking.
 
 **Audience.** Researchers and graduate students working on robot manipulation, visuomotor policies, and the action heads of vision-language-action (VLA) models.
 
 <!-- toc:start -->
 ## Contents
 
-- [1. Foundations of Imitation Learning: BC and DAgger](#imitation-section-01)
-- [2. Action Chunks and Generative Imitation Learning](#imitation-section-02)
-- [3. Real-Time Action Chunk Execution and RTC](#imitation-section-03)
-- [References](#imitation-section-04)
+1. **[Foundations: BC and DAgger.](#imitation-section-01)** Policy interface, supervised objectives, multimodality, distribution shift, interactive labeling, and recovery.
+2. **[Action Chunks and Generative Imitation.](#imitation-section-02)** Chunk horizons, ACT, Diffusion Policy, Flow Matching, and algorithm selection.
+3. **[From Imitation Learning to VLA.](#imitation-section-03)** Multimodal architectures, action outputs, supervision, and representative models.
+4. **[Real-Time Chunk Execution and RTC.](#imitation-section-04)** Physical versus inference time, overlapping plans, inference-time guidance, and training-time conditioning.
+
+5. [References](#imitation-section-05)
 
 <!-- toc:end -->
 
@@ -92,7 +100,7 @@ There are several solutions: give the policy intent information or longer histor
 
 ### 1.4 Covariate shift and compounding errors
 
-BC is trained with states drawn from $d^{\pi_E}$ but deployed on $d^{\pi_\theta}$. A small reaching error may change contact, leading to slip, a different image, and additional errors. The policy can therefore fail closed-loop despite low held-out action regression error.
+BC is trained with states drawn from $d^{\pi_E}$ but deployed on $d^{\pi_\theta}$. A small reaching error may change fingertip contact, leading to slip, a different image, and additional errors. The policy can therefore fail closed-loop despite low held-out action regression error.
 
 A classic finite-horizon thought experiment assumes a probability $\epsilon$ of a *critical error* at an expert state. Once an early error sends the agent away from the expert trajectory, errors can compound over time. Under worst-case assumptions, accumulated cost can scale as
 
@@ -281,9 +289,90 @@ A model choice should start with four concrete questions: Are demonstrations mul
 
 <a id="imitation-section-03"></a>
 
-## 3. Real-Time Action Chunk Execution and RTC
+## 3. From Imitation Learning to Vision-Language-Action Models (VLA)
 
-### 3.1 Two clocks: physical control versus model inference
+### 3.1 What is a VLA? Learning actions conditioned on vision and language
+
+A **vision-language-action model (VLA)** typically maps visual observations, language instructions, and robot proprioception to executable actions. In the notation established above, a general action-chunk interface is
+
+$$
+A_t\sim p_\theta(\cdot\mid I_{\le t},q_{\le t},\ell,e),\qquad
+A_t=(a_{t\mid t},\ldots,a_{t+H-1\mid t}),
+$$
+
+where $I_{\le t}$ denotes camera observations, $q_{\le t}$ the robot's joint, end-effector, or hand history, $\ell$ a natural-language task instruction, and $e$ the robot embodiment and action-space specification. Not every VLA explicitly uses every listed condition or predicts $H>1$ actions. This equation defines the **interface between task conditions and executable action**, not a mandatory implementation for every architecture.
+
+The key distinction is one of abstraction. **BC is a supervised learning objective; DAgger is an interactive data-aggregation protocol; ACT, diffusion, and flow matching are ways to represent action distributions; VLA denotes a class of policies that connect multimodal representations to robot actions.** A VLA action module can still be trained by exactly the imitation-learning losses discussed in Chapters 1–2. Simply adding language input to a small BC policy does not establish the cross-task generalization of a foundation model: broad data, pretrained representations, and architecture matter.
+
+### 3.2 Architecture: connecting VLM representations to an action generator
+
+A common, but not universal, decomposition is
+
+$$
+Z_t=f_{\phi}(I_{\le t},\ell),\qquad
+A_t\sim p_{\psi}(\cdot\mid Z_t,q_{\le t},e).
+$$
+
+A vision-language encoder or backbone produces representations $Z_t$ of objects, scenes, and instructions. An action module conditions on those representations and proprioception to produce outputs in a specified robot action space. Modules may be jointly trained, frozen, or partially fine-tuned. Robot-specific decoding, command limits, and low-level controllers remain necessary: **understanding an instruction with a VLM is not equivalent to learning safe contacts or dexterous control**.
+
+Two common output interfaces reuse different ideas from Chapter 2:
+
+| Action interface | Supervision and output | Example | Main trade-off |
+|:--|:--|:--|:--|
+| Discrete action tokens | Quantize continuous controls and predict tokens autoregressively using cross-entropy | OpenVLA | Reuses language-model interfaces but introduces quantization and token-generation latency |
+| Continuous generative chunks | Generate $H$ real-valued actions conditioned on multimodal features, e.g. via flow matching | $\pi_0$, GR00T N1 | Natural for continuous high-dimensional control but adds generative compute and chunk-execution constraints |
+
+For a discretized expert-action sequence $z^E=(z_1^E,\ldots,z_M^E)$, an autoregressive objective is
+
+$$
+\mathcal L_{\rm token}=-\mathbb E_{\mathcal D_E}
+\sum_{j=1}^{M}\log p_\theta(z_j^E\mid z_{<j}^E,I,q,\ell,e).
+$$
+
+A continuous-action architecture can instead use the **flow-matching loss from Section 2.4**, with conditioning $h$ extended to $(Z_t,q_{\le t},e)$. These are **alternative architecture-specific losses**; one need not train both in a single VLA. Other action decoders are possible, so *VLA* does not mean *flow matching* by definition.
+
+### 3.3 From demonstrations to a VLA: pretraining, action supervision, adaptation
+
+A robot-supervision dataset can be expressed as
+
+$$
+\mathcal D_{\rm robot}=
+\{(I_{\le t}^{(i)},q_{\le t}^{(i)},\ell^{(i)},e_i,
+A_t^{E,(i)},m_i)\}_{i=1}^{N},
+$$
+
+where $m_i$ masks invalid time steps or action dimensions. **The language instruction must match the demonstrated behavior**, and every action must have a defined unit, frame, control rate, timestamp, and absolute/delta convention. Concatenating demonstrations from different robots with zero-padded action vectors does not automatically yield common action semantics: a given coordinate may refer to completely different joints, frames, or gripper commands. Cross-embodiment learning therefore requires embodiment identifiers, robot-specific encoders/decoders, or a demonstrably consistent shared action representation.
+
+A typical training story has three conceptual stages; individual papers may merge or reorder them:
+
+1. **Vision-language pretraining.** Learn semantic and instruction representations from image-text data. Robot action labels are not necessarily involved.
+2. **Robot-action supervision.** Learn an instruction-conditioned policy from diverse $(I,q,\ell,A^E)$ trajectories, using token likelihood for a discretized head or flow matching for a continuous generative head. With respect to robot actions, this is still a form of supervised behavior cloning.
+3. **Downstream robot adaptation.** Fine-tune a pretrained policy by supervised demonstrations (SFT) or collect additional corrective expert labels. Reinforcement learning may be beneficial for some tasks but is not a definitional prerequisite for VLA.
+
+It is important to distinguish **action supervision during foundation-model pretraining** from **SFT after a model has been pretrained**: the losses may look similar, but the initialization, data scale, and trainable parameters differ. A full treatment of VLA/WAM SFT and reinforcement-learning post-training belongs to the companion [Embodied Foundation Model Post-Training](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Embodied_Post_Training_EN.md) lecture.
+
+### 3.4 Understanding OpenVLA, $\pi_0$, and GR00T N1
+
+**OpenVLA** casts discretized robot actions as autoregressively predicted tokens, illustrating the **actions-as-predictable-token-sequences** approach. **$\pi_0$** combines a pretrained vision-language model with a flow-matching action expert, illustrating **semantic conditioning plus continuous, high-dimensional action generation**. **GR00T N1** couples a vision-language backbone to a generative action module and uses embodiment-dependent state/action interfaces, illustrating **robot-conditioned action representations**. Differences in data, action rates, embodiments, and benchmarks prevent a defensible universal ranking from isolated task success numbers.
+
+Architectural details and the connection to low-level control are treated in [GR00T and SONIC](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/System1_System0_GR00T_SONIC_EN.md). Models that explicitly learn future visual/world outcomes in addition to actions are compared with action-centric VLAs in [World Action Models](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/World_Action_Models_EN.md).
+
+### 3.5 How BC, DAgger, ACT, flow matching, and RTC fit together
+
+| System layer | Relevant concepts | Role in a VLA-based robot |
+|:--|:--|:--|
+| Learning objective and data protocol | BC, DAgger | Fit expert actions and, if necessary, add expert labels on learner-induced states |
+| Action representation and generator | Action chunking, ACT, diffusion, flow | Specify the action output interface and represent multiple feasible behaviors |
+| Multimodal policy architecture | VLA | Integrate visual, linguistic, proprioceptive, and action information into one policy |
+| Execution across time | Temporal ensembling, RTC | Avoid unnecessary pauses and reduce inconsistency between asynchronous chunks |
+
+Consequently, **VLA + flow matching + RTC** is a coherent system design: the three layers respectively address *which task is being commanded*, *how actions are generated*, and *how generated actions are executed on time*. A VLA may still suffer from covariate shift, hidden contact state, mismatched embodiment interfaces, or poor recovery after errors. A large vision-language backbone does not automatically eliminate those failure modes.
+
+<a id="imitation-section-04"></a>
+
+## 4. Real-Time Action Chunk Execution and RTC
+
+### 4.1 Two clocks: physical control versus model inference
 
 A robot executes actions on a **physical clock**, but diffusion and flow policies generate chunks on a **computation clock**. Let the low-level controller period be $\Delta t_c$ and the end-to-end time from an available observation to an executable new chunk be $T_{\rm lat}$. The corresponding delay in control steps is approximately
 
@@ -295,13 +384,13 @@ For example, a $20\,\mathrm{ms}$ control period and $110\,\mathrm{ms}$ end-to-en
 
 Keep three quantities separate: *prediction horizon* $H$, *nominal number of newly consumed actions per refresh* $K$, and *inference delay* $d$. A long prediction horizon does not guarantee uninterrupted operation if the prior chunk runs out while the next plan is still pending.
 
-### 3.2 Synchronous execution, naive asynchrony, and RTC
+### 4.2 Synchronous execution, naive asynchrony, and RTC
 
 A synchronous executor may pause or hold position while the next chunk is computed, causing visible discontinuities. A naive asynchronous executor keeps following the previous chunk during inference, but the next independently generated chunk may disagree at the handoff. ACT-style temporal ensembling blends predictions for the same time step; it does not require a newly generated plan to respect actions already committed during inference.
 
 Real-Time Chunking (RTC) addresses this mismatch: **while the old plan is being executed, the new chunk is generated consistently with the prefix already committed by that old plan.** The objective is no longer to average two arbitrary chunks after generation; it is to generate the new suffix under a continuity constraint.
 
-### 3.3 RTC timeline: committed prefix and free suffix
+### 4.3 RTC timeline: committed prefix and free suffix
 
 Suppose an old chunk starts at physical time $t-K$ and covers $[t-K,t-K+H)$. A new request is made at $t$ and is expected to finish at $t+d$. The robot must continue the old commands over the $d$ waiting steps. Relative to the new chunk's origin $t$, those commands form a committed prefix:
 
@@ -318,7 +407,7 @@ $$
 
 For an illustrative $H=16$, $K=6$, and $d=3$, the robot uses old-chunk indices $6,7,8$ at physical times $t,t+1,t+2$. The newly generated plan is ready at $t+3$, when its index $3$—not index $0$—is current. If actual latency exceeds the old chunk's remaining coverage, the system must lengthen its horizon, reduce refresh frequency, or use a safe low-level fallback. **RTC cannot invent unpredicted commands beyond its supported timing horizon.**
 
-### 3.4 Inference-Time RTC: conditional inpainting during generation
+### 4.4 Inference-Time RTC: conditional inpainting during generation
 
 [Real-Time Execution of Action Chunking Flow Policies](https://arxiv.org/abs/2506.07339) introduces an inference-time method for compatible pretrained diffusion/flow models. Let $Y_i$ be the previous chunk aligned to the physical timeline of the new request. Strong weights apply to the first $d$ committed actions; softer, decaying weights can extend beyond them to the remaining overlapping but not-yet-committed future:
 
@@ -349,7 +438,7 @@ $$
 
 The actual method uses more specific pseudoinverse guidance and stabilization. The expression above conveys the architecture of **base generative vector field plus terminal-consistency guidance**, not a full derivation of that particular algorithm. Computing gradients through the endpoint estimator generally requires vector-Jacobian products (VJPs) in the denoising/integration loop, increasing inference cost. The benefit is compatibility with existing suitable checkpoints; the limitations include guidance overhead, careful delay/mask settings, and generally approximate continuity. A standard deterministic ACT decoder cannot simply inherit this iterative flow guidance formula.
 
-### 3.5 Training-Time RTC: learn known-prefix to future-suffix conditioning
+### 4.5 Training-Time RTC: learn known-prefix to future-suffix conditioning
 
 [Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964) moves delay simulation and action-prefix conditioning to training. Given a demonstration chunk $A^E=(a_0^E,\ldots,a_{H-1}^E)$, choose a simulated delay prefix of length $d$; keep these first $d$ expert actions known and apply flow matching to the remaining suffix.
 
@@ -374,7 +463,7 @@ $$
 
 At runtime, supply the committed old-prefix actions, keep their token times at $r_i=1$, and integrate only the unknown suffix. Unlike inference-time guidance, this does not require an extra inpainting VJP at each sampling step. The trade-off is additional conditioning training or finetuning, plus a model representation that supports **per-action time inputs (or equivalent known-prefix masks)**. Performance under delays outside the training range is not automatic. Another potential shift remains: training prefixes are expert actions while deployment prefixes may be produced by the previous model chunk.
 
-### 3.6 Comparing inference-time and training-time RTC
+### 4.6 Comparing inference-time and training-time RTC
 
 | Dimension | Inference-Time RTC | Training-Time RTC |
 |:--|:--|:--|
@@ -386,11 +475,11 @@ At runtime, supply the committed old-prefix actions, keep their token times at $
 
 RTC does **not** eliminate the underlying sensing-to-action latency. It helps a robot continue moving during inference and reduces inconsistency across chunks. It does not guarantee safe contact forces, correct state estimation, recovery after object drops, or good actions on novel states. A small command increment is not proof of physical safety: low-level rate and torque constraints, collision checks, and a fallback for late or missing predictions remain essential.
 
-### 3.7 Concept map: separate the learning, generation, and execution layers
+### 4.7 Concept map: separate the learning, generation, and execution layers
 
-**BC** fits expert behavior by supervision. **DAgger** obtains additional expert labels at learner-induced states. **Action chunking** defines a sequence output of length $H$. **ACT** is a Transformer/CVAE implementation of a chunk policy. **Diffusion and flow** are alternative generative chunk distributions. **Temporal ensembling** combines multiple predictions for the same execution instant. **RTC** adds a committed-prefix consistency mechanism to asynchronous inference. These are complementary tools at different abstraction levels, not interchangeable names for a single algorithm.
+**BC** fits expert behavior by supervision. **DAgger** obtains additional expert labels at learner-induced states. **Action chunking** defines a sequence output of length $H$. **ACT** is a Transformer/CVAE implementation of a chunk policy. **Diffusion and flow** are alternative generative chunk distributions. **VLA** connects vision, language, and robot states to action predictions. **Temporal ensembling** combines multiple predictions for the same execution instant. **RTC** adds a committed-prefix consistency mechanism to asynchronous inference. These are complementary tools at different abstraction levels, not interchangeable names for a single algorithm.
 
-<a id="imitation-section-04"></a>
+<a id="imitation-section-05"></a>
 
 ## References
 
@@ -400,7 +489,10 @@ RTC does **not** eliminate the underlying sensing-to-action latency. It helps a 
 4. Lipman et al. [Flow Matching for Generative Modeling](https://arxiv.org/abs/2210.02747), 2023.
 5. Black, Galliker, and Levine. [Real-Time Execution of Action Chunking Flow Policies](https://arxiv.org/abs/2506.07339), 2025. (Inference-Time RTC)
 6. Black, Ren, Equi, and Levine. [Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964), 2025. (Training-Time RTC)
+7. Kim et al. [OpenVLA: An Open-Source Vision-Language-Action Model](https://arxiv.org/abs/2406.09246), 2024.
+8. Black et al. [$\pi_0$: A Vision-Language-Action Flow Model for General Robot Control](https://arxiv.org/abs/2410.24164), 2024.
+9. NVIDIA et al. [GR00T N1: An Open Foundation Model for Generalist Humanoid Robots](https://arxiv.org/abs/2503.14734), 2025.
 
 ---
 
-*Attribution and scope: Adapted and reorganized from the Foundation of Embodied AI course notes “Data Collection and Imitation Learning.” The former independent chapters 1, 2, 6, and 7 were removed; essential material on action semantics and corrective labeling has been integrated into the main three chapters. Original instructional content: CC BY 4.0. Third-party works retain their licenses. No experimental or robot-runtime validation is claimed.*
+*Attribution and scope: Adapted and reorganized from the Foundation of Embodied AI course notes “Data Collection and Imitation Learning.” The former independent chapters 1, 2, 6, and 7 were removed; essential material on action semantics and corrective labeling has been integrated into the main four chapters, including the bridge from imitation learning to VLA. Original instructional content: CC BY 4.0. Third-party works retain their licenses. No experimental or robot-runtime validation is claimed.*

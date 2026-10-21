@@ -8,7 +8,7 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 
 ## Course materials
 
-17 topics, 34 Markdown files and 34 PDFs. Use the links below to read or download. All PDFs use a shared academic layout; the first chapter starts on page 2.
+17 topics, 34 Markdown files and 34 PDFs. Use the links below to read or download. All PDFs use a shared academic layout; the first chapter starts on page 2. Imitation Learning covers BC, DAgger, generative action chunks, VLA action supervision and RTC.
 
 | Topic | Chinese Markdown | English Markdown | Chinese PDF | English PDF |
 |---|---|---|---|---|

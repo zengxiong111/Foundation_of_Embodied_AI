@@ -1,27 +1,35 @@
 ---
-title: "机器人模仿学习：BC、DAgger、ACT 与 RTC"
-subtitle: "从监督学习到生成式动作块与实时连续执行"
-date: "2026-10-18"
+title: "机器人模仿学习：BC、DAgger、ACT、VLA 与 RTC"
+subtitle: "从监督学习到 VLA 动作生成与实时连续执行"
+date: "2026-10-20"
 lang: zh-CN
 ---
 
-# 机器人模仿学习：BC、DAgger、ACT 与 RTC
+# 机器人模仿学习：BC、DAgger、ACT、VLA 与 RTC
 
-[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Data_Imitation_Learning_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Data_Imitation_Learning_ZH.pdf)
+[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [English](Data_Imitation_Learning_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Data_Imitation_Learning_ZH.pdf)
 
-**定位**：本讲义只讨论模仿学习算法、动作块建模和实时动作块执行。数据采集硬件、视频重定向、相机标定、完整部署流程和实验步骤不再独立成章。数学表达旨在解释方法及其假设，并非所有实现的逐行复刻。
+| 项目 | 说明 |
+|---|---|
+| 主题 | BC、DAgger、ACT、VLA 与 RTC |
+| 修订日期 | 2026-10-21 |
+| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-**阅读路线**：BC 的监督目标 → 分布偏移与 DAgger → ACT / Diffusion / Flow Matching → Temporal Ensembling → 推理时 RTC 与训练时 RTC。
+**定位**：本讲义讨论模仿学习算法、动作块建模、VLA 的动作监督训练与实时动作块执行。数据采集硬件、视频重定向、相机标定、完整部署流程和实验步骤不再独立成章。数学表达旨在解释方法及其假设，并非所有实现的逐行复刻。
+
+**阅读路线**：BC 的监督目标 → 分布偏移与 DAgger → ACT / Diffusion / Flow Matching → VLA 架构与动作监督 → Temporal Ensembling → 推理时 RTC 与训练时 RTC。
 
 **适用对象**：希望理解机器人操作策略、VLA 动作头和实时控制接口的研究者与研究生。
 
 <!-- toc:start -->
 ## 目录
 
-- [1. 模仿学习基础：BC 与 DAgger](#imitation-section-01)
-- [2. 动作块与生成式模仿学习](#imitation-section-02)
-- [3. 实时动作块执行与 RTC](#imitation-section-03)
-- [参考文献](#imitation-section-04)
+1. **[模仿学习基础：BC 与 DAgger](#imitation-section-01)**：任务定义；监督损失；多模态；分布偏移；DAgger；失败纠错。
+2. **[动作块与生成式模仿学习](#imitation-section-02)**：Action Chunking；ACT；Diffusion Policy；Flow Matching；方法选择。
+3. **[从模仿学习到 VLA](#imitation-section-03)**：架构；离散与连续动作输出；预训练与监督适配；代表模型。
+4. **[实时动作块执行与 RTC](#imitation-section-04)**：两条时间轴；异步执行；前缀一致性；Inference-Time RTC；Training-Time RTC。
+
+5. [参考文献](#imitation-section-05)
 
 <!-- toc:end -->
 
@@ -92,7 +100,7 @@ $$
 
 ### 1.4 Distribution Shift：为什么离线误差小仍会失败
 
-BC 的训练样本来自 $d^{\pi_E}$，但训练后的策略实际访问 $d^{\pi_\theta}$。一次小误差可能改变接触位置，使之后的图像、摩擦状态都偏离训练数据；后续预测会进一步失真。
+BC 的训练样本来自 $d^{\pi_E}$，但训练后的策略实际访问 $d^{\pi_\theta}$。一次小误差可能改变接触位置，使之后的图像、手指位姿和摩擦状态都偏离训练数据；后续预测会进一步失真。
 
 经典有限时域分析中的直观结论是：若在专家访问状态上的单步**关键错误概率**至多为 $\epsilon$，最坏情形下先前错误导致未来离轨的概率随时间积累，于是累计代价差可以呈现
 
@@ -281,9 +289,90 @@ $$
 
 <a id="imitation-section-03"></a>
 
-## 3. 实时动作块执行与 RTC
+## 3. 从模仿学习到视觉–语言–动作模型（VLA）
 
-### 3.1 两条时间轴：机器人控制周期与模型推理延迟
+### 3.1 VLA 是什么：在视觉和语言条件下学习机器人动作
+
+视觉–语言–动作模型（Vision-Language-Action Model, VLA）通常将**视觉观测、语言指令与机器人本体状态**映射为可执行动作。沿用前文的动作块记号，一种通用接口为
+
+$$
+A_t\sim p_\theta(\cdot\mid I_{\le t},q_{\le t},\ell,e),\qquad
+A_t=(a_{t\mid t},\ldots,a_{t+H-1\mid t}),
+$$
+
+其中 $I_{\le t}$ 为相机观测历史，$q_{\le t}$ 为关节、末端或手部本体反馈，$\ell$ 为自然语言任务指令，$e$ 标识机器人本体及其动作空间。并非每一种 VLA 都必须显式输入这四项，或者一次预测 $H>1$ 步；这个表达式说明**任务条件和可执行动作如何连接**，并不是对所有具体模型的统一实现要求。
+
+核心区别在于问题层次：**BC 是监督学习目标，DAgger 是交互式数据聚合协议，ACT / Diffusion / Flow 是动作分布的建模方法，而 VLA 是整合多模态表征与机器人动作预测的策略模型类别**。VLA 的动作模块经常仍使用前两章讨论的模仿学习损失。给 BC 增加一条语言输入不自动等于具备跨任务泛化能力的基础模型；泛化还依赖预训练、数据覆盖与模型设计。
+
+### 3.2 模型架构：VLM 表征与动作生成如何相连
+
+一种常见但并非唯一的设计可写成两步：
+
+$$
+Z_t=f_{\phi}(I_{\le t},\ell),\qquad
+A_t\sim p_{\psi}(\cdot\mid Z_t,q_{\le t},e).
+$$
+
+视觉编码器和语言模型提供场景、对象及指令的条件表征 $Z_t$；动作模块再利用本体状态产生面向某一种动作接口的预测。两部分可以联合训练，也可以冻结或部分微调视觉语言主干。动作必须经过机器人专用的表示转换、限幅和底层控制才能执行；**VLM 理解指令不等于它已经学会接触动力学或安全的手指控制**。
+
+VLA 的两个常见动作输出范式如下；它们继承的是第 2 章的不同建模思路。
+
+| 动作接口 | 如何训练与输出 | 代表性模型 | 主要权衡 |
+|:--|:--|:--|:--|
+| 离散动作 token | 将连续动作量化，作为序列预测；通过 token 交叉熵监督 | OpenVLA | 复用语言模型预测接口，但有量化误差和自回归延迟 |
+| 连续生成式动作块 | 以视觉语言表征为条件，使用 Flow Matching 等损失生成 $H$ 步连续动作 | $\pi_0$、GR00T N1 | 连续高维控制更自然，但需考虑生成计算和动作块执行时延 |
+
+对于离散动作序列 $z^E=(z_1^E,\ldots,z_M^E)$，自回归动作建模可使用
+
+$$
+\mathcal L_{\rm token}=-\mathbb E_{\mathcal D_E}
+\sum_{j=1}^{M}\log p_\theta(z_j^E\mid z_{<j}^E,I,q,\ell,e).
+$$
+
+对于连续动作块，$\mathcal L_{\rm FM}$ 则可直接使用第 2.4 节的目标，只需将其条件 $h$ 扩展为 $(Z_t,q_{\le t},e)$。**这两种损失是不同架构的替代选择，不要求在同一个 VLA 上同时采用。** 也存在其他动作解码设计，不能把「VLA」直接等同于「Flow Matching」。
+
+### 3.3 从示教数据到 VLA：预训练、动作监督与下游适配
+
+一条用于动作监督的样本可以组织为
+
+$$
+\mathcal D_{\rm robot}=
+\{(I_{\le t}^{(i)},q_{\le t}^{(i)},\ell^{(i)},e_i,
+A_t^{E,(i)},m_i)\}_{i=1}^{N},
+$$
+
+其中 $m_i$ 是时间步及动作维度的有效掩码。训练时必须保持**语言目标与实际轨迹一致**，并明确动作单位、坐标系、控制频率、时间戳和目标/增量定义。来自不同机器人的数据不能只在维度上补零就视为语义相同：同一数组位置可能表示不同关节、末端坐标或夹爪命令。跨本体训练需要本体标识、专用编码/解码器或统一且可验证的动作表示。
+
+典型训练路径可分为三个逻辑阶段，但各论文会合并或改变顺序：
+
+1. **视觉语言预训练**：利用图像文本知识获得对象、空间关系和指令表征；这一步不必具有机器人动作标签。
+2. **机器人动作监督训练**：使用多任务、多场景或多本体的 $(I,q,\ell,A^E)$ 数据学习条件动作策略；离散动作头可用 token 交叉熵，连续生成头可用 Flow Matching。就机器人动作监督而言，这仍属于广义的 BC。
+3. **下游任务适配**：用目标机器人示教进行监督微调（SFT），或引入新的纠错示教。是否需要后续强化学习取决于任务、模型与数据，不是成为 VLA 的必要条件。
+
+需要区分**预训练中的动作监督**与**在已有模型上进行 SFT 后训练**：二者可使用相似损失，但起点、数据规模和需要更新的参数不同。本讲只建立接口；具体的 VLA/WAM SFT、RL 目标留给[《具身基础模型后训练》](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Embodied_Post_Training_ZH.md)。
+
+### 3.4 三个代表性模型应该怎样理解
+
+**OpenVLA** 使用预训练视觉语言表征，把机器人动作离散化后交给自回归 token 预测，说明了**把动作视为语言模型可预测序列**的路线。**$\pi_0$** 在预训练 VLM 基础上采用连续动作的 Flow Matching 专家，说明了**语义表征 + 高维连续动作生成**的路线。**GR00T N1** 将视觉语言模块和生成式动作模块结合，并引入与本体相关的状态/动作接口，说明了**跨机器人条件化与分层动作表示**的路线。三者在数据、动作频率、机器人平台和评测任务上不同，不能只凭单个成功率判断孰优孰劣。
+
+这里无需重复 GR00T 的网络细节或完整训练配方；模型分层、状态动作编码和底层控制衔接见[《GR00T 与 SONIC》](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/System1_System0_GR00T_SONIC_CN.md)。相对于直接输出动作的 VLA，同时显式学习未来视觉/世界状态的 WAM 则在[《世界动作模型》](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/World_Action_Models_ZH.md)中比较。
+
+### 3.5 与 BC、DAgger、ACT、Flow Matching 和 RTC 的准确关系
+
+| 层次 | 对应概念 | 在 VLA 系统中的作用 |
+|:--|:--|:--|
+| 学习目标与数据协议 | BC、DAgger | 用专家动作训练；按需对策略访问的新状态补充纠错标签 |
+| 动作表征与生成器 | Action Chunking、ACT、Diffusion、Flow | 决定一次生成什么动作、如何表示多种合理动作 |
+| 多模态策略架构 | VLA | 将视觉、语言、本体状态和动作预测放入同一策略 |
+| 时序执行机制 | Temporal Ensembling、RTC | 缓解异步推理时动作块接续不平滑和等待问题 |
+
+因此，**「VLA + Flow Matching + RTC」完全可以是一条连贯的系统路线**，但它们分别回答「理解哪个任务」「怎样生成动作」和「生成结果如何准时执行」。VLA 仍可能遇到数据分布偏移、接触状态不可见、目标机器人动作接口不匹配及失败后无法恢复的问题；大型视觉语言主干本身不会自动解决这些问题。
+
+<a id="imitation-section-04"></a>
+
+## 4. 实时动作块执行与 RTC
+
+### 4.1 两条时间轴：机器人控制周期与模型推理延迟
 
 动作块沿**物理时间**执行，而 Diffusion/Flow 等模型沿**计算时间**生成新动作。设底层控制周期为 $\Delta t_c$，观测到新动作块返回的端到端延迟为 $T_{\rm lat}$：
 
@@ -295,13 +384,13 @@ $$
 
 **三个量切勿混淆**：预测长度 $H$、计划每次使用的长度 $K$ 和推理占用的控制周期 $d$。$H$ 再长也不能保证机器人在新块返回前永远有动作可执行。
 
-### 3.2 从同步执行、朴素异步到 RTC
+### 4.2 从同步执行、朴素异步到 RTC
 
 同步执行若需要停下来等待模型，容易出现速度停顿；朴素异步执行让机器人一边沿旧块运动、一边请求新块，但新旧轨迹可能在切换时跳变。ACT 的 Temporal Ensembling 可以平滑**针对同一时刻的预测**，却不保证新生成的动作块尊重推理期间已经承诺执行的旧动作。
 
 RTC（Real-Time Chunking）的主张是：**旧块在继续执行时，新块的生成应以已经承诺的动作前缀为条件**，再利用最新观测生成剩余自由后缀。这将问题从“两个独立块如何平均”转变为“有条件地生成连续的新块”。
 
-### 3.3 RTC 的时间几何：承诺前缀与自由后缀
+### 4.3 RTC 的时间几何：承诺前缀与自由后缀
 
 假设旧块从物理时刻 $t-K$ 开始，预测覆盖 $[t-K,t-K+H)$；时刻 $t$ 发起新推理，预计时刻 $t+d$ 收到结果。在这 $d$ 个控制步里，机器人必须继续执行旧块。因此新块以 $t$ 为原点的前 $d$ 项已经被旧计划占用：
 
@@ -318,7 +407,7 @@ $$
 
 示意：设 $H=16$、$K=6$、$d=3$。在 $t,t+1,t+2$ 执行旧块第 $6,7,8$ 项；新块直到 $t+3$ 才可用，从新块的第 $3$ 项继续执行，而不是把第 $0$ 项当作 $t+3$ 的控制量。若实际延迟超出旧块覆盖范围，必须安全减速/保持、使用独立后备控制器，或改用更长的预测/更低的更新频率，**RTC 不会凭空补全未知命令**。
 
-### 3.4 Inference-Time RTC：通过生成时 Inpainting 对齐旧计划
+### 4.4 Inference-Time RTC：通过生成时 Inpainting 对齐旧计划
 
 [Real-Time Execution of Action Chunking Flow Policies](https://arxiv.org/abs/2506.07339) 的推理时 RTC 允许不重新训练兼容的 diffusion/flow 策略。将旧块投影到新块的物理时间轴得到参考 $Y_i$；对等待期间已经承诺的前缀赋强权重，对其后仍有重叠的未来动作赋逐渐衰减的**软权重**：
 
@@ -349,7 +438,7 @@ $$
 
 原方法使用更具体的伪逆引导与稳定性处理；这里仅表达“**生成速度场 + 基于终点一致性的引导**”这一结构。梯度常需经向量-雅可比积（VJP）求出，给每个去噪/积分步引入额外计算。推理时 RTC 的优势是兼容已有模型；代价是引导计算、更复杂的延迟与掩码配置，以及一致性通常是近似而非任意精度硬保证。对不支持迭代生成/引导的普通 ACT 解码器，不应直接套用该公式。
 
-### 3.5 Training-Time RTC：在训练中学习“已知前缀 → 未来后缀”
+### 4.5 Training-Time RTC：在训练中学习“已知前缀 → 未来后缀”
 
 [Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964) 将延迟模拟移到训练阶段。对一条专家动作块 $A^E=(a_0^E,\ldots,a_{H-1}^E)$，随机选取模拟延迟前缀长度 $d$，使前 $d$ 项保持为已知动作，后续项作为需要生成的目标。
 
@@ -374,7 +463,7 @@ $$
 
 部署时输入当前已经承诺的前缀，使相应 token 的生成时间固定为 $1$，只积分生成未知后缀；不再在推理循环中为 inpainting 额外计算 VJP。训练时 RTC 的代价是需要相应训练/微调与**逐动作 token 的生成时间或等价的前缀掩码机制**，并且只对训练覆盖的延迟分布有可靠适应性。训练使用专家前缀而实际部署前缀来自旧模型输出时，仍可能出现新的前缀分布偏移。
 
-### 3.6 Inference-Time 与 Training-Time RTC 的适用边界
+### 4.6 Inference-Time 与 Training-Time RTC 的适用边界
 
 | 维度 | Inference-Time RTC | Training-Time RTC |
 |:--|:--|:--|
@@ -386,11 +475,11 @@ $$
 
 一个常见误解是“使用了 RTC 就消除了所有控制延迟”。实际上 RTC 解决的是**等待期间不暂停**与**新旧块的条件一致性**；输出可能仍基于延迟观测，物理接触、滑移、状态估计误差与策略分布外失败不会自动消失。命令变化小也不等于接触力安全；底层控制器仍须负责限幅、碰撞/力矩约束及推理超时的安全处理。
 
-### 3.7 关键概念辨析
+### 4.7 关键概念辨析
 
-**BC** 是监督拟合专家行为；**DAgger** 是从学习策略访问状态中获取新专家监督的协议；**Action Chunking** 指一次预测未来 $H$ 个动作；**ACT** 是 Transformer + CVAE 动作块策略；**Diffusion/Flow** 是两类生成式动作块模型；**Temporal Ensembling** 融合同一执行时刻的多次预测；**RTC** 在异步推理中保证新块尊重已承诺的旧动作前缀。这些方法属于不同层次，可组合而不能相互替代。
+**BC** 是监督拟合专家行为；**DAgger** 是从学习策略访问状态中获取新专家监督的协议；**Action Chunking** 指一次预测未来 $H$ 个动作；**ACT** 是 Transformer + CVAE 动作块策略；**Diffusion/Flow** 是两类生成式动作块模型；**VLA** 将视觉、语言与机器人状态条件化为动作预测；**Temporal Ensembling** 融合同一执行时刻的多次预测；**RTC** 在异步推理中保证新块尊重已承诺的旧动作前缀。这些方法属于不同层次，可组合而不能相互替代。
 
-<a id="imitation-section-04"></a>
+<a id="imitation-section-05"></a>
 
 ## 参考文献
 
@@ -400,7 +489,10 @@ $$
 4. Lipman et al. [Flow Matching for Generative Modeling](https://arxiv.org/abs/2210.02747), 2023.
 5. Black, Galliker, & Levine. [Real-Time Execution of Action Chunking Flow Policies](https://arxiv.org/abs/2506.07339), 2025. (Inference-Time RTC)
 6. Black, Ren, Equi, & Levine. [Training-Time Action Conditioning for Efficient Real-Time Chunking](https://arxiv.org/abs/2512.05964), 2025. (Training-Time RTC)
+7. Kim et al. [OpenVLA: An Open-Source Vision-Language-Action Model](https://arxiv.org/abs/2406.09246), 2024.
+8. Black et al. [$\pi_0$: A Vision-Language-Action Flow Model for General Robot Control](https://arxiv.org/abs/2410.24164), 2024.
+9. NVIDIA et al. [GR00T N1: An Open Foundation Model for Generalist Humanoid Robots](https://arxiv.org/abs/2503.14734), 2025.
 
 ---
 
-*来源与许可：基于 Foundation of Embodied AI 原《数据采集与模仿学习》讲义重构，删去了原第 1、2、6、7 章的独立框架，并将动作语义、纠错示教等必要概念并入核心章节。原创内容 CC BY 4.0；第三方论文及图文仍适用各自许可。本讲义不包含实验和已运行验证的声明。*
+*来源与许可：基于 Foundation of Embodied AI 原《数据采集与模仿学习》讲义重构，删去了原第 1、2、6、7 章的独立框架，并将动作语义、纠错示教与 VLA 基础连接到核心章节。原创内容 CC BY 4.0；第三方论文及图文仍适用各自许可。本讲义不包含实验和已运行验证的声明。*

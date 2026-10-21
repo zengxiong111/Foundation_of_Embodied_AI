@@ -314,12 +314,12 @@
     {
       "id": "data-imitation",
       "title_en": "Imitation Learning",
-      "title_zh": "Imitation Learning",
-      "reviewed_at": "2026-10-19",
+      "title_zh": "模仿学习",
+      "reviewed_at": "2026-10-21",
       "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDFs rebuilt with a shared academic cover and typography; teaching content retained. No tutorial runtime, training or hardware validation.",
       "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 采用统一学术首页和字体重新排版，教学内容保持不变；未进行教程环境、训练或硬件验证。",
-      "versions_en": "BC, DAgger, ACT, Diffusion Policy, Flow Matching, Temporal Ensembling, inference-time RTC and training-time RTC; no standalone data-collection, deployment or experimental chapters",
-      "versions_zh": "BC、DAgger、ACT、Diffusion Policy、Flow Matching、Temporal Ensembling、推理时 RTC 与训练时 RTC；不设独立数据采集、部署或实验章节",
+      "versions_en": "BC, DAgger, corrective demonstrations, ACT, Diffusion Policy, Flow Matching, VLA architectures and supervised action learning, temporal ensembling, inference-time RTC and training-time RTC",
+      "versions_zh": "BC、DAgger、纠错示教、ACT、扩散策略、流匹配、VLA 架构与动作监督学习、时序集成、推理时 RTC 与训练时 RTC",
       "source_refs": [],
       "documents": {
         "zh": {

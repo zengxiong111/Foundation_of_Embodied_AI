@@ -99,7 +99,7 @@ flowchart LR
 
 ### 11. Imitation Learning
 
-[Imitation Learning](../md/Data_Imitation_Learning_EN.md) — Introduce BC, DAgger and ACT, then connect Diffusion Policy and Flow Matching to action-chunk generation. Explain temporal ensembling and inference-time versus training-time RTC.
+[Imitation Learning](../md/Data_Imitation_Learning_EN.md) — Study BC, DAgger and corrective demonstrations, then connect ACT, Diffusion Policy and Flow Matching to action chunks. Explain VLA architectures and supervised action learning, temporal ensembling, and inference-time versus training-time RTC.
 
 ### 12. Flow Matching
 
