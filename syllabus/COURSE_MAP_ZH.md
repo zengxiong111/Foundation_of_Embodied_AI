@@ -4,6 +4,8 @@
 
 本课程按“工具 → 标定与深度学习 → 物理与视觉 → 机器人强化学习 → 示教与生成策略 → 系统集成”组织，共 17 个专题。原有长篇技术教程保留为深入阅读，不等于所有章节必须依次完成。
 
+教程编号 1–17 与 [README](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) 中的课程顺序一致。
+
 ## 目录
 
 - [六个学习模块](#map-section-01)
@@ -121,6 +123,6 @@ flowchart LR
 
 [后训练](../md/Embodied_Post_Training_ZH.md)：比较预训练 VLA 与 WAM 的监督微调和强化学习后训练，学习六类 VLA 强化学习路线、结合在线视频 SFT 与 Flow-SDE 的 WAM-RL，并联系行动者–评论家语义、RLinf 集成与机器人部署边界。
 
-### 17. 机器人智能体 / RPent
+### 17. 机器人智能体
 
-[机器人智能体 / RPent](../md/Robot_Agent_Workflow_RPent_ZH.md)：区分基础模型、编程智能体与智能体运行框架，将 RAX 探索、ASPIRE 轨迹修复及 RPent 工具集、记忆、Flash 模式和 RLinf 数据飞轮连接为可复用机器人工作流。
+[机器人智能体](../md/Robot_Agent_Workflow_RPent_ZH.md)：区分基础模型、编程智能体与智能体运行框架，将 RAX 探索、ASPIRE 轨迹修复及 RPent 工具集、记忆、Flash 模式和 RLinf 数据飞轮连接为可复用机器人工作流。

@@ -4,6 +4,8 @@
 
 Seventeen topics are organized as tools → calibration and deep learning → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
 
+Tutorial numbers 1–17 match the course order in the [README](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.md).
+
 ## Contents
 
 - [Six learning modules](#map-section-01)
@@ -121,6 +123,6 @@ flowchart LR
 
 [Post-training](../md/Embodied_Post_Training_EN.md) — Compare SFT and RL for pretrained VLA and WAM models. Study six VLA RL routes, WAM-RL with online video SFT and Flow-SDE, then connect actor–critic semantics, RLinf integration and robot deployment limits.
 
-### 17. Robot Agents / RPent
+### 17. Robot Agents
 
-[Robot Agents / RPent](../md/Robot_Agent_Workflow_RPent_EN.md) — Distinguish foundation models, coding agents and agent harnesses. Connect RAX exploration, ASPIRE trace repair and RPent toolkits, memory, Flash Mode and the RLinf data flywheel to reusable robot workflows.
+[Robot Agents](../md/Robot_Agent_Workflow_RPent_EN.md) — Distinguish foundation models, coding agents and agent harnesses. Connect RAX exploration, ASPIRE trace repair and RPent toolkits, memory, Flash Mode and the RLinf data flywheel to reusable robot workflows.
