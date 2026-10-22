@@ -97,7 +97,7 @@ flowchart LR
 
 ### 10. Q 学习 / SAC
 
-[Q 学习 / SAC](../md/SAC_Complete_Derivation_CN.md)：从 Q 学习、TD/SARSA 与 DQN 过渡到熵正则强化学习，推导软贝尔曼方程及现代 SAC 的双评论家、重参数化与自动熵调节。
+[Q 学习 / SAC](../md/SAC_Complete_Derivation_CN.md)：从 Bellman 方程、TD/Q-learning 与 Fitted Q-Iteration 连接 DQN 和连续动作行动者–评论家方法；推导现代 SAC 的 Critic、Actor 与温度损失，比较 PPO、DQN 和 SAC，并联系 HIL-SERL 与 VLA/WAM 动作块价值学习；数学细节放入附录。
 
 ### 11. 模仿学习
 

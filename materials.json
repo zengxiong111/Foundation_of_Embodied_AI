@@ -290,11 +290,11 @@
       "id": "sac",
       "title_en": "SAC",
       "title_zh": "SAC",
-      "reviewed_at": "2026-10-18",
-      "review_scope_en": "Document integration and rendering checks only; no training or robot validation. No experimental chapter is included.",
-      "review_scope_zh": "仅进行文档整合与排版检查；未进行训练或真机验证。不包含实验章节。",
-      "versions_en": "Q-learning, TD/SARSA, DQN, soft Bellman equations, modern SAC, twin critics, reparameterization and automatic entropy tuning; instructional pseudocode",
-      "versions_zh": "Q-learning、TD/SARSA、DQN、Soft Bellman 方程、现代 SAC、双 Critic、重参数化与自动熵调节；教学伪代码",
+      "reviewed_at": "2026-10-22",
+      "review_scope_en": "Supplied bilingual materials integrated and PDFs rebuilt with the shared academic cover and fonts; notation, formulas, tables and diagrams checked. No training or robot validation. No programming or experimental chapter.",
+      "review_scope_zh": "整合用户提供的中英文资料，PDF 采用统一学术首页与字体，核对记号、公式、表格及流程图；未进行训练或真机验证，不含编程实验章节。",
+      "versions_en": "Bellman equations, TD/SARSA, n-step Q-learning, fitted Q-iteration, DQN/Double DQN, DDPG/TD3, modern SAC losses, PPO/DQN/SAC selection, HIL-SERL and VLA/WAM action-chunk value learning; mathematical appendices",
+      "versions_zh": "Bellman 方程、TD/SARSA、N-step Q-learning、Fitted Q-Iteration、DQN/Double DQN、DDPG/TD3、现代 SAC 损失、PPO/DQN/SAC 选择、HIL-SERL 与 VLA/WAM 动作块价值学习；数学推导附录",
       "source_refs": [],
       "documents": {
         "zh": {

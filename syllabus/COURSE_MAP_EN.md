@@ -97,7 +97,7 @@ flowchart LR
 
 ### 10. Q-learning / SAC
 
-[Q-learning / SAC](../md/SAC_Complete_Derivation_EN.md) — Trace Q-learning, TD/SARSA and DQN toward entropy-regularized RL. Derive soft Bellman equations and modern SAC with twin critics, reparameterization and automatic entropy tuning.
+[Q-learning / SAC](../md/SAC_Complete_Derivation_EN.md) — Trace Bellman equations, TD/Q-learning and fitted Q-iteration toward DQN and continuous-action actor–critic methods. Derive modern SAC’s critic, actor and temperature losses; compare PPO, DQN and SAC; connect HIL-SERL and VLA/WAM action-chunk value learning, with mathematical details in appendices.
 
 ### 11. Imitation Learning
 

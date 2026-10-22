@@ -1,1168 +1,799 @@
 ---
-title: "从 Q-learning 到 Soft Actor-Critic：完整推导与设计动机"
-subtitle: "Bellman 最优性、TD、DQN、最大熵策略迭代与连续机器人控制"
-date: "2026-10-18"
+title: "从 Q-learning 到 Soft Actor-Critic"
+subtitle: "价值学习、离策略深度强化学习与机器人连续控制：推导、算法与应用"
+date: "2026-10-21"
 lang: zh-CN
 toc-title: "目录"
 ---
 
-# 从 Q-learning 到 Soft Actor-Critic：完整推导与设计动机
+# 从 Q-learning 到 Soft Actor-Critic
 
-<!-- course-meta:start -->
-[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/SAC_Complete_Derivation_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_CN.pdf)
+[课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [English](SAC_Complete_Derivation_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/SAC_Complete_Derivation_CN.pdf)
 
 | 项目 | 说明 |
 |---|---|
-| 适用范围 | Q-learning、TD/SARSA、DQN、Soft Bellman 方程、现代 SAC、双 Critic、重参数化与自动熵调节；教学伪代码 |
-| 文档核验日期 | 2026-10-18 |
+| 主题 | 价值学习、现代 SAC 与机器人后训练 |
+| 修订日期 | 2026-10-22 |
 | 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-<!-- course-meta:end -->
+> **课程定位。** 本讲义从 Bellman 方程出发，经过 TD、表格 Q-learning、Fitted Q-Iteration、DQN 与连续动作 Actor–Critic，最终完整解释现代 SAC。主线回答“算法为什么这样设计”；必要推导在正文给出，严格性细节统一放入附录。第 7 章连接真机机器人 RL 和 VLA/WAM 后训练。**无编程实验章节。**
+>
+> **先修知识。** 条件期望、概率分布、梯度下降、神经网络反向传播；建议先阅读本课程 PPO/Actor–Critic 讲义中关于 Policy Gradient 与 Advantage 的部分。
+>
+> **参考范围。** 本讲义为独立改写的原创教学表述，吸收 [Berkeley CS185/285](https://rail.eecs.berkeley.edu/deeprlcourse/) 的价值学习组织方式与 [Stanford CS224R](https://cs224r.stanford.edu/) 的机器人应用视角；不是两门课的翻译或逐页整理。关键研究论文在文末列出。
 
-<!-- course-toc:start -->
+<!-- md-toc:start -->
 ## 目录
 
-- [导读：这份教程要回答什么？](#course-section-01)
-- [1. 从 MDP 到 V 与 Q：为什么需要价值函数？](#course-section-02)
-  - [1.1 强化学习目标](#course-section-03)
-  - [1.2 状态价值与动作价值](#course-section-04)
-  - [1.3 Bellman Expectation Equation：把长期问题拆成一步](#course-section-05)
-  - [1.4 Policy Evaluation 与 Policy Improvement](#course-section-06)
-- [2. 从 Bellman Expectation 到 Bellman Optimality](#course-section-07)
-  - [2.1 最优价值与最优性方程](#course-section-08)
-  - [2.2 Bellman 算子为何重要？](#course-section-09)
-  - [2.3 一个两动作例子](#course-section-10)
-- [3. TD Learning、SARSA 与表格 Q-learning](#course-section-11)
-  - [3.1 蒙特卡罗与 TD：为什么不必等轨迹结束？](#course-section-12)
-  - [3.2 SARSA：评估执行中的策略](#course-section-13)
-  - [3.3 Q-learning：行为可以探索，目标采用贪心](#course-section-14)
-  - [3.4 三种 Target 并排比较](#course-section-15)
-  - [3.5 何时能保证收敛？](#course-section-16)
-- [4. DQN：把表格 Q-learning 扩展到大状态空间](#course-section-17)
-  - [4.1 从表格到神经网络的 TD Regression](#course-section-18)
-  - [4.2 Replay Buffer 为什么有用？](#course-section-19)
-  - [4.3 Target Network 为什么有用？](#course-section-20)
-  - [4.4 为什么最大化会放大 Q 高估？](#course-section-21)
-  - [4.5 Double Q-learning、Double DQN 与 SAC 的双 Q 不是同一公式](#course-section-22)
-  - [4.6 为什么深度价值学习仍可能不稳定？](#course-section-23)
-- [5. 连续动作为什么推动我们走向 Actor-Critic？](#course-section-24)
-  - [5.1 动作最大化成为内层优化问题](#course-section-25)
-  - [5.2 Actor 是一个可学习的动作优化器](#course-section-26)
-  - [5.3 为什么 SAC 进一步使用随机 Actor？](#course-section-27)
-- [6. 最大熵强化学习：从奖励最大化到奖励与熵联合优化](#course-section-28)
-  - [6.1 策略熵与温度](#course-section-29)
-  - [6.2 SAC 采用的 Soft Q 与 Soft V 约定](#course-section-30)
-- [7. Hard Bellman 与 Soft Bellman：从 Max 到 LogSumExp](#course-section-31)
-  - [7.1 有限离散动作中的最优 Soft Value](#course-section-32)
-  - [7.2 为什么 $\alpha\to0$ 时恢复 Max？](#course-section-33)
-  - [7.3 连续动作时的积分与边界条件](#course-section-34)
-  - [7.4 Soft Optimality 与 Soft Policy Evaluation 必须分开](#course-section-35)
-- [8. Soft Policy Improvement：为什么出现 Boltzmann Policy 与 KL？](#course-section-36)
-  - [8.1 从最优分布到可训练的策略](#course-section-37)
-  - [8.2 反向 KL 将不可计算的归一化常数消去](#course-section-38)
-  - [8.3 精确 Soft Policy Iteration 的改进性质](#course-section-39)
-- [9. 从 Soft Policy Iteration 到现代 SAC](#course-section-40)
-  - [9.1 两个循环对应两个神经网络](#course-section-41)
-  - [9.2 为什么 SAC 可以复用历史数据？](#course-section-42)
-  - [9.3 与 PPO 的 On-Policy 属性区分](#course-section-43)
-- [10. 完整 SAC Critic：Target Network、双 Q 与 TD 回归](#course-section-44)
-  - [10.1 从 Soft Bellman 到单样本 TD Target](#course-section-45)
-  - [10.2 双 Q 的取最小值解决什么？](#course-section-46)
-  - [10.3 时间截断与真正终止](#course-section-47)
-  - [10.4 目标网络的软更新](#course-section-48)
-- [11. 完整 SAC Actor：重参数化、动作边界与概率修正](#course-section-49)
-  - [11.1 从 KL 投影到 Actor Loss](#course-section-50)
-  - [11.2 Reparameterization Trick](#course-section-51)
-  - [11.3 Tanh Gaussian 的 Log Probability 必须修正](#course-section-52)
-  - [11.4 从归一化动作到机器人实际动作](#course-section-53)
-- [12. Automatic Entropy Tuning：为什么学习温度 $\alpha$？](#course-section-54)
-  - [12.1 目标熵约束与拉格朗日乘子](#course-section-55)
-  - [12.2 温度损失与方向检查](#course-section-56)
-  - [12.3 为什么优化 $\eta=\log\alpha$？](#course-section-57)
-- [13. 现代 SAC 的完整算法流程](#course-section-58)
-  - [13.1 主要模块和三个损失](#course-section-59)
-  - [13.2 一次更新究竟发生了什么？](#course-section-60)
-  - [13.3 SAC v1 与现代 SAC：是否显式学习 V？](#course-section-61)
-- [14. 算法之间到底有什么联系？](#course-section-62)
-  - [14.1 Q-learning 与 SAC 的最关键区别](#course-section-63)
-  - [14.2 PPO 与 SAC：Score Function 和 Pathwise Gradient](#course-section-64)
-- [15. 机器人控制中的适用边界与常见误解](#course-section-65)
-  - [15.1 为什么机器人任务特别需要重视 Q 外推？](#course-section-66)
-  - [15.2 关节位置、速度、力矩与归一化动作](#course-section-67)
-  - [15.3 什么情况下不宜直接套用标准 SAC？](#course-section-68)
-  - [15.4 五个常见误解](#course-section-69)
-- [16. 全部推导的最短闭环](#course-section-70)
-- [参考资料与延伸阅读](#course-section-71)
-<!-- course-toc:end -->
+1. [价值函数与 Bellman 方程](#sac-section-01)
+2. [TD Learning 与 Q-learning](#sac-section-02)
+3. [从 Fitted Q-Iteration 到 DQN](#sac-section-03)
+4. [从离散 Q-learning 到连续动作 Actor–Critic](#sac-section-04)
+5. [Soft Actor-Critic：最大熵、三类损失与算法闭环](#sac-section-05)
+6. [PPO、DQN 与 SAC：如何正确选择](#sac-section-06)
+7. [机器人应用：示教、在线学习和 VLA/WAM 后训练](#sac-section-07)
+8. [附录 A：关键数学推导](#sac-section-08)
+9. [附录 B：实现约定与常见误区](#sac-section-09)
+10. [参考文献与课程资源](#sac-section-10)
+<!-- md-toc:end -->
 
-> **阅读定位。** 本文以原有《SAC（Soft Actor-Critic）完整推导与设计动机》为基础重新组织，从经典 Q-learning 出发，逐步推导现代连续动作 SAC。重视“问题 $\rightarrow$ 数学表达 $\rightarrow$ 算法设计”的因果关系，不包含实验章节。本文使用统一的 Q/V 与终止标记约定，避免普通 Bellman、Soft Bellman 和最优性方程之间的概念混淆。
->
-> **原课程：** [课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [原中文教程](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/2c62eb6ac720373112d8852e1e3031206c3bde44/md/SAC_Complete_Derivation_CN.md) · [原英文教程](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/2c62eb6ac720373112d8852e1e3031206c3bde44/md/SAC_Complete_Derivation_EN.md)。本修订版已收录于课程仓库；原始版本引用固定到修订前的 commit，便于溯源。
+记状态 $s\in\mathcal S$、动作 $a\in\mathcal A$、奖励 $r_t$、状态转移 $P(s'\mid s,a)$、策略 $\pi(a\mid s)$、折扣 $\gamma\in[0,1)$。$d_t=1$ 只表示**真实 MDP 终止**；时间截断另作处理。$\mathcal D$ 表示交互数据集/经验池；参数 $\theta$ 常用于 Actor，$\phi$ 用于 Critic，带横线的参数表示目标网络。除特别指出外，公式采用折扣无限时域 MDP 和固定环境转移模型。
 
-<a id="course-section-01"></a>
+```mermaid
+flowchart LR
+    A["Bellman 方程"] --> B["TD / Q-learning"]
+    B --> C["Fitted Q-Iteration"]
+    C --> D["DQN / Double DQN"]
+    D --> E["连续动作 Actor–Critic"]
+    E --> F["最大熵 SAC"]
+    F --> G["真机 RL / 基础模型后训练"]
+```
 
-## 导读：这份教程要回答什么？
+*图 1：课程的因果主线。每一步都是为了克服前一方法的某项限制；这不是“所有算法都必须按顺序训练”的流程。*
 
-- 为什么 $Q(s,a)$ 能指导控制，以及 $Q$ 与 $V$ 有何不同？
-- 为什么 Q-learning 不需要先知道环境动力学，也可以使用其他策略产生的数据？
-- DQN 为什么需要 Replay Buffer、Target Network，Double Q 又在修复什么？
-- 为什么连续机器人动作不能简单地照搬 $\max_a Q(s,a)$？
-- 传统 Bellman Optimality 如何变成 Soft Bellman Optimality，再如何通向 SAC 的 Critic 与 Actor？
-- 自动熵调节、重参数化和双 Critic 各自解决什么问题？
+***
 
-**知识路线：** Bellman Expectation $\to$ Bellman Optimality $\to$ TD / Q-learning $\to$ DQN $\to$ 连续动作 Actor-Critic $\to$ Maximum-Entropy RL $\to$ Soft Policy Iteration $\to$ SAC。
+<a id="sac-section-01"></a>
 
-**统一记号。** $s$ 为状态，$a$ 为动作，$r(s,a)$ 为期望一步奖励，$P(s'\mid s,a)$ 为环境转移核，$\pi(a\mid s)$ 为策略，$\gamma\in[0,1)$ 为折扣，$d=1$ 表示真实终止（非单纯时间截断）。$Q^\pi,V^\pi$ 表示给定策略的价值，$Q^*,V^*$ 表示最优价值；加入熵时特别加“soft”描述，尽管部分公式为简洁省略上标。
+## 1. 价值函数与 Bellman 方程
 
----
+### 1.1 为什么需要 $Q(s,a)$？
 
-<a id="course-section-02"></a>
-
-## 1. 从 MDP 到 V 与 Q：为什么需要价值函数？
-
-<a id="course-section-03"></a>
-
-### 1.1 强化学习目标
-
-折扣马尔可夫决策过程写为
+强化学习的目标是在与环境交互时最大化长期回报
 
 $$
-\mathcal M=(\mathcal S,\mathcal A,P,r,\gamma),\qquad 0\le\gamma<1.
+G_t=\sum_{k=0}^{\infty}\gamma^k r_{t+k},
+\qquad J(\pi)=\mathbb E_{s_0\sim\rho_0,\,\tau\sim\pi}[G_0].
 $$
 
-一条轨迹 $\tau=(s_0,a_0,r_0,s_1,\ldots)$ 的折扣回报为
+即时奖励无法单独反映行动价值：例如机器人调整手指姿态的这一步可能没有奖励，却能显著提高后续旋转螺丝刀的成功概率。因而定义给定策略 $\pi$ 下的状态价值与动作价值：
 
 $$
-G_t=\sum_{k=0}^{\infty}\gamma^k r_{t+k},\qquad
-J(\pi)=\mathbb E_{\tau\sim\pi}[G_0].
-$$
-
-注意 $J(\pi)$ 还隐含初始状态分布；实际机器人任务中，初始物体位置、姿态或机器人关节状态常有随机性。**环境奖励** $r$ 和 **价值估计** $Q$ 不是一回事：奖励告诉我们这一步怎样，价值估计还考虑以后的影响。
-
-<a id="course-section-04"></a>
-
-### 1.2 状态价值与动作价值
-
-给定策略 $\pi$：
-
-$$
-\boxed{V^\pi(s)=\mathbb E_\pi[G_t\mid s_t=s],\qquad
+\boxed{
+V^\pi(s)=\mathbb E_\pi[G_t\mid s_t=s],\qquad
 Q^\pi(s,a)=\mathbb E_\pi[G_t\mid s_t=s,a_t=a].}
 $$
 
-直观地，$V^\pi(s)$ 问“按照 $\pi$ 继续，当前状态值多少”；$Q^\pi(s,a)$ 问“现在先执行动作 $a$，之后按照 $\pi$，总共值多少”。后者允许直接比较不同动作。
-
-由全期望公式，离散动作空间中
+两者的区别是：$V^\pi(s)$ 先按照策略选择动作；$Q^\pi(s,a)$ 固定第一步动作 $a$，此后才按照策略。于是
 
 $$
-\boxed{V^\pi(s)=\sum_a\pi(a\mid s)Q^\pi(s,a).}
+V^\pi(s)=\mathbb E_{a\sim\pi(\cdot\mid s)}[Q^\pi(s,a)],
+\qquad A^\pi(s,a)=Q^\pi(s,a)-V^\pi(s).
 $$
 
-连续动作时，把求和换成 $\int_{\mathcal A}\pi(a\mid s)Q^\pi(s,a)\,da$。一个抓取动作当前奖励可能是零，但如果它显著提高后续拿起物体的成功率，其 $Q$ 仍然可以很高。
+$A^\pi$ 是当前动作相对于策略平均表现的改进幅度。它将在本课程 PPO 讲义中发挥核心作用，而本讲义更关注 $Q$ 的学习。
 
-<a id="course-section-05"></a>
+### 1.2 Bellman Expectation：把长期问题化为一步
 
-### 1.3 Bellman Expectation Equation：把长期问题拆成一步
-
-利用 $G_t=r_t+\gamma G_{t+1}$ 和马尔可夫性质：
+利用 $G_t=r_t+\gamma G_{t+1}$，对固定策略有
 
 $$
-\boxed{Q^\pi(s,a)=r(s,a)+\gamma\mathbb E_{s'\sim P(\cdot\mid s,a)}[V^\pi(s')].}
+\boxed{Q^\pi(s,a)=r(s,a)+\gamma\,\mathbb E_{s'\sim P(\cdot\mid s,a),\,a'\sim\pi(\cdot\mid s')}Q^\pi(s',a').}
 $$
 
-再代入 $V^\pi(s')=\mathbb E_{a'\sim\pi}[Q^\pi(s',a')]$：
+这里的 $r(s,a)=\mathbb E[r_t\mid s,a]$，下一动作遵循**给定策略** $\pi$。这叫 **Policy Evaluation**：评价当前策略有多好，而不是直接求最佳策略。
+
+### 1.3 Bellman Optimality：从评估变成改进
+
+若每次都选择最有价值的动作，则 $V^*(s)=\max_a Q^*(s,a)$（对有限动作集或最大值存在的情形）。代入得
 
 $$
-\boxed{Q^\pi(s,a)=r(s,a)+\gamma\mathbb E_{s',a'\sim P,\pi}[Q^\pi(s',a')].}
+\boxed{Q^*(s,a)=r(s,a)+\gamma\mathbb E_{s'}\Big[\max_{a'}Q^*(s',a')\Big].}
 $$
 
-这叫 **Bellman Expectation Equation**：评估的是一个**给定**策略，并未在动作空间求最大值。$V^\pi$ 也有对应关系：$V^\pi(s)=\mathbb E_{a\sim\pi,s'\sim P}[r(s,a)+\gamma V^\pi(s')]$。
+**最重要的区别：** Expectation Equation 在未来动作上取 $\mathbb E_{a'\sim\pi}$，Optimality Equation 则取 $\max_{a'}$。后者连接了 Policy Evaluation 与 Greedy Policy Improvement。
 
-<a id="course-section-06"></a>
+若已准确知道 $Q^\pi$，可构造 $\pi_{\mathrm{new}}(s)\in\arg\max_aQ^\pi(s,a)$。在精确、适当条件下，新策略不会比旧策略差。这是 Policy Iteration 的基本思想，也是后面 SAC“Critic 评价、Actor 改进”结构的来源。
 
-### 1.4 Policy Evaluation 与 Policy Improvement
+### 1.4 一个两动作例子
 
-两步组成经典 Policy Iteration：**评估** $\pi_k\mapsto Q^{\pi_k}$；**改进** $\pi_{k+1}(s)\in\arg\max_a Q^{\pi_k}(s,a)$。评估问当前策略有多好；改进问如何利用当前 Q 选更好的动作。后面的 SAC 保留这两步结构，但将贪心动作改成熵正则化的随机策略。
-
-<a id="course-section-07"></a>
-
-## 2. 从 Bellman Expectation 到 Bellman Optimality
-
-<a id="course-section-08"></a>
-
-### 2.1 最优价值与最优性方程
-
-定义 $V^*(s)=\sup_\pi V^\pi(s)$，$Q^*(s,a)=\sup_\pi Q^\pi(s,a)$。对有限离散动作集合（最大值存在时），有
+设当前状态有左右两种抓取方式，两者当前奖励都是零，下一状态的最优价值分别为 8、10，取 $\gamma=0.9$：
 
 $$
-\boxed{V^*(s)=\max_a Q^*(s,a),}
+Q^*(s,a_L)=0.9\times8=7.2,
+\qquad Q^*(s,a_R)=0.9\times10=9.
 $$
 
-$$
-\boxed{Q^*(s,a)=r(s,a)+\gamma\mathbb E_{s'\sim P}[\max_{a'}Q^*(s',a')].}
-$$
+即使当前奖励相同，动作的长期价值仍不同。因此学习 Critic 的本质不是拟合一步奖励，而是传播长期回报。
 
-这是 **Bellman Optimality Equation**。与上节最明显的区别，是下一步使用 $\max_{a'}$ 而不是 $\mathbb E_{a'\sim\pi}$。它刻画最优价值函数的固定点，而不再需要给定一个未来策略。
+***
 
-<a id="course-section-09"></a>
+<a id="sac-section-02"></a>
 
-### 2.2 Bellman 算子为何重要？
+## 2. TD Learning 与 Q-learning
 
-定义最优 Bellman 算子
+### 2.1 Monte Carlo 与 Temporal-Difference
 
-$$
-(\mathcal T^*Q)(s,a)
-=r(s,a)+\gamma\mathbb E_{s'}\left[\max_{a'}Q(s',a')\right].
-$$
-
-在有界奖励、折扣 MDP 与有界 Q 等常见条件下，利用 $|\max_i x_i-\max_i y_i|\le\max_i|x_i-y_i|$，可得
-
-$$
-\boxed{\|\mathcal T^*Q_1-\mathcal T^*Q_2\|_\infty
-\le\gamma\|Q_1-Q_2\|_\infty.}
-$$
-
-因为 $\gamma<1$，这个压缩性质保证唯一固定点 $Q^*$；精确同步 Value Iteration $Q_{k+1}=\mathcal T^*Q_k$ 会收敛。**注意：**这是对精确算子与适当函数空间的结论，不代表一般深度 Q 网络训练必然收敛。
-
-<a id="course-section-10"></a>
-
-### 2.3 一个两动作例子
-
-某状态有两种抓取方式，假设它们立即得到的奖励均为 0；左抓通往的下一状态最优价值为 8，右抓为 10，$\gamma=0.9$。则
-
-$$
-Q^*(s,a_L)=0+0.9\times8=7.2,\qquad
-Q^*(s,a_R)=0+0.9\times10=9.
-$$
-
-虽然这一步没有奖励，Q 仍然倾向右抓。这解释了为何机器人长时程任务不能仅根据即时奖励选择动作。
-
-<a id="course-section-11"></a>
-
-## 3. TD Learning、SARSA 与表格 Q-learning
-
-<a id="course-section-12"></a>
-
-### 3.1 蒙特卡罗与 TD：为什么不必等轨迹结束？
-
-蒙特卡罗（Monte Carlo, MC）通过完整回报 $G_t$ 估计价值；Temporal-Difference（TD）则利用“一步奖励 + 下一状态估计”提前更新。例如策略评估的 TD(0)：
+Monte Carlo（MC）以完整实际回报 $G_t$ 为学习目标；TD 方法利用已有价值估计提前构造目标。对 $V$ 的一步 TD(0)：
 
 $$
 \delta_t^V=r_t+\gamma(1-d_t)V(s_{t+1})-V(s_t),
+\qquad V(s_t)\leftarrow V(s_t)+\eta_t\delta_t^V.
 $$
 
-$$
-V(s_t)\leftarrow V(s_t)+\eta_t\delta_t^V.
-$$
+TD 的优点是无需等待轨迹结束；代价是目标依赖于当前估计，即 **Bootstrapping**。因此训练误差既有采样误差，也可能包含价值估计误差的传播。
 
-TD 的优势是**不必等待回合结束**；代价是 Target 中包含已有估计，因此会引入自举（Bootstrapping）偏差和误差传播。TD 与 MC 不是严格的“有偏/无偏”简单二分，误差还取决于采样、函数逼近及估计对象。
+### 2.2 SARSA 与 Q-learning：下一动作来自哪里？
 
-<a id="course-section-13"></a>
-
-### 3.2 SARSA：评估执行中的策略
-
-SARSA 用实际执行策略抽样得到的下一动作 $a_{t+1}$：
+SARSA 根据当前执行策略实际采样的下一动作进行评估：
 
 $$
-\boxed{y_t^{\mathrm{SARSA}}=r_t+\gamma(1-d_t)Q(s_{t+1},a_{t+1}).}
+y_t^{\mathrm{SARSA}}=r_t+\gamma(1-d_t)Q(s_{t+1},a_{t+1}).
 $$
 
-$$
-Q(s_t,a_t)\leftarrow Q(s_t,a_t)
-+\eta_t\big(y_t^{\mathrm{SARSA}}-Q(s_t,a_t)\big).
-$$
-
-当 $a_{t+1}$ 由正在执行的 $\varepsilon$-greedy 策略产生时，标准 SARSA 是 **On-Policy TD Control**：目标中的下一动作也反映了该探索策略。
-
-<a id="course-section-14"></a>
-
-### 3.3 Q-learning：行为可以探索，目标采用贪心
-
-Watkins 的表格 Q-learning 使用
+经典 Q-learning 则使用最优性备份：
 
 $$
-\boxed{y_t^{Q}=r_t+\gamma(1-d_t)\max_{a'}Q_t(s_{t+1},a'),}
+\boxed{y_t^Q=r_t+\gamma(1-d_t)\max_{a'}Q_t(s_{t+1},a'),}
 $$
 
 $$
 \boxed{Q_{t+1}(s_t,a_t)=Q_t(s_t,a_t)
-+\eta_t\left[y_t^Q-Q_t(s_t,a_t)\right].}
++\eta_t\big[y_t^Q-Q_t(s_t,a_t)\big].}
 $$
 
-将方括号记为 TD Error $\delta_t$，更新就是“旧估计 + 学习率 $\times$ 预测误差”。执行动作可由 $\varepsilon$-greedy 策略产生：以概率 $1-\varepsilon$ 选择贪心动作，以概率 $\varepsilon$ 均匀探索。**行为策略** $\beta$ 决定数据从哪里来；**目标策略**在 Q-learning Target 中通过 $\max$ 表示。两者不同，所以 Q-learning 属于 **Off-Policy**。
+行为策略 $\beta$ 可以是 $\varepsilon$-greedy，甚至与目标贪心策略不同；Target 仍取未来动作的最大 Q。这种**行为策略与学习目标分离**，使 Q-learning 成为 Off-Policy 方法。它不依赖是否使用 Replay Buffer。
 
-例如旧值 $Q(s,a)=4$、奖励 $r=1$、下一状态最大 Q 为 6、$\gamma=0.9$、$\eta=0.2$，则
-
-$$
-y=1+0.9\times6=6.4,\qquad
-Q_{\mathrm{new}}=4+0.2(6.4-4)=4.48.
-$$
-
-<a id="course-section-15"></a>
-
-### 3.4 三种 Target 并排比较
-
-| 方法 | 一步 Target（非终止） | 下一动作来自哪里？ | 标准设置中的范式 |
+| 方法 | 下一动作的 Target | 典型属性 | 回答的问题 |
 |:--|:--|:--|:--|
-| SARSA | $r+\gamma Q(s',a')$ | 行为策略采样的 $a'$ | On-Policy |
-| Expected SARSA | $r+\gamma\mathbb E_{a'\sim\pi}Q(s',a')$ | 目标策略的分布期望 | 可 On/Off-Policy |
-| Q-learning | $r+\gamma\max_{a'}Q(s',a')$ | 贪心最优性备份 | Off-Policy |
+| SARSA | $Q(s',a')$, $a'\sim\pi$ | On-Policy | 执行中的策略值多少？ |
+| Expected SARSA | $\mathbb E_{a'\sim\pi}Q(s',a')$ | On-Policy 或 Off-Policy | 指定策略的期望价值？ |
+| Q-learning | $\max_{a'}Q(s',a')$ | Off-Policy | 最优后续动作值多少？ |
 
-**容易混淆的概念：** Q-learning 的 Off-Policy 并不来自“使用了 Replay Buffer”；表格 Q-learning 即使每步立即更新，也可以是 Off-Policy。经验回放只是进一步提高数据复用、改变采样相关性的一种机制。
+**数值检查。** 设 $Q_t(s,a)=4$、$r=1$、$\max_{a'}Q(s',a')=6$、$\gamma=0.9$、$\eta=0.2$。则 $y=6.4$，新值为 $4+0.2(6.4-4)=4.48$。这正是“沿 TD Error 调整 Q”的含义。
 
-<a id="course-section-16"></a>
+### 2.3 N-step Returns：终点奖励怎样传回早期动作？
 
-### 3.5 何时能保证收敛？
-
-经典有限状态与动作表格 Q-learning 在固定 MDP、有界奖励、各状态动作对得到充分访问以及适当逐步衰减学习率（例如 Robbins–Monro 型条件）等假设下可收敛到 $Q^*$。**神经网络函数逼近、有限覆盖、非平稳环境、多步离策略自举等情形不直接受此定理保证。** 这一边界对随后理解 DQN 和 SAC 十分重要。[Watkins & Dayan (1992)](https://doi.org/10.1007/BF00992698)。
-
-<a id="course-section-17"></a>
-
-## 4. DQN：把表格 Q-learning 扩展到大状态空间
-
-<a id="course-section-18"></a>
-
-### 4.1 从表格到神经网络的 TD Regression
-
-对于高维观测，无法为每个 $s,a$ 存储表格值，用 $Q_\phi(s,a)$ 近似。单样本目标为
+对中间没有真实终止的轨迹，一步 Target 可推广为
 
 $$
-y=r+\gamma(1-d)\max_{a'}Q_{\bar\phi}(s',a'),
+\boxed{
+y_t^{(n)}=\sum_{k=0}^{n-1}\gamma^k r_{t+k}
++\gamma^n\max_{a'}Q_{\bar\phi}(s_{t+n},a').}
 $$
 
-并最小化
+$n=1$ 为一步 Q-learning；较大的 $n$ 使用更多真实采集的奖励，减少对远端 Bootstrap 的依赖，但回报方差可能增加。对于稀疏成功奖励，N-step 有助于把后期成功信号更快传播到先前的接触与抓取动作。
+
+**必须区分两种目标。** 若连续 $n$ 步来自 Off-Policy 行为策略，未经校正的多步 Target 含有行为策略产生的中间奖励，其期望一般不等于当前贪心目标策略的 $n$ 步 Bellman Backup。实际算法可能使用 Importance Sampling、Retrace、Tree Backup 等修正，或者有意识地接受这种偏差。**不能把任意历史轨迹的 N-step 返回称为无偏最优性备份。**
+
+遇到真实终止应停止累计并删除之后的 Bootstrap；若只是 Time-Limit Truncation，则应根据任务时间模型决定是否继续 Bootstrap。对于人为固定时长的有限时域任务，还应显式处理剩余时间的信息。
+
+### 2.4 Q-learning 的收敛条件与限制
+
+在有限状态/动作、固定 MDP、有界奖励、充分访问每个状态动作对、以及适当递减学习率等经典假设下，表格 Q-learning 可以收敛到 $Q^*$。**这一结论不能直接推广到使用非线性网络的 DQN 或 SAC。** 后者同时存在 Off-Policy、函数逼近和 Bootstrapping 时，可能出现所谓 Deadly Triad。
+
+***
+
+<a id="sac-section-03"></a>
+
+## 3. 从 Fitted Q-Iteration 到 DQN
+
+### 3.1 缺失的桥梁：Fitted Q-Iteration
+
+在连续状态或视觉输入下，无法存储覆盖全部状态的 Q 表。于是用网络 $Q_\phi(s,a)$ 近似 Q；固定一轮目标网络 $Q_{\bar\phi}$，对样本 $\mathcal D=\{(s_i,a_i,r_i,s_i',d_i)\}_{i=1}^N$ 构造
 
 $$
-\boxed{J_Q(\phi)=\frac12\mathbb E_{(s,a,r,s',d)\sim\mathcal D}
-\left[\big(Q_\phi(s,a)-\operatorname{stopgrad}(y)\big)^2\right].}
+y_i=r_i+\gamma(1-d_i)\max_{a'}Q_{\bar\phi}(s_i',a'),
 $$
 
-这与后面 SAC 的 Critic Loss 在数学结构上非常相似：都通过 TD Target 对 $Q$ 做回归。差别主要在于**下一动作如何选取**、**是否加入熵**及**是否显式学习 Actor**。
-
-<a id="course-section-19"></a>
-
-### 4.2 Replay Buffer 为什么有用？
-
-顺序收集的数据彼此高度相关，若用刚产生的一条转移立即更新，神经网络容易受到短期采样分布影响。经验池
+再进行监督回归
 
 $$
-\mathcal D=\{(s_t,a_t,r_t,s_{t+1},d_t)\}_{t=1}^N
+\boxed{\phi_{k+1}\in\arg\min_\phi
+\frac1N\sum_{i=1}^N\big(Q_\phi(s_i,a_i)-\operatorname{stopgrad}(y_i)\big)^2.}
 $$
 
-允许从过去交互随机抽取 Mini-Batch，减弱时间相关性并多次复用同一转移。**Replay Buffer 不能消除分布偏移：**若某些动作从未尝试，存储更多相似轨迹并不会自动提供这些动作的可靠 Q 标签。
+这叫 **Fitted Q-Iteration（FQI）**：以 Bellman Backup 生成标签，用监督学习拟合价值函数，然后用新网络重新生成标签。它揭示了深度 Q-learning 的一个核心事实：**Critic 的训练从形式上是回归，但标签不是固定真值，而是网络自身的 Bootstrap 估计。**
 
-<a id="course-section-20"></a>
+严格地说，FQI 通常指以固定数据集、按迭代轮次生成目标并拟合的批处理方法；DQN 则是在线收集数据、从 Replay Buffer 采样、持续进行随机梯度 TD 更新的深度 RL 算法。两者共享 Fitted Bellman 回归思想，但不是同一个训练过程。
 
-### 4.3 Target Network 为什么有用？
+### 3.2 DQN：经验回放与目标网络
 
-若预测 $Q_\phi(s,a)$ 和目标 $r+\gamma\max_{a'}Q_\phi(s',a')$ 均随 $\phi$ 同步剧烈变化，学习目标会不断移动。DQN 使用相对慢变化的目标网络 $Q_{\bar\phi}$，既可以周期性复制 $\bar\phi\leftarrow\phi$，也可以采用软更新
-
-$$
-\boxed{\bar\phi\leftarrow(1-\tau)\bar\phi+\tau\phi,
-\qquad 0<\tau\ll1.}
-$$
-
-前者常见于经典 DQN；后者是现代连续控制 SAC/TD3 常见选择。目标网络降低目标漂移，但不能从根本上消除函数逼近偏差。
-
-<a id="course-section-21"></a>
-
-### 4.4 为什么最大化会放大 Q 高估？
-
-设 $\widehat Q(s,a)=Q(s,a)+\epsilon_a$，哪怕 $\epsilon_a$ 对每个动作均值为零，**先取最大值再求期望**也可能偏高：
+DQN 的平方 TD Loss 为
 
 $$
-\mathbb E\left[\max_a(Q_a+\epsilon_a)\right]
-\ge\max_a\mathbb E[Q_a+\epsilon_a]=\max_aQ_a.
+\boxed{J_Q(\phi)=\frac12\mathbb E_{\mathcal D}
+\left[\left(Q_\phi(s,a)-y\right)^2\right],\quad
+y=r+\gamma(1-d)\max_{a'}Q_{\bar\phi}(s',a').}
 $$
 
-这里的 $\max$ 对随机变量是凸函数，故有 Jensen 不等式。动作越多、估计噪声越大，过高估计风险往往越突出。
+其中 $y$ 在 Critic 更新时视作常量（Semi-Gradient）。经验回放缓解相邻数据的时间相关性，并使旧数据得到多次学习；目标网络使 TD Target 不随当前 $\phi$ 每一步剧烈变化。两者都有助于稳定训练，但不能保证消除分布偏移或函数逼近误差。
 
-<a id="course-section-22"></a>
+目标网络既可定期复制 $\bar\phi\leftarrow\phi$，也可用软更新
 
-### 4.5 Double Q-learning、Double DQN 与 SAC 的双 Q 不是同一公式
+$$
+\bar\phi\leftarrow (1-\tau)\bar\phi+\tau\phi,\qquad 0<\tau\ll1.
+$$
 
-核心思想是把“动作选择”和“动作评价”拆开：
+### 3.3 为什么会高估？Double DQN 与 SAC 的双 Q 有何不同？
 
-- **表格 Double Q-learning：**随机使用两套 Q 表之一选动作，再由另一套 Q 表评价，以降低同一估计器进行两项操作时的高估偏差。
-- **Double DQN：** 在线网络选下一动作，目标网络评价该动作：
+若 $\widehat Q_a=Q_a+\epsilon_a$，即使对每个 $a$ 都有 $\mathbb E[\epsilon_a]=0$，通常也有
+
+$$
+\mathbb E\big[\max_a\widehat Q_a\big]
+\ge\max_a\mathbb E[\widehat Q_a]=\max_a Q_a.
+$$
+
+原因是“先取最大值”容易挑中正噪声偏差。Double DQN 将动作选择与评价分开：
 
 $$
 \boxed{a^*=\arg\max_{a'}Q_\phi(s',a'),\qquad
- y_{\mathrm{DDQN}}=r+\gamma(1-d)Q_{\bar\phi}(s',a^*).}
+y_{\mathrm{DDQN}}=r+\gamma(1-d)Q_{\bar\phi}(s',a^*).}
 $$
 
-- **SAC 的 Clipped Double Q：** 在给定 $a'$ 后使用两个 Critic 的最小估计 $\min(Q_{\bar\phi_1},Q_{\bar\phi_2})$。它以保守方式减轻高估，但可能引入低估。
+SAC 中的 Clipped Double-Q 则使用 $\min(Q_{\bar\phi_1},Q_{\bar\phi_2})$ 评价**给定的连续动作**。它与 Double DQN 有相同的抑制过乐观估计动机，但公式和机制不同；取最小还可能带来低估。
 
-这三者相关但**不能互换名称**；后面还会给出 SAC 公式。[van Hasselt (2010)](https://papers.neurips.cc/paper_files/paper/2010/hash/091d584fced301b442654dd8c23b3fc9-Abstract.html)；[van Hasselt et al. (2016)](https://arxiv.org/abs/1509.06461)。
+### 3.4 Update-to-Data Ratio：数据效率不等于训练速度
 
-<a id="course-section-23"></a>
-
-### 4.6 为什么深度价值学习仍可能不稳定？
-
-在函数逼近、Bootstrapping 和 Off-Policy 数据同时出现时，可能形成常说的 **Deadly Triad**：有限采样导致的 Q 误差被下一步 Target 反复传播；策略又依据错误 Q 选择新动作，出现反馈放大。Replay、Target Network、双 Q 缓解部分机制，但不自动赋予全局收敛保证。
-
-<a id="course-section-24"></a>
-
-## 5. 连续动作为什么推动我们走向 Actor-Critic？
-
-<a id="course-section-25"></a>
-
-### 5.1 动作最大化成为内层优化问题
-
-传统 Q-learning 要求计算
+定义
 
 $$
-\max_{a'\in\mathcal A}Q_\phi(s',a').
+\boxed{\mathrm{UTD}=\frac{\text{梯度更新次数}}{\text{新环境 Transition 数量}}.}
 $$
 
-对离散动作可以枚举；对机器人 $a\in\mathbb R^d$（例如机械臂的多个关节目标或力矩），高维动作很难枚举，而且 $Q_\phi(s,a)$ 往往非凸。每个 TD Target 都重新做一个高维内层优化，通常计算昂贵且可能陷入局部极值。
+例如每收集 100 个新 Transition，执行 400 次网络更新，UTD 为 4。Off-Policy 方法允许 UTD 大于 1，因为 Replay Buffer 中的旧数据可重复利用。但 **UTD 增大不等于结果必然改善**：随着重复训练，Critic 可能过拟合数据覆盖较少的状态动作区域，Bootstrap 误差累积，Actor 又会利用错误的高 Q 值。
 
-<a id="course-section-26"></a>
+评估训练效率必须至少区分：环境样本数、梯度更新数、训练墙钟时间和真实机器人交互时间。对于并行仿真，PPO 可能具有更高吞吐；对于稀缺真机交互，SAC 的数据复用优势更有意义，但需要计算资源和价值学习稳定性共同支持。
 
-### 5.2 Actor 是一个可学习的动作优化器
+### 3.5 理解 Deadly Triad
 
-引入参数化 Actor $a=\mu_\theta(s)$，用网络近似最优动作选择器；Critic 仍估计 $Q_\phi(s,a)$。对于确定性 Actor，典型目标为
+**Off-Policy 数据 + Bootstrapping + 函数逼近** 同时存在时，训练存在不稳定甚至发散的风险。Replay 和目标网络分别作用于采样相关性与目标变化速度，Double Q 则作用于高估；它们解决的是不同方面，不能互相替代。
+
+```mermaid
+flowchart LR
+    D["Replay Buffer"] --> B["随机 Mini-batch"]
+    B --> Y["Bellman Target"]
+    T["Target Q 网络"] --> Y
+    Y --> L["TD 回归损失"]
+    B --> L
+    L --> Q["在线 Q 网络"]
+    Q -.->|慢速复制 / Polyak| T
+```
+
+*图 2：DQN/FQI 的监督回归视角。Target 生成与当前网络回归应清楚地区分。*
+
+***
+<a id="sac-section-04"></a>
+
+## 4. 从离散 Q-learning 到连续动作 Actor–Critic
+
+### 4.1 连续控制为何不直接使用 $\max_a Q(s,a)$？
+
+对离散动作，枚举 $\max_a Q(s,a)$ 可行；对 $d$ 维机械臂关节、末端位姿增量或力矩动作，$a\in\mathbb R^d$，每次计算 TD Target 都求解高维非凸优化往往代价过高。**连续动作并不在数学上要求必须有 Actor**，但显式策略网络提供了计算上实用的近似：将昂贵的动作搜索“摊销”为一次前向传播。
+
+引入确定性 Actor $a=\mu_\theta(s)$ 与 Critic $Q_\phi(s,a)$。若 Critic 可对动作求导，可以最大化 $Q_\phi(s,\mu_\theta(s))$，即最小化
 
 $$
-J_\mu(\theta)=-\mathbb E_{s\sim\mathcal D}[Q_\phi(s,\mu_\theta(s))],
+J_\mu(\theta)=-\mathbb E_{s\sim\mathcal D}Q_\phi(s,\mu_\theta(s)),
 $$
+
+其路径梯度为
 
 $$
 \nabla_\theta J_\mu
-=-\mathbb E_s\left[\nabla_aQ_\phi(s,a)|_{a=\mu_\theta(s)}
+=-\mathbb E_s\left[\left.\nabla_aQ_\phi(s,a)\right|_{a=\mu_\theta(s)}
 \nabla_\theta\mu_\theta(s)\right].
 $$
 
-这使得动作优化可以**摊销（amortize）**成一次前向传播，而非每次求解 $\arg\max_aQ$。DDPG 是确定性 Off-Policy Actor-Critic 的代表；TD3 在此基础上用双 Critic、延迟 Actor 更新及目标策略平滑等方法改善稳定性。
+这解释了 DDPG 一类 Off-Policy 连续控制方法的关键机制：Critic 用历史数据学习，Actor 接受 Critic 给出的动作改进方向。
 
-<a id="course-section-27"></a>
+### 4.2 DDPG、TD3 到 SAC 的设计动机
 
-### 5.3 为什么 SAC 进一步使用随机 Actor？
+确定性 Actor 的探索通常需要单独加入动作噪声；若 Critic 在某些动作区域高估，Actor 可能持续朝这些方向优化。TD3 通过 **Clipped Double-Q、延迟 Actor 更新、Target Policy Smoothing** 缓解函数逼近误差。SAC 则进一步引入随机 Actor 与最大熵目标，使探索成为优化目标的一部分，而不是仅在输出上额外叠加噪声。
 
-确定性 Actor 缺少内生的策略熵；通常需要另外施加探索噪声。SAC 直接输出随机动作分布 $\pi_\theta(a\mid s)$，在最优化 Q 的同时优化熵：
+| 算法 | Actor | Critic Target 的设计思想 | 探索方式 |
+|:--|:--|:--|:--|
+| DDPG | 确定性 $\mu_\theta(s)$ | 一套 Q + 目标网络 | 外加动作噪声 |
+| TD3 | 确定性 $\mu_\theta(s)$ | 双 Q 取较小值、平滑目标动作 | 外加动作噪声 |
+| SAC | 随机 $\pi_\theta(a\mid s)$ | Soft Bellman + 双 Q | 最大熵策略优化 |
 
-$$
-\max_\pi\;\mathbb E_{a\sim\pi}[Q(s,a)]
-+\alpha\mathcal H(\pi(\cdot\mid s)).
-$$
+这三类方法的核心不是“谁永远更强”，而是它们面对探索、Q 误差与动作优化的不同折中。
 
-注意：连续动作不“必然要求” Actor，某些离散化、采样优化或隐式策略方法依然可能适用；这里说明的是 SAC 所采用的高效、可微的工程路径。
+***
 
-<a id="course-section-28"></a>
+<a id="sac-section-05"></a>
 
-## 6. 最大熵强化学习：从奖励最大化到奖励与熵联合优化
+## 5. Soft Actor-Critic：最大熵、三类损失与算法闭环
 
-<a id="course-section-29"></a>
+### 5.1 为什么不是只最大化奖励？
 
-### 6.1 策略熵与温度
-
-对离散动作，$\mathcal H(\pi)=-\sum_a\pi(a\mid s)\log\pi(a\mid s)$；对连续动作，微分熵为
-
-$$
-\boxed{\mathcal H(\pi(\cdot\mid s))
-=-\int_{\mathcal A}\pi(a\mid s)\log\pi(a\mid s)\,da
-=\mathbb E_{a\sim\pi}[-\log\pi(a\mid s)].}
-$$
-
-连续微分熵允许为负数，并依赖动作坐标尺度；不可将其简单理解为“动作随机程度的无单位绝对值”。对高斯 $\mathcal N(\mu,\sigma^2)$：$\mathcal H=\tfrac12\log(2\pi e\sigma^2)$。
-
-引入温度 $\alpha\ge0$，目标变为
+最大熵 RL 在回报中加入策略熵。采用现代 SAC 的常见约定：
 
 $$
 \boxed{J_{\mathrm{ME}}(\pi)
 =\mathbb E_{\tau\sim\pi}\left[
 \sum_{t=0}^{\infty}\gamma^t
 \big(r_t-\alpha\log\pi(a_t\mid s_t)\big)
-\right].}
+\right],\qquad\alpha\ge0.}
 $$
 
-$\alpha$ 较大时倾向维持更高熵；$\alpha\to0^+$ 时趋近普通奖励目标。熵项依赖**当前策略**，不能误认为环境固定给出的奖励。
+$\mathcal H(\pi(\cdot\mid s))=\mathbb E[-\log\pi(a\mid s)]$，温度 $\alpha$ 在高价值动作与较高熵之间调节权重。$\alpha\to0$ 逐渐回到普通奖励目标。对于连续动作，使用的是**微分熵**，它可以为负，且受动作坐标缩放影响，因此不能把目标熵数值当作与单位无关的常数。
 
-<a id="course-section-30"></a>
+### 5.2 Soft Bellman：价值中究竟包含哪一步的熵？
 
-### 6.2 SAC 采用的 Soft Q 与 Soft V 约定
-
-为了与现代 SAC Target 严格对应，本文约定
+为了使公式无歧义，定义 Soft $V^\pi$ 从当前时刻起包含所有熵项；Soft $Q^\pi$ 固定当前动作，不包含当前动作的 $-\alpha\log\pi(a\mid s)$，而从下一时刻起计入熵：
 
 $$
 \begin{aligned}
-V^\pi_{\mathrm{soft}}(s)
-&=\mathbb E_\pi\left[
-\sum_{t=0}^{\infty}\gamma^t
-(r_t-\alpha\log\pi(a_t\mid s_t))\mid s_0=s\right],\\
-Q^\pi_{\mathrm{soft}}(s,a)
-&=\mathbb E_\pi\left[r_0+\sum_{t=1}^{\infty}\gamma^t
-(r_t-\alpha\log\pi(a_t\mid s_t))\mid s_0=s,a_0=a\right].
+V_{\mathrm{soft}}^\pi(s)
+&=\mathbb E_\pi\left[\sum_{t=0}^\infty
+\gamma^t(r_t-\alpha\log\pi(a_t\mid s_t))\mid s_0=s\right],\\
+Q_{\mathrm{soft}}^\pi(s,a)
+&=\mathbb E_\pi\left[r_0+
+\sum_{t=1}^\infty\gamma^t(r_t-\alpha\log\pi(a_t\mid s_t))
+\mid s_0=s,a_0=a\right].
 \end{aligned}
 $$
 
-**关键：** Soft $V$ 包含**当前动作**的熵；Soft $Q$ 固定当前动作，熵从下一时刻起累积。因此
+因此
 
 $$
-\boxed{V^\pi_{\mathrm{soft}}(s)
-=\mathbb E_{a\sim\pi}\left[Q^\pi_{\mathrm{soft}}(s,a)-\alpha\log\pi(a\mid s)\right],}
+V_{\mathrm{soft}}^\pi(s)=
+\mathbb E_{a\sim\pi}\left[Q_{\mathrm{soft}}^\pi(s,a)-\alpha\log\pi(a\mid s)\right],
 $$
 
 $$
-\boxed{Q^\pi_{\mathrm{soft}}(s,a)
-=r(s,a)+\gamma\mathbb E_{s'}[V^\pi_{\mathrm{soft}}(s')].}
-$$
-
-合并得到 **Soft Bellman Expectation Equation**：
-
-$$
-\boxed{Q^\pi_{\mathrm{soft}}(s,a)
+\boxed{Q_{\mathrm{soft}}^\pi(s,a)
 =r(s,a)+\gamma\mathbb E_{s',a'\sim P,\pi}
-\left[Q^\pi_{\mathrm{soft}}(s',a')-\alpha\log\pi(a'\mid s')\right].}
+\left[Q_{\mathrm{soft}}^\pi(s',a')-\alpha\log\pi(a'\mid s')\right].}
 $$
 
-将此式与第 1 节的普通 Bellman Expectation Equation 对照，唯一结构性变化是下一状态价值中增加 $-\alpha\log\pi$。
+这是 **Soft Policy Evaluation**：Critic 学习的是**当前随机 Actor** 的 Soft Q。它与经典 Q-learning 的 $\max_{a'}Q(s',a')$ 所描述的最优性备份不同。
 
-<a id="course-section-31"></a>
+### 5.3 从最优 Soft Policy 到 Actor Loss
 
-## 7. Hard Bellman 与 Soft Bellman：从 Max 到 LogSumExp
-
-<a id="course-section-32"></a>
-
-### 7.1 有限离散动作中的最优 Soft Value
-
-考虑**状态 $s$ 固定**，假定动作有限、$\alpha>0$，并给定候选 Q。对策略分布 $p_a\ge0,\sum_a p_a=1$，最大化
+固定状态 $s$ 和一组候选 Q，考虑在概率分布 $p(a)$ 上最大化
 
 $$
-F(p)=\sum_a p_a Q(s,a)-\alpha\sum_a p_a\log p_a.
+\mathbb E_{a\sim p}Q(s,a)+\alpha\mathcal H(p).
 $$
 
-加入约束的拉格朗日乘子 $\lambda$，令
+对有限离散动作，拉格朗日乘子法给出最优策略
 
 $$
-\frac{\partial}{\partial p_a}\left(F(p)+\lambda(\sum_a p_a-1)\right)
-=Q(s,a)-\alpha(\log p_a+1)+\lambda=0.
+p^*(a\mid s)=\frac{\exp(Q(s,a)/\alpha)}{\sum_b\exp(Q(s,b)/\alpha)}.
 $$
 
-得到 Boltzmann 分布
+将其代回得到 $V^*_{\mathrm{soft}}(s)=\alpha\log\sum_a\exp(Q^*_{\mathrm{soft}}(s,a)/\alpha)$；当 $\alpha\to0$ 时，它趋向 $\max_a Q(s,a)$。连续动作可将求和换为积分，但须要求相应归一化常数有限，且要指定动作的基准测度。
+
+高维连续动作中直接计算该 Boltzmann 分布的归一化常数不可行，因此使用参数化 Actor $\pi_\theta$，最小化它到 Boltzmann 分布的 Reverse KL：
 
 $$
-\boxed{p_a^*=
-\frac{\exp(Q(s,a)/\alpha)}{\sum_b\exp(Q(s,b)/\alpha)}.}
+D_{\mathrm{KL}}\left(\pi_\theta(\cdot\mid s)\;\|\;p^*(\cdot\mid s)\right)
+=\mathbb E_{a\sim\pi_\theta}
+\left[\log\pi_\theta(a\mid s)-\frac{Q(s,a)}{\alpha}\right]+\log Z(s).
 $$
 
-代回最优目标得到 **LogSumExp**：
+由于 $\log Z(s)$ 与 $\theta$ 无关，得到了现代 SAC 的 Actor 目标：
 
 $$
-\boxed{\max_p F(p)
-=\alpha\log\sum_a\exp\big(Q(s,a)/\alpha\big).}
-$$
-
-因此，有限动作空间中的最优 Soft Bellman 算子是
-
-$$
-\boxed{(\mathcal T^*_{\mathrm{soft}}Q)(s,a)
-=r(s,a)+\gamma\mathbb E_{s'}\left[
-\alpha\log\sum_{a'}e^{Q(s',a')/\alpha}\right].}
-$$
-
-此处的 $Q$ 是上节约定的 Soft Q（当前动作不包括熵）；**不是**普通 Q-learning $Q^*$ 无条件直接加一个 LogSumExp。
-
-<a id="course-section-33"></a>
-
-### 7.2 为什么 $\alpha\to0$ 时恢复 Max？
-
-令 $M=\max_i q_i$，$n$ 为有限动作数：
-
-$$
-\alpha\log\sum_i e^{q_i/\alpha}
-=M+\alpha\log\sum_i e^{(q_i-M)/\alpha}.
-$$
-
-因为 $1\le\sum_i e^{(q_i-M)/\alpha}\le n$，所以
-
-$$
-\boxed{M\le\alpha\log\sum_i e^{q_i/\alpha}
-\le M+\alpha\log n,}
-$$
-
-从而
-
-$$
-\boxed{\lim_{\alpha\to0^+}
-\alpha\log\sum_i e^{q_i/\alpha}=\max_i q_i.}
-$$
-
-这给出直观桥梁：**Hard Max 是零温度极限，Soft Max 使用熵保留多个高价值候选动作。**
-
-<a id="course-section-34"></a>
-
-### 7.3 连续动作时的积分与边界条件
-
-连续动作的形式是
-
-$$
-V^*_{\mathrm{soft}}(s)
-=\alpha\log\int_{\mathcal A}
-\exp(Q^*_{\mathrm{soft}}(s,a)/\alpha)\,da.
-$$
-
-它需满足积分有限，并且依赖所采用的动作基准测度；改变动作缩放会影响连续微分熵及归一化常数。对于高维非凸 Q，这个积分通常难以计算。**SAC 不会在训练中直接数值积分求 $V^*_{\mathrm{soft}}$，而是学习一个 Actor 来近似相应的分布。**
-
-<a id="course-section-35"></a>
-
-### 7.4 Soft Optimality 与 Soft Policy Evaluation 必须分开
-
-| 形式 | 解决的问题 | 下一步怎么处理动作？ |
-|:--|:--|:--|
-| $\mathcal T^\pi Q$ | 给定策略 $\pi$ 的评估 | $\mathbb E_{a'\sim\pi}$ |
-| $\mathcal T^*Q$ | 无熵最优控制 | $\max_{a'}$ |
-| $\mathcal T^*_{\mathrm{soft}}Q$ | 熵正则最优控制 | $\alpha\log\sum e^{Q/\alpha}$（离散） |
-| SAC Critic Target | 对**当前 Actor**做近似 Soft Evaluation | $a'\sim\pi_\theta$，减 $\alpha\log\pi_\theta$ |
-
-这张表是理解 Q-learning 与 SAC 关系的关键。SAC 的 Critic 更新**不是**把 Q-learning 的 $\max$ 直接替换成一个可显式计算的 LogSumExp，而是通过 Actor 来近似 Soft Policy Iteration。
-
-<a id="course-section-36"></a>
-
-## 8. Soft Policy Improvement：为什么出现 Boltzmann Policy 与 KL？
-
-<a id="course-section-37"></a>
-
-### 8.1 从最优分布到可训练的策略
-
-固定某个 $s$ 与旧策略的 Soft Q：$Q_{\mathrm{old}}(s,a)=Q^{\pi_{\mathrm{old}}}_{\mathrm{soft}}(s,a)$。理想的策略改进是
-
-$$
-\pi_{\mathrm{new}}
-\in\arg\max_\pi\left\{
-\mathbb E_{a\sim\pi}[Q_{\mathrm{old}}(s,a)]
-+\alpha\mathcal H(\pi(\cdot\mid s))\right\}.
-$$
-
-在适当的可积性与密度假设下，连续动作中仍有
-
-$$
-\boxed{\pi_B(a\mid s)=
-\frac{\exp(Q_{\mathrm{old}}(s,a)/\alpha)}{Z_{\mathrm{old}}(s)},
-\quad Z_{\mathrm{old}}(s)=\int_{\mathcal A}e^{Q_{\mathrm{old}}(s,a')/\alpha}\,da'.}
-$$
-
-然而 $Z_{\mathrm{old}}(s)$ 对高维动作难以计算，且从 $\pi_B$ 直接采样也不容易。
-
-<a id="course-section-38"></a>
-
-### 8.2 反向 KL 将不可计算的归一化常数消去
-
-使用参数化 Actor $\pi_\theta$，令其近似上述 Boltzmann Policy。展开 $D_{\mathrm{KL}}(\pi_\theta\|\pi_B)$：
-
-$$
-\begin{aligned}
-D_{\mathrm{KL}}(\pi_\theta\|\pi_B)
-&=\mathbb E_{a\sim\pi_\theta}\left[
-\log\pi_\theta(a\mid s)-\log\pi_B(a\mid s)\right]\\
-&=\mathbb E_{a\sim\pi_\theta}\left[
-\log\pi_\theta(a\mid s)-Q_{\mathrm{old}}(s,a)/\alpha\right]
-+\log Z_{\mathrm{old}}(s).
-\end{aligned}
-$$
-
-因为 $\log Z_{\mathrm{old}}$ 对 $\theta$ 是常数，最小化 KL 等价于
-
-$$
-\boxed{\min_\theta\mathbb E_{a\sim\pi_\theta}
+\boxed{J_\pi(\theta)
+=\mathbb E_{s\sim\mathcal D,\,a\sim\pi_\theta(\cdot\mid s)}
 \left[\alpha\log\pi_\theta(a\mid s)
--Q_{\mathrm{old}}(s,a)\right].}
+-\min_{i=1,2}Q_{\phi_i}(s,a)\right].}
 $$
 
-这就是 SAC Actor Loss 的理论原型。这里采用 $D_{\mathrm{KL}}(\pi_\theta\|\pi_B)$，并非 $D_{\mathrm{KL}}(\pi_B\|\pi_\theta)$；KL 方向影响近似策略的行为。
+请注意：$\min_i Q_{\phi_i}$ 是实际算法中的保守估计选择，不是理想 Boltzmann 推导本身的必要条件。该 Actor Loss 的两项分别鼓励适度探索和高价值动作。
 
-<a id="course-section-39"></a>
+### 5.4 Critic：用历史数据做 Soft TD Regression
 
-### 8.3 精确 Soft Policy Iteration 的改进性质
-
-假设 $\pi_{\mathrm{old}}$ 属于允许的策略族，并且每个状态的 KL 最小化精确实现，则新的 Soft Value 不小于旧策略在当前 Q 上的 Soft Value：
+现代连续动作 SAC 通常使用两个 Critic $Q_{\phi_1},Q_{\phi_2}$ 及各自的 Target Critic $Q_{\bar\phi_1},Q_{\bar\phi_2}$。对 $\mathcal D$ 中的 $(s,a,r,s',d)$，在**下一状态**由当前 Actor 采样 $a'\sim\pi_\theta(\cdot\mid s')$，定义
 
 $$
-\mathbb E_{a\sim\pi_{\mathrm{new}}}
-[Q^{\pi_{\mathrm{old}}}_{\mathrm{soft}}(s,a)-\alpha\log\pi_{\mathrm{new}}(a\mid s)]
-\ge V^{\pi_{\mathrm{old}}}_{\mathrm{soft}}(s).
+\boxed{y=r+\gamma(1-d)
+\left[\min_{j=1,2}Q_{\bar\phi_j}(s',a')
+-\alpha\log\pi_\theta(a'\mid s')\right].}
 $$
 
-定义 Soft Policy Evaluation 算子
-
-$$
-(\mathcal T^\pi_{\mathrm{soft}}Q)(s,a)
-=r(s,a)+\gamma\mathbb E_{s',a'\sim P,\pi}
-[Q(s',a')-\alpha\log\pi(a'\mid s')].
-$$
-
-它在适当有界性假设下具有单调性和 $\gamma$-压缩性，因此反复应用新策略的算子可得
-
-$$
-\boxed{Q^{\pi_{\mathrm{new}}}_{\mathrm{soft}}(s,a)
-\ge Q^{\pi_{\mathrm{old}}}_{\mathrm{soft}}(s,a).}
-$$
-
-这是**精确评估与精确改进**下的结论。实际 SAC 使用有限数据、神经网络及随机梯度，不具有由此自动推出的全局单调性或收敛保证。
-
-<a id="course-section-40"></a>
-
-## 9. 从 Soft Policy Iteration 到现代 SAC
-
-<a id="course-section-41"></a>
-
-### 9.1 两个循环对应两个神经网络
-
-到此我们得到一个完整的逻辑链：
-
-1. **Soft Policy Evaluation：** 通过 Soft Bellman Equation 学习当前策略的 $Q^\pi_{\mathrm{soft}}$。
-2. **Soft Policy Improvement：** 借助 $Q$ 更新 Actor，逼近 Boltzmann 分布。
-
-采用神经网络近似
-
-$$
-\boxed{\text{Actor: }\pi_\theta(a\mid s),\qquad
-\text{Critics: }Q_{\phi_1}(s,a),\;Q_{\phi_2}(s,a).}
-$$
-
-Critic 接受状态动作对、输出标量；Actor 接受状态、输出条件动作分布。奖励先用于训练 Q，再通过 Q 的动作梯度间接指导 Actor；一般不会把环境模拟器中的奖励函数直接端到端反向传播到 Actor。
-
-<a id="course-section-42"></a>
-
-### 9.2 为什么 SAC 可以复用历史数据？
-
-假设 MDP 固定，则 $P(s'\mid s,a)$ 不取决于当时由哪个行为策略 $\beta$ 采样到了 $(s,a)$。因此经验池中由旧行为策略生成的 $(s,a,r,s',d)$ 仍然可用于估计一步环境条件期望；而目标中**下一动作**需要使用**当前策略**：
-
-$$
-y=r+\gamma(1-d)
-\left[Q(s',a')-\alpha\log\pi_\theta(a'\mid s')\right],
-\qquad a'\sim\pi_\theta(\cdot\mid s').
-$$
-
-| 元素 | 来自哪里？ | 是否需要当前 Actor 重新计算？ |
-|:--|:--|:--|
-| $(s,a,r,s',d)$ | Replay Buffer 历史转移 | 不需要 |
-| $a'$ | 当前 Actor 在 $s'$ 采样 | 需要 |
-| $\log\pi_\theta(a'\mid s')$ | 当前 Actor 的对数密度 | 需要 |
-| $Q(s',a')$ | 目标 Critic | 需要 |
-
-Replay Buffer 改善数据效率，但不会使 Bellman 更新在任何历史分布下都无偏。即使条件环境转移正确，**状态动作覆盖不足、Critic 外推、函数逼近与自举误差**仍然可能损坏更新；Actor 的状态采样通常也使用 Buffer 分布而非精确的当前折扣占用分布。
-
-<a id="course-section-43"></a>
-
-### 9.3 与 PPO 的 On-Policy 属性区分
-
-PPO 使用旧策略产生的动作及概率比 $\rho_t(\theta)=\pi_\theta(a_t\mid s_t)/\pi_{\mathrm{old}}(a_t\mid s_t)$。标准 PPO 通常重复使用少量近期 Rollout Epoch，不能无限制地把任意历史动作当成当前策略数据。SAC 的目标是基于 Bellman 的 Off-Policy 策略评估和改进；它不需要 PPO 的概率比 Clipping。这不意味着 PPO 从数学上完全不可能利用旧数据，而是指其标准算法设定与重用范围不同。
-
-<a id="course-section-44"></a>
-
-## 10. 完整 SAC Critic：Target Network、双 Q 与 TD 回归
-
-<a id="course-section-45"></a>
-
-### 10.1 从 Soft Bellman 到单样本 TD Target
-
-采用两个 Critic $Q_{\phi_i}$ 及慢更新 Target Critics $Q_{\bar\phi_i}$。对 Replay Buffer 中的样本 $(s,a,r,s',d)$，由 Actor 在下一状态采样 $a'\sim\pi_\theta(\cdot\mid s')$，构造
-
-$$
-\boxed{y=r+\gamma(1-d)\left[
-\min_{j=1,2}Q_{\bar\phi_j}(s',a')
--\alpha\log\pi_\theta(a'\mid s')
-\right].}
-$$
-
-Critic 分别最小化
+然后分别最小化
 
 $$
 \boxed{J_{Q_i}(\phi_i)=\frac12\mathbb E_{\mathcal D}
-\left[(Q_{\phi_i}(s,a)-\operatorname{stopgrad}(y))^2\right],\quad i=1,2.}
+\left[\big(Q_{\phi_i}(s,a)-\operatorname{stopgrad}(y)\big)^2\right],\quad i=1,2.}
 $$
 
-$y$ 是随机单样本近似，损失是平方 TD Error 的回归。Target 分支必须停止梯度；否则训练一个 Q 的同时又让 Target 通过相同反向图更新，将改变这里的半梯度（semi-gradient）设定。
+这里有两个要点：第一，Buffer 提供 $(s,a,r,s',d)$，而**下一动作 $a'$ 要由当前 Actor 重新生成**；第二，构建 TD Target 时停止梯度，不能同时让当前 Critic 通过 Target 分支改变其训练标签。
 
-<a id="course-section-46"></a>
+固定环境下，不同策略产生的同一 $(s,a)$ 的条件转移分布相同，这支持 Off-Policy Bellman 回归的基本机制。但如果历史数据没有覆盖新策略选择的动作，Critic 仍可能在这些区域外推错误；Off-Policy 并不代表任意 Replay 都可靠。
 
-### 10.2 双 Q 的取最小值解决什么？
+### 5.5 Actor：重参数化与 Tanh Gaussian
 
-如果 Actor 总是倾向 Q 高估的动作，这种偏差可能进一步通过 Bootstrap 回传。SAC 在评估给定下一动作 $a'$ 时采用 $\min_j Q_{\bar\phi_j}(s',a')$，减少因正误差带来的过度乐观。但要记住：**取最小不等于“无偏”**，两个 Critic 误差相关时仍会存在风险，而且可能系统性低估价值。
-
-经典 Q-learning 的 $\max_{a'}$ 是**最优性备份**；SAC 取 $\min_j$ 是**估计器融合**。一个在动作维度求最大，另一个在 Q 网络维度取最小，两者绝对不能混淆。
-
-<a id="course-section-47"></a>
-
-### 10.3 时间截断与真正终止
-
-若 $d=1$ 是 MDP 真实终止，则 $y=r$；若环境仅由于 Time Limit 达到而暂时截断（`truncated=True`），在无限时域或可继续的任务中通常仍需 Bootstrapping。实践中应区分 `terminated` 与 `truncated`，否则会错误低估末尾状态价值。有限时域任务若把剩余时间作为状态的一部分，需根据终止定义一致处理。
-
-<a id="course-section-48"></a>
-
-### 10.4 目标网络的软更新
-
-训练每步或按设定间隔更新
+SAC 通常使用网络输出均值 $\mu_\theta(s)$ 和标准差 $\sigma_\theta(s)$，再由独立噪声生成动作：
 
 $$
-\boxed{\bar\phi_j\leftarrow(1-\tau)\bar\phi_j+\tau\phi_j,\qquad 0<\tau\ll1.}
+\boxed{\epsilon\sim\mathcal N(0,I),\qquad
+u=\mu_\theta(s)+\sigma_\theta(s)\odot\epsilon,
+\qquad a=\tanh\nu.}
 $$
 
-典型设置之一为 $\tau=0.005$，但该值不具有普适最优性。软更新减少 Q Target 高频变化，不能替代合理的奖励尺度、探索覆盖与数值稳定处理。
+这叫 Reparameterization Trick：随机性集中在与 $\theta$ 无关的 $\epsilon$ 中，因而 $Q_\phi(s,a)$ 可通过动作路径对 Actor 参数反向传播。Actor 的梯度包含 $-\nabla_a Q(s,a)\,\partial a/\partial\theta$，还包含熵项 $\alpha\log\pi_\theta(a\mid s)$ 的**全导数**。训练 Actor 时一般冻结 Critic 参数，但不能切断 $Q$ 对动作的梯度。
 
-<a id="course-section-49"></a>
-
-## 11. 完整 SAC Actor：重参数化、动作边界与概率修正
-
-<a id="course-section-50"></a>
-
-### 11.1 从 KL 投影到 Actor Loss
-
-用 Buffer 状态分布进行近似策略改进，常见 Actor Objective 为
+Tanh 变换改变概率密度，必须使用 Jacobian 修正：
 
 $$
-\boxed{J_\pi(\theta)=
-\mathbb E_{\substack{s\sim\mathcal D\\a\sim\pi_\theta(\cdot\mid s)}}
+\boxed{\log\pi_\theta(a\mid s)
+=\log\mathcal N(\nu;\mu_\theta(s),\operatorname{diag}\sigma_\theta^2(s))
+-\sum_{j=1}^d\log(1-\tanh^2\nu_j).}
+$$
+
+数值实现应采用稳定的等价表达，避免动作接近 $\pm1$ 时直接计算 $\log(0)$。若归一化动作经可逆仿射变换映射至实际关节、末端增量或力矩空间，还要注意该变换对物理动作密度的常数 Jacobian 贡献。若实际执行存在硬截断、限幅或安全过滤，执行动作分布通常不再等于网络的 Tanh Gaussian 分布。
+
+### 5.6 Temperature：自动熵调节从哪里来？
+
+仅固定 $\alpha$，奖励尺度或动作维数变化便会改变探索水平。常用方法施加平均目标熵约束
+
+$$
+\max_\pi J_R(\pi),\qquad
+\text{s.t.}\quad \mathbb E[-\log\pi(a\mid s)]\ge\mathcal H_{\mathrm{target}}.
+$$
+
+用 $\alpha\ge0$ 构造 Lagrangian 后，在固定 Actor 时可最小化
+
+$$
+\boxed{J_\alpha(\alpha)=
+\mathbb E_{s\sim\mathcal D,a\sim\pi_\theta}
+\left[\alpha(-\log\pi_\theta(a\mid s)-\mathcal H_{\mathrm{target}})\right].}
+$$
+
+若当前熵低于目标，最小化使 $\alpha$ 上升；若当前熵高于目标，则使 $\alpha$ 下降。令 $\eta=\log\alpha$ 保证 $\alpha=e^\eta>0$；实现中有使用精确指数形式的损失，也有使用 $\eta$ 乘以停止梯度的熵误差作为 Surrogate，二者对 $\eta$ 的梯度尺度不同，不能混作完全相同的数学目标（见附录 A）。
+
+### 5.7 一次 SAC 更新的完整信息流
+
+```mermaid
+flowchart TB
+    D["Replay Buffer"] --> B["Mini-batch: s,a,r,s',d"]
+    B --> T["TD Target y"]
+    A["当前随机 Actor"] --> N["在 s' 采样 a'；计算 log pi"]
+    N --> T
+    Q["Target Twin Critics"] --> T
+    T --> C["训练当前 Twin Critics"]
+    B --> U["在 s 采样新动作"]
+    A --> U
+    C --> P["Q 对动作的梯度"]
+    U --> P
+    P --> A
+    U --> H["目标熵调节 alpha"]
+    C -.->|Polyak 软更新| Q
+```
+
+*图 3：SAC 的三条学习路径：Critic 的 TD 回归、Actor 的 Soft Policy Improvement、Temperature 的熵约束更新。*
+
+| 顺序 | 具体操作 | 必须避免的误解 |
+|:--|:--|:--|
+| 1 | 当前策略与环境交互，存入 $\mathcal D$ | 环境动作必须满足物理安全限制 |
+| 2 | 从 $\mathcal D$ 抽样，在 $s'$ 采样新动作构造 $y$ | 旧 Buffer 的下一动作不能无条件当作当前策略动作 |
+| 3 | 最小化两个 Critic 的 TD Loss | Target 必须 Stop-Gradient |
+| 4 | 在 $s$ 采样当前 Actor 动作，以 Q 与熵更新 Actor | 冻结 Q 参数不等于切断对动作的梯度 |
+| 5 | 根据目标熵更新 $\alpha$ | 温度调整不是直接优化环境奖励 |
+| 6 | 软更新 Target Critics，再重复 | UTD 和 Actor/Critic 更新频率可单独调整 |
+
+现代常见 SAC 只有 Actor、两个当前 Critic、两个 Target Critic 和温度参数；早期 SAC v1 还训练显式的 $V_\psi(s)$ 网络。**数学上的 Soft $V$ 并未消失，改变的是其是否由单独网络估计。**
+
+### 5.8 三个损失分别在学习什么？
+
+**Critic：** 学会预测执行某动作后的长期 Soft Return；其监督信号来自奖励、目标 Critic 和当前 Actor。**Actor：** 在保留适度随机性的同时朝 Critic 评分高的动作移动；其训练不要求环境模型可微。**Temperature：** 动态调节偏好“高 Q”还是“高熵”的相对强度，使平均熵接近目标。
+
+三者之间的失败模式也不同：Critic 可能由于覆盖不足或 Bootstrap 错误高估；Actor 可能利用错误的高值区域；过大的 $\alpha$ 可能牺牲任务回报，过小的 $\alpha$ 可能削弱探索。因此判断训练质量不能只观察 Critic Loss 降低或 Q 数值上升，还应检查实际任务成功率、约束违规和价值校准。
+
+***
+<a id="sac-section-06"></a>
+
+## 6. PPO、DQN 与 SAC：如何正确选择
+
+### 6.1 数据范式比“有没有 Actor”更重要
+
+| 维度 | DQN / Double DQN | PPO（标准实现） | SAC（现代连续动作） |
+|:--|:--|:--|:--|
+| 主要策略类型 | 离散贪心选择 | 参数化随机策略 | 参数化随机策略 |
+| 价值学习 | 最优性 TD Backup | 常以 $V$ 拟合回报/GAE | 当前策略 Soft TD Backup |
+| 数据范式 | Off-Policy | 主要 On-Policy | Off-Policy |
+| 旧数据重复利用 | 通常较方便 | 通常仅复用近期 Rollout 若干 Epoch | Replay Buffer 长期复用 |
+| 动作空间 | 典型为离散 | 离散或连续 | 典型为连续 |
+| 核心局限 | 连续动作 $\max$ 昂贵 | 样本需求可能较高 | Critic 外推与 Actor 追逐 Q 误差 |
+
+**Online/Offline** 指训练过程中是否新采集环境数据；**On-Policy/Off-Policy** 指学习目标是否能利用其他行为策略的数据。Online SAC 虽持续采集数据，却是 Off-Policy；固定演示数据上训练并不自动构成可靠的 Offline SAC。
+
+### 6.2 为什么 SAC 可能比 PPO 更省样本，却不一定更快？
+
+PPO 通常用近期 Rollout 和 Advantage 进行策略优化，易于在大型并行仿真中使用；SAC 对 Replay Buffer 中的历史转移反复执行 Critic 回归和 Actor 更新，可能减少所需环境样本，但每条环境样本的计算量也可能更高。要同时报告环境步骤数、成功率、墙钟时间、GPU 成本、部署频率和安全约束，不能仅凭“Off-Policy”推断算法全面占优。
+
+PPO 的常见策略梯度依赖 $\nabla_\theta\log\pi_\theta(a\mid s)\widehat A(s,a)$ 并用概率比 Clipping 控制更新；SAC 的标准连续动作 Actor 通过 Reparameterization 使用 $\nabla_a Q\,\partial a/\partial\theta$。**二者都可以采用随机策略，其关键区别不是“随机与确定性”，而是目标函数、梯度估计和数据复用机制。**
+
+### 6.3 一张选择逻辑图
+
+研究离散动作与基本价值学习时，DQN 是很好的教学起点；大规模高速并行仿真中的运动控制常使用 PPO；连续动作、真机数据昂贵且奖励与观测接口相对稳定时，SAC 值得优先评估。若任务的动作来自复杂的 Flow/Diffusion 生成器，或训练只允许使用固定离线数据，应先检查概率密度、数据支持集和策略优化接口，而不是直接照搬标准 SAC。
+
+***
+
+<a id="sac-section-07"></a>
+
+## 7. 机器人应用：示教、在线学习和 VLA/WAM 后训练
+
+### 7.1 为什么 SAC 适合研究真实机器人数据利用？
+
+真实机器人每次交互都可能消耗时间、磨损硬件，并承担接触或碰撞风险。若仅将已采集轨迹使用一次，成本较高。SAC 的 Replay Buffer + Off-Policy Critic 为**多次复用有效数据**提供了算法接口；但它并不自动解决探索安全、传感器延迟、状态估计误差或动作约束。
+
+一个典型操作任务可使用头/腕相机和关节状态作为观测，以末端位姿增量或关节目标作为动作，奖励则体现任务进展、稳定抓取与安全约束。训练前必须决定动作的物理语义、执行时长、低层控制器和观测同步方式。网络输出的 $[-1,1]^d$ 本身不是“可直接驱动机器人的力矩”。
+
+### 7.2 HIL-SERL：从人类示教到在线 RL
+
+[HIL-SERL](https://arxiv.org/abs/2410.19113) 将人类参与、示教和在线 RL 结合到真实机器人精密操作。这里不复现论文系统细节，而借它解释一个具有代表性的训练逻辑：
+
+```mermaid
+flowchart LR
+    D["示教 / 人类干预"] --> R["Replay Buffer"]
+    P["机器人在线执行"] --> R
+    R --> Q["Off-Policy Critic"]
+    Q --> A["Actor 优化"]
+    A --> P
+    P --> H["任务 / 安全评估"]
+    H -.->|需要时介入| D
+```
+
+*图 4：概念性的真机数据闭环。示教、干预和自主交互都可成为数据来源，但每类数据的采样分布与安全意义不同。*
+
+**为什么有 BC 还需要 RL？** BC 学习“示教者在数据里做了什么”；RL 根据真实反馈改进长时程回报，并可能在示教分布之外学到恢复动作。**为什么还需要人类介入？** 真实交互有风险、稀疏成功奖励难以探索，干预可以提高安全性与有效数据密度。**为什么不能只把数据堆进 Replay？** Critic 必须在相关状态动作上有足够覆盖，奖励与终止标记必须一致，示教与在线数据比例也会影响训练。
+
+可进一步阅读 [RLPD](https://arxiv.org/abs/2302.02948) 中“将离线数据与在线交互相结合”的思想。这里不将 HIL-SERL、RLPD 与原始 SAC 视为同一个算法，也不将论文的特定成功率解释为对所有机器人任务的普适保证。
+
+### 7.3 机器人在线 RL 最容易忽略的五个接口
+
+1. **动作语义：** $a_t$ 是关节位置、速度、力矩，还是末端增量？不同低层控制器造成不同闭环动力学。
+2. **时间尺度：** 策略频率、实际执行时长、传感器延迟，以及动作块长短决定 Transition 的时间意义。
+3. **状态估计：** RGB-D 遮挡、接触突变与姿态估计误差可能造成部分可观测性；堆叠历史或引入隐状态时要重新检查 Markov 假设。
+4. **奖励与安全：** 接触任务仅使用稀疏成功奖励可能导致探索困难，加入密集塑形需防止奖励投机；限位、速度与碰撞规则不能只依靠价值函数学习。
+5. **数据分布：** Replay 中应包含初始化差异、失败与恢复轨迹，而非只有理想成功示教；真机的安全过滤动作会改变实际行为分布。
+
+### 7.4 从单步 SAC 到动作块价值学习
+
+具身基础模型常输出长度为 $H$ 的动作块 $A_t=(a_t,\ldots,a_{t+H-1})$，实际每次可能只执行 $K\le H$ 个底层动作后再次观测。若把执行 $K$ 步视为一个宏观决策，并假定宏观观测足以描述 Markov 状态，则自然的 $K$ 步 Target 是
+
+$$
+\boxed{y_t^{(K)}=
+\sum_{j=0}^{K-1}\gamma^j r_{t+j}
++\gamma^K(1-d_{t:t+K})V(o_{t+K}),}
+$$
+
+其中 $d_{t:t+K}=1$ 表示区间内真实终止；若提早终止，则奖励求和长度也需缩短。对于随机持续时间，进一步应使用 Semi-Markov Decision Process（SMDP）的持续时间折扣形式。
+
+**为什么这里不能直接套用单步 SAC？** 一方面，宏观动作与实际执行动作不一定相同；另一方面，Transformer/Flow/Diffusion 动作生成器通常不提供标准 Tanh Gaussian 的易计算边缘 $\log\pi(A\mid o)$ 或可直接使用的重参数化路径。即使可以学 $Q(o,A)$，Actor 的优化还需要单独选择可计算且稳定的接口。可行思路包括训练可显式求密度的动作头、学习残差 Actor、优化潜变量、构造适配生成器的价值引导目标，或使用另外的策略梯度估计方法。
+
+这些内容属于后续[具身基础模型后训练](Embodied_Post_Training_ZH.md)课程。**本讲义只建立价值学习与数据复用的共同理论基础，不将 SAC 误称为所有 VLA/WAM 的通用后训练器。**
+
+### 7.5 本节应掌握的最短知识闭环
+
+$$
+\begin{gathered}
+\text{Bellman Evaluation / Optimality}
+\longrightarrow\text{TD / Q-learning}
+\longrightarrow\text{FQI / DQN},\\
+\text{连续动作 }\arg\max\text{ 昂贵}
+\longrightarrow\text{Actor--Critic}
+\longrightarrow\text{Soft Policy Iteration / SAC},\\
+\text{Replay + Value Learning}
+\longrightarrow\text{真机数据复用}
+\longrightarrow\text{具身基础模型后训练接口}.
+\end{gathered}
+$$
+
+***
+
+<a id="sac-section-08"></a>
+
+## 附录 A：关键数学推导
+
+本附录保留原讲义的数学严谨性；第一次阅读可先跳过，不影响第 1–7 章的主线。
+
+### A.1 Bellman 算子的压缩性（精确表格情形）
+
+定义 $\mathcal T^*Q=r+\gamma\mathbb E_{s'}\max_{a'}Q(s',a')$。利用
+
+$$
+\left|\max_a x_a-\max_a y_a\right|\le\max_a|x_a-y_a|,
+$$
+
+得到
+
+$$
+\|\mathcal T^*Q_1-\mathcal T^*Q_2\|_\infty
+\le\gamma\|Q_1-Q_2\|_\infty.
+$$
+
+当 $0\le\gamma<1$、奖励与函数空间适当有界时，$\mathcal T^*$ 为压缩映射，存在唯一固定点 $Q^*$，精确 Value Iteration 收敛。**压缩映射的结论并不保证 DQN 的随机非线性参数更新收敛。**
+
+### A.2 从 Lagrangian 推导 Softmax、LogSumExp 和 Soft Bellman
+
+固定状态 $s$，动作集合有限，$\alpha>0$。在概率向量 $p=(p_a)$ 上最大化
+
+$$
+F(p)=\sum_a p_aQ_a-\alpha\sum_a p_a\log p_a,
+\qquad \sum_a p_a=1.
+$$
+
+Lagrangian 为 $F(p)+\lambda(\sum_a p_a-1)$。令导数为零：
+
+$$
+Q_a-\alpha(\log p_a+1)+\lambda=0.
+$$
+
+从归一化约束得到
+
+$$
+p_a^*=\frac{e^{Q_a/\alpha}}{\sum_b e^{Q_b/\alpha}},
+\qquad
+\max_pF(p)=\alpha\log\sum_a e^{Q_a/\alpha}.
+$$
+
+设 $M=\max_aQ_a$，则
+
+$$
+\alpha\log\sum_ae^{Q_a/\alpha}
+=M+\alpha\log\sum_a e^{(Q_a-M)/\alpha},
+$$
+
+并有 $M\le\alpha\log\sum_ae^{Q_a/\alpha}\le M+\alpha\log|\mathcal A|$，故 $\alpha\to0^+$ 时恢复 Hard Max。将此最优 Soft Value 代入一步转移，得到**最优** Soft Bellman 算子：
+
+$$
+(\mathcal T^*_{\mathrm{soft}}Q)(s,a)
+=r(s,a)+\gamma\mathbb E_{s'}
+\left[\alpha\log\sum_{a'}e^{Q(s',a')/\alpha}\right].
+$$
+
+这和正文 SAC **给定策略** 的 Soft Bellman Evaluation 是两个不同算子；不能仅将上式的 $\log\sum\exp$ 机械替换为一个 Actor 样本并声称两者完全相同。
+
+### A.3 Soft Policy Improvement 与 Reverse KL
+
+固定旧策略对应的 Soft Q，定义
+
+$$
+\pi_B(a\mid s)=\frac{e^{Q^{\pi_{\mathrm{old}}}_{\mathrm{soft}}(s,a)/\alpha}}{Z(s)},
+\qquad Z(s)=\int_{\mathcal A} e^{Q^{\pi_{\mathrm{old}}}_{\mathrm{soft}}(s,a')/\alpha}\,da'.
+$$
+
+在 $Z(s)<\infty$、分布绝对连续及有关积分存在的条件下，
+
+$$
+\alpha D_{\mathrm{KL}}(\pi_\theta\|\pi_B)
+=\mathbb E_{a\sim\pi_\theta}
 \left[\alpha\log\pi_\theta(a\mid s)
--\min_{j=1,2}Q_{\phi_j}(s,a)\right].}
+-Q_{\mathrm{soft}}^{\pi_{\mathrm{old}}}(s,a)\right]
++\alpha\log Z(s).
 $$
 
-第一项鼓励适当熵，第二项鼓励高 Q 动作。训练 Actor 时通常固定 Critic **参数**，但必须保留 $\nabla_aQ_\phi(s,a)$，否则 Q 无法通过动作向 Actor 提供改进方向。也有实现用 $Q_{\phi_1}$ 代替最小值更新 Actor，需与具体实现核对。
+最后一项与 $\theta$ 无关，于是 Reverse KL 给出正文 Actor Loss。精确 Soft Policy Iteration 在假设满足、评价和改进步骤精确时具有改进性质；**参数化 Actor 的有限数据 SGD 与不精确 Critic 并不自动继承单调改进保证**。
 
-<a id="course-section-51"></a>
+### A.4 重参数化与动作密度的完整约定
 
-### 11.2 Reparameterization Trick
-
-若直接写 $a\sim\pi_\theta(a\mid s)$，随机采样依赖 $\theta$，难以直接进行简单的逐样本路径微分。令 $\epsilon\sim\mathcal N(0,I)$ 与参数无关，网络输出 $\mu_\theta(s),\sigma_\theta(s)$：
+令 $\nu=\mu_\theta(s)+\sigma_\theta(s)\odot\epsilon$，$\epsilon\sim\mathcal N(0,I)$，$a=\tanh\nu$。对双射 $f:\nu\mapsto a$，变换公式为
 
 $$
-\boxed{u_\theta(s,\epsilon)=\mu_\theta(s)+\sigma_\theta(s)\odot\epsilon,}
+\log\pi(a\mid s)=\log p_\nu(\nu\mid s)
+-\log\left|\det \frac{\partial a}{\partial\nu}\right|.
 $$
 
-$$
-\boxed{a_\theta(s,\epsilon)=\tanh u_\theta(s,\epsilon).}
-$$
+逐维 Tanh 的 Jacobian 为 $1-\tanh^2\nu_j$，因此正文中的 $\sum_j\log(1-\tanh^2\nu_j)$ 必须扣除。若实际控制量为 $u=c+Sa$，$S$ 为可逆的对角缩放矩阵，则对物理动作密度还要减去 $\log|\det S|$。常数变换在某些 Actor 梯度中相消，但会影响熵的数值解释及目标熵选择。
 
-此时 $a_\theta=f_\theta(s,\epsilon)$ 对 $\theta$ 可微，$\epsilon$ 的采样分布固定。Actor Objective 写为
+### A.5 温度对偶变量：严格目标与常用 Surrogate
 
-$$
-J_\pi(\theta)=\mathbb E_{s\sim\mathcal D,\epsilon\sim\mathcal N(0,I)}
-\left[\alpha\log\pi_\theta(f_\theta(s,\epsilon)\mid s)
--Q_{\phi}(s,f_\theta(s,\epsilon))\right].
-$$
-
-为突出机制，此式的 $Q_\phi$ 可代表实际采用的一个 Critic 或 $\min_j Q_{\phi_j}$。其梯度含
-
-$$
--\underbrace{\nabla_aQ_\phi(s,a_\theta)}_{\text{动作方向上的价值梯度}}
-\underbrace{\frac{\partial a_\theta}{\partial\theta}}_{\text{Actor 如何改变动作}},
-$$
-
-并同时包含 $\alpha\log\pi_\theta(a_\theta\mid s)$ 的**全导数**，即显式策略参数依赖与动作路径依赖两部分。SAC 的路径梯度与 PPO 常用的 Score-Function Gradient 不同，二者不应简化为“随机策略对确定性策略”。
-
-<a id="course-section-52"></a>
-
-### 11.3 Tanh Gaussian 的 Log Probability 必须修正
-
-对于 $u\sim\mathcal N(\mu_\theta(s),\operatorname{diag}\sigma_\theta^2(s))$，$a=\tanh u$，变量变换给出
-
-$$
-\pi_\theta(a\mid s)
-=p_U(u\mid s)\left|\det\frac{\partial a}{\partial u}\right|^{-1}.
-$$
-
-由于 $\partial a_i/\partial u_i=1-\tanh^2u_i$，
-
-$$
-\boxed{\log\pi_\theta(a\mid s)=
-\log\mathcal N(u;\mu_\theta(s),\Sigma_\theta(s))
--\sum_{i=1}^{d}\log(1-\tanh^2u_i).}
-$$
-
-不能用 $\log\mathcal N(a;\mu,\Sigma)$ 代替。数值上可使用恒等式
-
-$$
-\log(1-\tanh^2u)=2\big(\log 2-u-\operatorname{softplus}(-2u)\big)
-$$
-
-避免 $\tanh u$ 接近 $\pm1$ 时的数值不稳定。
-
-<a id="course-section-53"></a>
-
-### 11.4 从归一化动作到机器人实际动作
-
-若第 $i$ 维执行动作 $a_i^{\mathrm{env}}=c_i+b_i\tanh u_i$，其中
-
-$$
-c_i=\frac{a_{\max,i}+a_{\min,i}}{2},\qquad
-b_i=\frac{a_{\max,i}-a_{\min,i}}{2}>0,
-$$
-
-则相对于**实际动作变量**的密度还需要减去 $\sum_i\log b_i$：
-
-$$
-\log\pi_\theta(a^{\mathrm{env}}\mid s)
-=\log\mathcal N(u;\mu,\Sigma)
--\sum_i\log\big[b_i(1-\tanh^2u_i)\big].
-$$
-
-如果算法始终在归一化 $[-1,1]^d$ 空间定义策略密度、熵目标与 Q 的动作输入，再由环境封装层进行固定缩放，就应一以贯之地使用这一约定。两个约定仅差常数项，但会影响熵值和温度解释，尤其是自动温度学习。
-
-<a id="course-section-54"></a>
-
-## 12. Automatic Entropy Tuning：为什么学习温度 $\alpha$？
-
-<a id="course-section-55"></a>
-
-### 12.1 目标熵约束与拉格朗日乘子
-
-固定 $\alpha$ 时，奖励尺度和动作维度改变可能显著影响探索。现代 SAC 可以约束平均策略熵
-
-$$
-\max_\pi J_R(\pi)
-\quad\text{s.t.}\quad
-\bar{\mathcal H}(\pi)\ge\mathcal H_{\mathrm{target}}.
-$$
-
-对应的 Lagrangian（概括性平均约束形式）为
+用约束 $\overline{\mathcal H}\ge \mathcal H_{\mathrm{target}}$ 写 Lagrangian
 
 $$
 \mathcal L(\pi,\alpha)
-=J_R(\pi)+\alpha(\bar{\mathcal H}(\pi)-\mathcal H_{\mathrm{target}}),
-\qquad\alpha\ge0.
+=J_R(\pi)+\alpha(\overline{\mathcal H}(\pi)-\mathcal H_{\mathrm{target}}),
+\qquad \max_\pi\min_{\alpha\ge0}\mathcal L.
 $$
 
-优化结构为 $\max_\pi\min_{\alpha\ge0}\mathcal L(\pi,\alpha)$。原 SAC 温度推导可采用逐时刻约束；这里用平均熵表示其训练动机，不能把不同形式在所有情形下视为严格等价。
-
-<a id="course-section-56"></a>
-
-### 12.2 温度损失与方向检查
-
-固定 Actor 时，最小化对偶相关目标
+固定策略后，温度最小化目标等价于 $J_\alpha=\mathbb E[\alpha(-\log\pi-\mathcal H_{\mathrm{target}})]$。若优化 $\eta=\log\alpha$，严格的重参数化为
 
 $$
-\boxed{J_\alpha(\alpha)
-=\mathbb E_{s\sim\mathcal D,a\sim\pi_\theta}
-\left[\alpha\big(-\log\pi_\theta(a\mid s)-\mathcal H_{\mathrm{target}}\big)\right].}
+J_\eta^{\mathrm{exact}}(\eta)
+=-\mathbb E\left[e^\eta(\log\pi+\mathcal H_{\mathrm{target}})\right],
 $$
 
-梯度为 $\partial J_\alpha/\partial\alpha=\bar{\mathcal H}(\pi)-\mathcal H_{\mathrm{target}}$。若当前熵太低，梯度为负，最小化使 $\alpha$ 增加；若熵太高，则 $\alpha$ 减少。**负的连续目标熵是允许的**，不应套用离散动作熵非负的直觉。
-
-<a id="course-section-57"></a>
-
-### 12.3 为什么优化 $\eta=\log\alpha$？
-
-用 $\alpha=e^\eta>0$ 保证正数；严格重参数化目标为
+而一些实现使用
 
 $$
-J_\eta(\eta)
-=-\mathbb E\left[e^\eta
-(\log\pi_\theta(a\mid s)+\mathcal H_{\mathrm{target}})\right].
+J_\eta^{\mathrm{sur}}(\eta)
+=-\mathbb E\left[\eta\,\operatorname{stopgrad}
+(\log\pi+\mathcal H_{\mathrm{target}})\right].
 $$
 
-不少实现使用梯度尺度不同但内部零点一致的代理目标
+两者的梯度方向相同（$\alpha>0$），但梯度尺度不同；不能将 $J_\eta^{\mathrm{sur}}$ 误写成严格对偶目标的代数等价式。
 
-$$
-\boxed{J_\eta^{\mathrm{sur}}(\eta)
-=-\mathbb E\left[\eta
-(\log\pi_\theta(a\mid s)+\mathcal H_{\mathrm{target}})\right].}
-$$
+### A.6 SAC v1 与现代 SAC
 
-更新温度时必须将 $\log\pi_\theta$ 视为常数（停止梯度），否则温度损失可能意外更新 Actor。常见启发式 $\mathcal H_{\mathrm{target}}=-d$（对 $d$ 维归一化动作）**不是定理**；动作相关维度和动作约束场景应审慎解释。
-
-<a id="course-section-58"></a>
-
-## 13. 现代 SAC 的完整算法流程
-
-<a id="course-section-59"></a>
-
-### 13.1 主要模块和三个损失
-
-| 模块 | 记号 | 功能 |
-|:--|:--|:--|
-| Stochastic Actor | $\pi_\theta(a\mid s)$ | 生成高价值且保留适度熵的连续动作 |
-| Twin Critics | $Q_{\phi_1},Q_{\phi_2}$ | 估计 Soft Q，缓解高估 |
-| Target Critics | $Q_{\bar\phi_1},Q_{\bar\phi_2}$ | 提供变化较慢的 TD Target |
-| Replay Buffer | $\mathcal D$ | 保存历史转移，Off-Policy 重用 |
-| Temperature | $\alpha=e^\eta$ | 以目标熵调节探索权重 |
-
-三个损失分别为 $J_{Q_1}+J_{Q_2}$、$J_\pi$、$J_\eta$。其关系不是“一个网络同时做所有事”，而是**当前策略评估 $\rightarrow$ Actor 改进 $\rightarrow$ 温度调节 $\rightarrow$ Target 缓慢追踪**。
-
-<a id="course-section-60"></a>
-
-### 13.2 一次更新究竟发生了什么？
-
-1. 使用当前策略（初始阶段也可随机探索）与环境交互，存储 $(s,a,r,s',\mathrm{terminated},\mathrm{truncated})$。
-2. 从 $\mathcal D$ 抽取一个 Mini-Batch；从当前 Actor 在各 $s'$ 上重采样 $a'$，使用 Target Critics 和 $\alpha$ 计算 TD Target $y$，停止 Target 分支梯度。
-3. 使用 $y$ 分别回归两个 Critic 的 $Q_{\phi_i}(s,a)$。
-4. 在同一批状态 $s$ 上从当前 Actor 重采样 $\tilde a$，以 $\alpha\log\pi_\theta(\tilde a\mid s)-\min_iQ_{\phi_i}(s,\tilde a)$ 更新 Actor；Critic 参数不更新但保留动作梯度。
-5. 用停止梯度的对数概率更新 $\log\alpha$，调整探索强度。
-6. 通过 Polyak Averaging 软更新 Target Critics。然后继续交互与优化；更新次数与交互次数比例可以不同。
-
-下面是**数学伪代码**（非可执行 Python，也不构成实验章节）：
-
-```text
-Initialize actor pi_theta; critics Q_phi1,Q_phi2
-Initialize target critics Q_barphi1,Q_barphi2; replay D; eta=log(alpha)
-Repeat:
-    Collect environment transition and append to D
-    For each gradient update:
-        Sample (s,a,r,s_next,terminated,truncated) from D
-        a_next ~ pi_theta(. | s_next)
-        y = r + gamma*(1-terminated)*(
-                min_i Q_barphi_i(s_next,a_next) - alpha*log pi_theta(a_next|s_next))
-        Update each Q_phi_i by gradient of (Q_phi_i(s,a)-stopgrad(y))^2
-        a_pi ~ pi_theta(. | s)  # reparameterized sample
-        Update actor by gradient of alpha*log pi_theta(a_pi|s)-min_i Q_phi_i(s,a_pi)
-        Update eta by entropy dual loss (detach log probability)
-        barphi_i <- (1-tau)*barphi_i + tau*phi_i
-```
-
-这里 `terminated` 与 `truncated` 的区别、动作空间缩放、Tanh Jacobian、Actor 更新时的 Critic 参数冻结及 Replay Buffer 覆盖度，都是算法定义不可忽略的细节。
-
-<a id="course-section-61"></a>
-
-### 13.3 SAC v1 与现代 SAC：是否显式学习 V？
-
-最初版本还训练状态价值网络 $V_\psi(s)$：
+早期 SAC v1 还学习独立的 $V_\psi(s)$：
 
 $$
 J_V(\psi)=\frac12\mathbb E_s\left[
 \left(V_\psi(s)-\operatorname{stopgrad}
-(\min_iQ_{\phi_i}(s,\tilde a)-\alpha\log\pi_\theta(\tilde a\mid s))\right)^2\right],
+\mathbb E_{a\sim\pi_\theta}[\min_iQ_{\phi_i}(s,a)-\alpha\log\pi_\theta(a\mid s)]\right)^2\right].
 $$
 
-Q Target 为 $y_Q=r+\gamma(1-d)V_{\bar\psi}(s')$。现代常用版本移除显式 $V$ 网络，直接使用 Target Critics 与下一动作的对数概率构造 $y$；因此常见实现只有 Actor、两个 Critic、两个目标 Critic 和温度参数。不要把“没有 V 网络”误读成“不再使用 Soft V 的数学概念”。
+于是 Q Target 可写成 $r+\gamma(1-d)V_{\bar\psi}(s')$。现代常用 SAC 去掉显式 V 网络，直接在 Target Critic 上对下一动作取样并计算 Soft Value 的 Monte Carlo 近似。因此主讲义使用的是现代版本，而非早期 v1 的网络结构。
 
-<a id="course-section-62"></a>
+***
 
-## 14. 算法之间到底有什么联系？
+<a id="sac-section-09"></a>
 
-| 方法 | 典型价值更新 | Actor / 动作选择 | 数据范式 | 主要设计点 |
-|:--|:--|:--|:--|:--|
-| SARSA | 下一行为动作的 $Q(s',a')$ | 由行为策略选动作 | On-Policy（标准） | 学习执行中策略的价值 |
-| Q-learning | $\max_{a'}Q(s',a')$ | 贪心 + 探索 | Off-Policy | Bellman Optimality |
-| DQN | 神经网络 + $\max_{a'}Q_{\bar\phi}$ | 离散 $\arg\max$ | Off-Policy | Replay 与目标网络 |
-| Double DQN | 在线网络选、目标网络评 | 离散 $\arg\max$ | Off-Policy | 缓解 Max 高估 |
-| DDPG | 确定性 Actor 的 Target Q | 确定性 Actor + 探索噪声 | Off-Policy | 连续动作策略梯度 |
-| TD3 | 双 Q、保守 Target | 延迟确定性 Actor | Off-Policy | 双 Q 与目标平滑 |
-| SAC | Soft Bellman + 双 Q | 随机 Actor + 熵 | Off-Policy | Soft Policy Iteration |
-| PPO | 通常使用 V 与 Advantage | 随机策略概率比更新 | On-Policy（标准） | Clipped Policy Objective |
+## 附录 B：实现约定与常见误区
 
-<a id="course-section-63"></a>
+### B.1 训练接口检查表
 
-### 14.1 Q-learning 与 SAC 的最关键区别
+| 检查项 | 正确解释 | 错误做法 |
+|:--|:--|:--|
+| Termination | 真正终止时不 Bootstrap | 把所有 Time Limit 都当终止 |
+| Replay | 保存实际执行的 $(s,a,r,s',d)$ | 把目标动作误记为真实执行动作 |
+| Critic Target | 在 $s'$ 用当前 Actor 采样 $a'$ | 无区分地沿用旧 Buffer 的 $a'$ |
+| Gradients | Target 断梯度；Actor 更新保留 $\nabla_aQ$ | Actor 更新时把 Q 对动作的梯度也关掉 |
+| Twin Q | 对给定动作取两个 Critic 的较小值 | 将 $\min_iQ_i$ 误认为动作最小化 |
+| Squashing | 用 Tanh Jacobian 修正 $\log\pi$ | 直接使用未压缩高斯的密度 |
+| Action scaling | 区分归一化与物理单位 | 把 $[-1,1]$ 当成实际力矩 |
+| Diagnostics | 同时查看回报、成功率、安全和 Q 校准 | 只根据 Q 平均值上升判断成功 |
 
-经典 Q-learning 尝试直接逼近最优 Q，并在 Target 中计算 $\max_{a'}Q(s',a')$；SAC 的 Critic 估计**当前随机 Actor 的 Soft Q**，Actor 则利用 Q 做熵正则策略改进：
+### B.2 五个容易混淆的判断
 
-$$
-\boxed{\begin{aligned}
-\text{Q-learning: }&y=r+\gamma\max_{a'}Q(s',a'),\\
-\text{SAC: }&y=r+\gamma
-\left[\min_jQ_{\bar\phi_j}(s',a')-\alpha\log\pi(a'\mid s')\right],\quad a'\sim\pi.
-\end{aligned}}
-$$
+1. **“用了 Replay 才是 Off-Policy。”** 错。Off-Policy 是行为策略与学习目标之间的关系，表格 Q-learning 无 Replay 也能 Off-Policy。
+2. **“SAC Critic 学的就是最优 $Q^*$。”** 不精确。现代 SAC 通过 Soft Policy Evaluation 逼近当前 Actor 的 Soft Q，并交替改进 Actor。
+3. **“更多 UTD 一定提高样本效率。”** 错。过多重复更新可能放大 Q 外推和函数逼近误差。
+4. **“SAC 取两个 Q 的最小值就解决了 Offline RL。”** 错。固定离线数据中的支持集外动作仍可能被 Actor 偏好，通常需要其他保守化或策略约束机制。
+5. **“VLA/WAM 输出连续动作，所以可以直接使用 SAC。”** 错。必须检查动作分布密度、生成器梯度接口、动作块时间语义和真实执行分布。
 
-为了简洁，式中省略真实终止因子；实际应乘 $1-d$。SAC 中的 $\min_j$ 不是对动作取最小，它只在多个价值估计器中选择较保守的一个。
+### B.3 自测问题（无编程实验）
 
-<a id="course-section-64"></a>
+- 为什么 FQI 的回归标签不是普通监督学习中的固定真值？
+- N-step Returns 在行为策略与目标策略不一致时，为什么可能引入偏差？
+- 为什么 Double DQN 与 SAC 的 Clipped Double-Q 不是同一个公式？
+- 为什么提高 UTD 能减少环境交互需求，却可能增加计算开销或不稳定性？
+- 为什么更新 SAC Actor 时要冻结 Critic 参数，却不能切断 $\nabla_aQ$？
+- 为什么动作块长度 $H$ 与每次实际执行步数 $K$ 不同，必须在 Bellman 目标中明确处理？
 
-### 14.2 PPO 与 SAC：Score Function 和 Pathwise Gradient
+***
 
-PPO 的常用策略更新方向由 $\nabla_\theta\log\pi_\theta(a\mid s)\,\hat A(s,a)$ 构造，辅以策略概率比 Clipping；SAC 通过重参数化动作让 $\nabla_aQ(s,a)\,\partial a/\partial\theta$ 传到 Actor，同时加上熵梯度。前者通常不要求 Critic 对动作可微；后者标准连续动作实现通常要求。PPO 的 On-Policy 大规模并行采样在仿真里可能有墙钟时间优势；SAC 在真实交互昂贵时往往有较高样本效率。**样本效率不等于墙钟训练效率。**
+<a id="sac-section-10"></a>
 
-<a id="course-section-65"></a>
+## 参考文献与课程资源
 
-## 15. 机器人控制中的适用边界与常见误解
+**课程资源**
 
-<a id="course-section-66"></a>
+1. UC Berkeley, **CS185/285: Deep Reinforcement Learning** (2026). [主页](https://rail.eecs.berkeley.edu/deeprlcourse/) · [Lecture 7: Value-Based RL](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-7.pdf) · [Lecture 8: Q-learning in Practice](https://rail.eecs.berkeley.edu/deeprlcourse/static/slides/lec-8.pdf) · [Section 4: DQN and SAC](https://rail.eecs.berkeley.edu/deeprlcourse/static/sections/section-4.pdf).
+2. Stanford, **CS224R: Deep Reinforcement Learning** (2026). [主页](https://cs224r.stanford.edu/) · [Lecture 5: Off-Policy Actor Critic](https://cs224r.stanford.edu/slides/05_cs224r_offpolicy_actor_critic_2026.pdf) · [Lecture 6: Q-Learning](https://cs224r.stanford.edu/slides/06_cs224r_qlearning_2026.pdf).
 
-### 15.1 为什么机器人任务特别需要重视 Q 外推？
+**经典算法与扩展**
 
-机械臂操作往往有接触模式切换、强非线性、稀疏奖励、视觉状态误差与动作边界。Replay Buffer 缺少某些接触状态或恢复动作时，Critic 可以在未覆盖区域给出很高的错误值；Actor 梯度会主动寻找这些错误高值区域，从而形成 **Actor–Critic Feedback Loop**。双 Q 只缓解部分高估，不能替代状态动作覆盖、奖励检查、安全约束与在线分布监测。
+3. Sutton & Barto (2018). *Reinforcement Learning: An Introduction*, 2nd ed. [公开教材](http://incompleteideas.net/book/the-book-2nd.html).
+4. Watkins & Dayan (1992). **Q-learning.** *Machine Learning*. [DOI](https://doi.org/10.1007/BF00992698).
+5. Riedmiller (2005). **Neural Fitted Q Iteration.** [论文](https://link.springer.com/chapter/10.1007/11564096_32).
+6. Mnih et al. (2015). **Human-level control through deep reinforcement learning.** *Nature*. [DOI](https://doi.org/10.1038/nature14236).
+7. van Hasselt, Guez & Silver (2016). **Deep Reinforcement Learning with Double Q-learning.** [arXiv:1509.06461](https://arxiv.org/abs/1509.06461).
+8. Lillicrap et al. (2015). **Continuous Control with Deep Reinforcement Learning.** [arXiv:1509.02971](https://arxiv.org/abs/1509.02971).
+9. Fujimoto, van Hoof & Meger (2018). **Addressing Function Approximation Error in Actor-Critic Methods (TD3).** [arXiv:1802.09477](https://arxiv.org/abs/1802.09477).
+10. Haarnoja et al. (2018). **Soft Actor-Critic: Off-Policy Maximum Entropy Deep RL with a Stochastic Actor.** [arXiv:1801.01290](https://arxiv.org/abs/1801.01290).
+11. Haarnoja et al. (2018). **Soft Actor-Critic Algorithms and Applications.** [arXiv:1812.05905](https://arxiv.org/abs/1812.05905).
+12. Ball et al. (2023). **Efficient Online Reinforcement Learning with Offline Data (RLPD).** [arXiv:2302.02948](https://arxiv.org/abs/2302.02948).
+13. Luo et al. (2024). **HIL-SERL: Precise and Dexterous Robotic Manipulation via Human-in-the-Loop Reinforcement Learning.** [arXiv:2410.19113](https://arxiv.org/abs/2410.19113).
+14. OpenAI Spinning Up. **Soft Actor-Critic.** [算法说明](https://spinningup.openai.com/en/latest/algorithms/sac.html).
 
-<a id="course-section-67"></a>
+***
 
-### 15.2 关节位置、速度、力矩与归一化动作
-
-策略输出 $[-1,1]^d$ 通常并非直接执行的关节位置或力矩；还需要根据控制接口进行缩放、偏置和物理限幅。动作饱和可能让 Tanh 导数变小，动作尺度影响高斯密度与目标熵。将动作表示、控制频率、观测延迟、执行器限幅清晰写入 MDP，远比只看 $J_\pi$ 的数学形式更重要。
-
-<a id="course-section-68"></a>
-
-### 15.3 什么情况下不宜直接套用标准 SAC？
-
-标准 SAC 假设可从 Actor 分布采样并计算其 Log Probability，还通常依赖动作路径可微性。若使用离散动作、复杂的隐式生成策略、Flow Matching 动作头、部分可观测长历史策略或强安全约束，则需要明确目标与策略参数化是否仍然成立；不能把 $\alpha\log\pi$ 直接加到无法计算密度的策略上并称其为标准 SAC。历史数据并不能自动解决 Offline RL 的分布外动作价值外推问题，Offline 与 Online Off-Policy RL 也不是同义词。
-
-<a id="course-section-69"></a>
-
-### 15.4 五个常见误解
-
-1. **“Q-learning 只有用了 Replay Buffer 才是 Off-Policy。”** 错；Off-Policy 来自行为与学习目标的区别。
-2. **“Soft Q-learning 就是直接把 Q-learning 的 Max 换成 Actor 采样。”** 不严谨；需区分最优 Soft Bellman 与给定策略的 Soft Evaluation。
-3. **“Double Q、Double DQN 和 SAC 的 Min-Q 完全相同。”** 错；选择与评价的分离方式不同。
-4. **“$\alpha$ 大一定提高回报。”** 错；较大熵系数可能牺牲任务回报，其合适数值与奖励和动作尺度有关。
-5. **“Off-Policy 经验复用保证稳定和安全。”** 错；覆盖不足、Bootstrapping、非平稳性以及实际执行约束仍可能带来问题。
-
-<a id="course-section-70"></a>
-
-## 16. 全部推导的最短闭环
-
-下面六个公式足以概括从经典 Q-learning 到现代 SAC 的核心变化。
-
-**(1) 经典 Bellman Optimality：**
-
-$$
-\boxed{Q^*(s,a)=r(s,a)+\gamma\mathbb E_{s'}[\max_{a'}Q^*(s',a')].}
-$$
-
-**(2) Q-learning 单样本 TD 更新：**
-
-$$
-\boxed{Q(s,a)\leftarrow Q(s,a)+\eta\left[r+\gamma(1-d)\max_{a'}Q(s',a')-Q(s,a)\right].}
-$$
-
-**(3) 最优 Soft Value（有限离散动作）：**
-
-$$
-\boxed{V^*_{\mathrm{soft}}(s)=\alpha\log\sum_a\exp(Q^*_{\mathrm{soft}}(s,a)/\alpha),}
-$$
-
-其零温度极限恢复 $\max_a Q(s,a)$。
-
-**(4) 给定策略的 Soft Bellman Evaluation：**
-
-$$
-\boxed{Q^\pi_{\mathrm{soft}}(s,a)=r+\gamma\mathbb E_{s',a'\sim P,\pi}
-[Q^\pi_{\mathrm{soft}}(s',a')-\alpha\log\pi(a'\mid s')].}
-$$
-
-**(5) SAC 的双 Critic 与重参数化 Actor：**
-
-$$
-\boxed{\begin{aligned}
-y&=r+\gamma(1-d)\left[\min_jQ_{\bar\phi_j}(s',a')
--\alpha\log\pi_\theta(a'\mid s')\right],\\
-J_\pi&=\mathbb E_{s,\epsilon}\left[\alpha\log\pi_\theta(f_\theta(s,\epsilon)\mid s)
--\min_jQ_{\phi_j}(s,f_\theta(s,\epsilon))\right].
-\end{aligned}}
-$$
-
-**(6) 目标熵与温度调节：**
-
-$$
-\boxed{J_\eta^{\mathrm{sur}}=-\mathbb E\left[\eta
-(\log\pi_\theta(a\mid s)+\mathcal H_{\mathrm{target}})\right],\quad\eta=\log\alpha.}
-$$
-
-**一句话总结：** Q-learning 通过 **Hard Bellman Optimality + TD Bootstrapping** 学最优动作价值；SAC 通过 **Soft Bellman Policy Evaluation + Actor Policy Improvement + Entropy Tuning** 在连续动作空间学习随机控制策略。共享的是 Bellman 与 TD，关键改变是如何优化下一动作以及如何保持策略熵。
-
-<a id="course-section-71"></a>
-
-## 参考资料与延伸阅读
-
-1. Watkins, C. J. C. H., & Dayan, P. (1992). **Q-learning.** *Machine Learning*, 8, 279–292. [DOI](https://doi.org/10.1007/BF00992698)。表格 Q-learning 与经典收敛定理。
-2. Sutton, R. S., & Barto, A. G. (2018). **Reinforcement Learning: An Introduction**, 2nd ed. [公开教材](http://incompleteideas.net/book/the-book-2nd.html)。Bellman 方程、TD、SARSA、Q-learning 与策略迭代。
-3. Mnih, V., et al. (2015). **Human-level control through deep reinforcement learning.** *Nature*. [DOI](https://doi.org/10.1038/nature14236)。DQN、经验回放、目标网络。
-4. van Hasselt, H. (2010). **Double Q-learning.** *NeurIPS*. [论文](https://papers.neurips.cc/paper_files/paper/2010/hash/091d584fced301b442654dd8c23b3fc9-Abstract.html)。动作价值高估与双估计器。
-5. van Hasselt, H., Guez, A., & Silver, D. (2016). **Deep Reinforcement Learning with Double Q-learning.** [arXiv:1509.06461](https://arxiv.org/abs/1509.06461)。Double DQN。
-6. Lillicrap, T. P., et al. (2015). **Continuous control with deep reinforcement learning.** [arXiv:1509.02971](https://arxiv.org/abs/1509.02971)。确定性连续控制 Actor-Critic。
-7. Fujimoto, S., van Hoof, H., & Meger, D. (2018). **Addressing Function Approximation Error in Actor-Critic Methods.** [arXiv:1802.09477](https://arxiv.org/abs/1802.09477)。TD3 与双 Q 控制误差。
-8. Haarnoja, T., Tang, H., Abbeel, P., & Levine, S. (2017). **Reinforcement Learning with Deep Energy-Based Policies.** *ICML*. [论文](https://proceedings.mlr.press/v70/haarnoja17a.html)。Soft Q-learning 与能量模型策略。
-9. Haarnoja, T., Zhou, A., Abbeel, P., & Levine, S. (2018). **Soft Actor-Critic: Off-Policy Maximum Entropy Deep Reinforcement Learning with a Stochastic Actor.** [arXiv:1801.01290](https://arxiv.org/abs/1801.01290)。Soft Policy Iteration 与 KL 推导。
-10. Haarnoja, T., et al. (2018). **Soft Actor-Critic Algorithms and Applications.** [arXiv:1812.05905](https://arxiv.org/abs/1812.05905)。自动温度与现代 SAC。
-11. OpenAI Spinning Up. **Soft Actor-Critic.** [算法说明](https://spinningup.openai.com/en/latest/algorithms/sac.html)。常用实现约定与公式。
-
----
-
-*许可说明：原创课程内容按 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 标注；对第三方文献的引用不改变其原有许可。本文为课程讲义，不含实验、数值结果或训练效果保证。Markdown 中公式采用 GitHub / Pandoc 常见的 LaTeX 数学格式；随附 PDF 与本 Markdown 使用同一版正文生成。*
+*教学使用与许可：原创表述按课程仓库的 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 许可使用；课程讲义及论文的第三方材料继续受其各自许可约束。本文仅作教学概述，不提供训练性能保证，也不包含实验或可执行代码。*
