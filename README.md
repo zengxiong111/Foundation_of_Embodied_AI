@@ -39,5 +39,3 @@ Everyone is welcome to download, modify and submit pull requests under the appli
 - **Attribution:** Credit the creators, link to the source and license, and identify changes. Do not imply endorsement.
 - **NonCommercial:** Commercial use is not authorized by this license; request separate permission from the relevant rights holders.
 - **ShareAlike:** When sharing adaptations of these contributions, use CC BY-NC-SA 4.0 or a license officially recognized as compatible.
-
-**Previously released materials:** Content already published through the boundary commit retains [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), including when reused in later versions. Existing tutorial Markdown/PDFs keep that license; changing formatting or license notices does not withdraw the earlier permission, including permitted commercial reuse. Third-party material keeps its original license, and statutory exceptions remain unaffected. [Official license summary](https://creativecommons.org/licenses/by-nc-sa/4.0/).
