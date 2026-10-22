@@ -30,8 +30,14 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 | 16 | Post-training | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_EN.pdf" target="_blank">PDF</a> |
 | 17 | Robot Agents | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_EN.pdf" target="_blank">PDF</a> |
 
-## Usage and feedback
+## Usage, licensing and feedback
 
-Everyone is welcome to download, modify and submit pull requests! Send feedback to [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn).
+Everyone is welcome to download, modify and submit pull requests under the applicable license. Send feedback or requests for separate commercial permission to [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn).
 
-Original teaching materials use [CC BY 4.0](LICENSE). Third-party materials retain their original licenses. When sharing or adapting the materials, provide attribution, a license link and an indication of changes.
+**New original contributions:** From 2026-10-22, original additions first published after [the license boundary commit](https://github.com/zengxiong111/Foundation_of_Embodied_AI/tree/1456e30d30c54b3cb999e9468b677a2640a360cf) use [CC BY-NC-SA 4.0](LICENSE), where the licensors hold the required rights:
+
+- **Attribution:** Credit the creators, link to the source and license, and identify changes. Do not imply endorsement.
+- **NonCommercial:** Commercial use is not authorized by this license; request separate permission from the relevant rights holders.
+- **ShareAlike:** When sharing adaptations of these contributions, use CC BY-NC-SA 4.0 or a license officially recognized as compatible.
+
+**Previously released materials:** Content already published through the boundary commit retains [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), including when reused in later versions. Existing tutorial Markdown/PDFs keep that license; changing formatting or license notices does not withdraw the earlier permission, including permitted commercial reuse. Third-party material keeps its original license, and statutory exceptions remain unaffected. [Official license summary](https://creativecommons.org/licenses/by-nc-sa/4.0/).

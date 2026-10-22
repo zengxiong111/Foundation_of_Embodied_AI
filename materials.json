@@ -4,7 +4,7 @@
   "repository": "zengxiong111/Foundation_of_Embodied_AI",
   "website_repository": "zengxiong111/zengxiong.github.io",
   "website_branch": "master",
-  "content_license": "CC-BY-4.0",
+  "content_license": "CC-BY-NC-SA-4.0",
   "upstream_snapshots": [
     {
       "repo": "Physical-Intelligence/openpi",
@@ -65,13 +65,15 @@
           "md": "md/Git_使用教程_中文版.md",
           "pdf": "pdf/Git_使用教程_中文版.pdf",
           "site_md": "files/Git_Tutorial_CN.md",
-          "site_pdf": "files/Git_Tutorial_CN.pdf"
+          "site_pdf": "files/Git_Tutorial_CN.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/Git_Tutorial_English.md",
           "pdf": "pdf/Git_Tutorial_English-1.pdf",
           "site_md": "files/Git_Tutorial_EN.md",
-          "site_pdf": "files/Git_Tutorial_EN.pdf"
+          "site_pdf": "files/Git_Tutorial_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -92,13 +94,15 @@
           "md": "md/ROS2_Robot_Learning_Tutorial_ZH.md",
           "pdf": "pdf/ROS2_Robot_Learning_Tutorial_ZH.pdf",
           "site_md": "files/ROS2_Robot_Learning_Tutorial_ZH.md",
-          "site_pdf": "files/ROS2_Robot_Learning_Tutorial_ZH.pdf"
+          "site_pdf": "files/ROS2_Robot_Learning_Tutorial_ZH.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/ROS2_Robot_Learning_Tutorial_EN.md",
           "pdf": "pdf/ROS2_Robot_Learning_Tutorial_EN-1.pdf",
           "site_md": "files/ROS2_Robot_Learning_Tutorial_EN.md",
-          "site_pdf": "files/ROS2_Robot_Learning_Tutorial_EN.pdf"
+          "site_pdf": "files/ROS2_Robot_Learning_Tutorial_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -119,13 +123,15 @@
           "md": "md/Robot_Camera_Calibration_Tutorial_ZH.md",
           "pdf": "pdf/Robot_Camera_Calibration_Tutorial_ZH-1.pdf",
           "site_md": "files/Robot_Camera_Calibration_Tutorial_ZH.md",
-          "site_pdf": "files/Robot_Camera_Calibration_Tutorial_ZH.pdf"
+          "site_pdf": "files/Robot_Camera_Calibration_Tutorial_ZH.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/Robot_Camera_Calibration_Tutorial_EN.md",
           "pdf": "pdf/Robot_Camera_Calibration_Tutorial_EN-1.pdf",
           "site_md": "files/Robot_Camera_Calibration_Tutorial_EN.md",
-          "site_pdf": "files/Robot_Camera_Calibration_Tutorial_EN.pdf"
+          "site_pdf": "files/Robot_Camera_Calibration_Tutorial_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -144,13 +150,15 @@
           "md": "md/Deep_Learning_Foundations_EN.md",
           "pdf": "pdf/Deep_Learning_Foundations_EN.pdf",
           "site_md": "files/Deep_Learning_Foundations_EN.md",
-          "site_pdf": "files/Deep_Learning_Foundations_EN.pdf"
+          "site_pdf": "files/Deep_Learning_Foundations_EN.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "zh": {
           "md": "md/Deep_Learning_Foundations_ZH.md",
           "pdf": "pdf/Deep_Learning_Foundations_ZH.pdf",
           "site_md": "files/Deep_Learning_Foundations_ZH.md",
-          "site_pdf": "files/Deep_Learning_Foundations_ZH.pdf"
+          "site_pdf": "files/Deep_Learning_Foundations_ZH.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -169,13 +177,15 @@
           "md": "md/Visual_State_Estimation_ZH.md",
           "pdf": "pdf/Visual_State_Estimation_ZH.pdf",
           "site_md": "files/Visual_State_Estimation_ZH.md",
-          "site_pdf": "files/Visual_State_Estimation_ZH.pdf"
+          "site_pdf": "files/Visual_State_Estimation_ZH.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/Visual_State_Estimation_EN.md",
           "pdf": "pdf/Visual_State_Estimation_EN.pdf",
           "site_md": "files/Visual_State_Estimation_EN.md",
-          "site_pdf": "files/Visual_State_Estimation_EN.pdf"
+          "site_pdf": "files/Visual_State_Estimation_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -196,13 +206,15 @@
           "md": "md/Robot_Dynamics_Embodied_CN.md",
           "pdf": "pdf/Robot_Dynamics_Embodied_CN.pdf",
           "site_md": "files/Robot_Dynamics_Embodied_CN.md",
-          "site_pdf": "files/Robot_Dynamics_Embodied_CN.pdf"
+          "site_pdf": "files/Robot_Dynamics_Embodied_CN.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/Robot_Dynamics_Embodied_EN.md",
           "pdf": "pdf/Robot_Dynamics_Embodied_EN.pdf",
           "site_md": "files/Robot_Dynamics_Embodied_EN.md",
-          "site_pdf": "files/Robot_Dynamics_Embodied_EN.pdf"
+          "site_pdf": "files/Robot_Dynamics_Embodied_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -224,13 +236,15 @@
           "md": "md/Isaac_MuJoCo_RL_完整教程_中文.md",
           "pdf": "pdf/Isaac_MuJoCo_RL_完整教程_中文.pdf",
           "site_md": "files/Isaac_MuJoCo_RL_完整教程_中文.md",
-          "site_pdf": "files/Isaac_MuJoCo_RL_完整教程_中文.pdf"
+          "site_pdf": "files/Isaac_MuJoCo_RL_完整教程_中文.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/Isaac_MuJoCo_RL_Complete_Guide_EN.md",
           "pdf": "pdf/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf",
           "site_md": "files/Isaac_MuJoCo_RL_Complete_Guide_EN.md",
-          "site_pdf": "files/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf"
+          "site_pdf": "files/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -251,13 +265,15 @@
           "md": "md/Embodied_Motion_Control_RL_Tutorial_ZH.md",
           "pdf": "pdf/Embodied_Motion_Control_RL_Tutorial_ZH.pdf",
           "site_md": "files/Embodied_Motion_Control_RL_Tutorial_ZH.md",
-          "site_pdf": "files/Embodied_Motion_Control_RL_Tutorial_ZH.pdf"
+          "site_pdf": "files/Embodied_Motion_Control_RL_Tutorial_ZH.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/Embodied_Motion_Control_RL_Tutorial_EN.md",
           "pdf": "pdf/Embodied_Motion_Control_RL_Tutorial_EN.pdf",
           "site_md": "files/Embodied_Motion_Control_RL_Tutorial_EN.md",
-          "site_pdf": "files/Embodied_Motion_Control_RL_Tutorial_EN.pdf"
+          "site_pdf": "files/Embodied_Motion_Control_RL_Tutorial_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -276,13 +292,15 @@
           "md": "md/PPO_完整推导与设计动机_中文.md",
           "pdf": "pdf/PPO_完整推导与设计动机_中文.pdf",
           "site_md": "files/PPO_Complete_Derivation_CN.md",
-          "site_pdf": "files/PPO_Complete_Derivation_CN.pdf"
+          "site_pdf": "files/PPO_Complete_Derivation_CN.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/PPO_Complete_Derivation_and_Design_Motivations_English.md",
           "pdf": "pdf/PPO_Complete_Derivation_and_Design_Motivations_English-1.pdf",
           "site_md": "files/PPO_Complete_Derivation_EN.md",
-          "site_pdf": "files/PPO_Complete_Derivation_EN.pdf"
+          "site_pdf": "files/PPO_Complete_Derivation_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -301,13 +319,15 @@
           "md": "md/SAC_Complete_Derivation_CN.md",
           "pdf": "pdf/SAC_Complete_Derivation_CN-1.pdf",
           "site_md": "files/SAC_Complete_Derivation_CN.md",
-          "site_pdf": "files/SAC_Complete_Derivation_CN.pdf"
+          "site_pdf": "files/SAC_Complete_Derivation_CN.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/SAC_Complete_Derivation_EN.md",
           "pdf": "pdf/SAC_Complete_Derivation_EN-1.pdf",
           "site_md": "files/SAC_Complete_Derivation_EN.md",
-          "site_pdf": "files/SAC_Complete_Derivation_EN.pdf"
+          "site_pdf": "files/SAC_Complete_Derivation_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -326,13 +346,15 @@
           "md": "md/Data_Imitation_Learning_ZH.md",
           "pdf": "pdf/Data_Imitation_Learning_ZH.pdf",
           "site_md": "files/Data_Imitation_Learning_ZH.md",
-          "site_pdf": "files/Data_Imitation_Learning_ZH.pdf"
+          "site_pdf": "files/Data_Imitation_Learning_ZH.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/Data_Imitation_Learning_EN.md",
           "pdf": "pdf/Data_Imitation_Learning_EN.pdf",
           "site_md": "files/Data_Imitation_Learning_EN.md",
-          "site_pdf": "files/Data_Imitation_Learning_EN.pdf"
+          "site_pdf": "files/Data_Imitation_Learning_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -353,13 +375,15 @@
           "md": "md/Flow_Matching_详细推导_精简版.md",
           "pdf": "pdf/Flow_Matching_详细推导_精简版.pdf",
           "site_md": "files/Flow_Matching_CN.md",
-          "site_pdf": "files/Flow_Matching_CN.pdf"
+          "site_pdf": "files/Flow_Matching_CN.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/Flow_Matching_Step_by_Step_Derivation_EN.md",
           "pdf": "pdf/Flow_Matching_Step_by_Step_Derivation_EN.pdf",
           "site_md": "files/Flow_Matching_Step_by_Step_Derivation_EN.md",
-          "site_pdf": "files/Flow_Matching_Step_by_Step_Derivation_EN.pdf"
+          "site_pdf": "files/Flow_Matching_Step_by_Step_Derivation_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -381,13 +405,15 @@
           "md": "md/System1_System0_GR00T_SONIC_CN.md",
           "pdf": "pdf/System1_System0_GR00T_SONIC_CN.pdf",
           "site_md": "files/System1_System0_GR00T_SONIC_CN.md",
-          "site_pdf": "files/System1_System0_GR00T_SONIC_CN.pdf"
+          "site_pdf": "files/System1_System0_GR00T_SONIC_CN.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/System1_System0_GR00T_SONIC_EN.md",
           "pdf": "pdf/System1_System0_GR00T_SONIC_EN.pdf",
           "site_md": "files/System1_System0_GR00T_SONIC_EN.md",
-          "site_pdf": "files/System1_System0_GR00T_SONIC_EN.pdf"
+          "site_pdf": "files/System1_System0_GR00T_SONIC_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -406,13 +432,15 @@
           "md": "md/World_Action_Models_EN.md",
           "pdf": "pdf/World_Action_Models_EN.pdf",
           "site_md": "files/World_Action_Models_EN.md",
-          "site_pdf": "files/World_Action_Models_EN.pdf"
+          "site_pdf": "files/World_Action_Models_EN.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "zh": {
           "md": "md/World_Action_Models_ZH.md",
           "pdf": "pdf/World_Action_Models_ZH.pdf",
           "site_md": "files/World_Action_Models_ZH.md",
-          "site_pdf": "files/World_Action_Models_ZH.pdf"
+          "site_pdf": "files/World_Action_Models_ZH.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -431,13 +459,15 @@
           "md": "md/Efficient_Training_Real_Time_Inference_EN.md",
           "pdf": "pdf/Efficient_Training_Real_Time_Inference_EN.pdf",
           "site_md": "files/Efficient_Training_Real_Time_Inference_EN.md",
-          "site_pdf": "files/Efficient_Training_Real_Time_Inference_EN.pdf"
+          "site_pdf": "files/Efficient_Training_Real_Time_Inference_EN.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "zh": {
           "md": "md/Efficient_Training_Real_Time_Inference_ZH.md",
           "pdf": "pdf/Efficient_Training_Real_Time_Inference_ZH.pdf",
           "site_md": "files/Efficient_Training_Real_Time_Inference_ZH.md",
-          "site_pdf": "files/Efficient_Training_Real_Time_Inference_ZH.pdf"
+          "site_pdf": "files/Efficient_Training_Real_Time_Inference_ZH.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -464,7 +494,8 @@
             "pdf": [
               "files/RL_Post_Training_ZH.pdf"
             ]
-          }
+          },
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/Embodied_Post_Training_EN.md",
@@ -478,7 +509,8 @@
             "pdf": [
               "files/RL_Post_Training_EN.pdf"
             ]
-          }
+          },
+          "content_license": "CC-BY-4.0"
         }
       }
     },
@@ -497,13 +529,15 @@
           "md": "md/Robot_Agent_Workflow_RPent_ZH.md",
           "pdf": "pdf/Robot_Agent_Workflow_RPent_ZH.pdf",
           "site_md": "files/Robot_Agent_Workflow_RPent_ZH.md",
-          "site_pdf": "files/Robot_Agent_Workflow_RPent_ZH.pdf"
+          "site_pdf": "files/Robot_Agent_Workflow_RPent_ZH.pdf",
+          "content_license": "CC-BY-4.0"
         },
         "en": {
           "md": "md/Robot_Agent_Workflow_RPent_EN.md",
           "pdf": "pdf/Robot_Agent_Workflow_RPent_EN.pdf",
           "site_md": "files/Robot_Agent_Workflow_RPent_EN.md",
-          "site_pdf": "files/Robot_Agent_Workflow_RPent_EN.pdf"
+          "site_pdf": "files/Robot_Agent_Workflow_RPent_EN.pdf",
+          "content_license": "CC-BY-4.0"
         }
       }
     }
@@ -513,13 +547,15 @@
       "md": "syllabus/COURSE_MAP_EN.md",
       "pdf": "syllabus/COURSE_MAP_EN.pdf",
       "site_md": "files/COURSE_MAP_EN.md",
-      "site_pdf": "files/COURSE_MAP_EN.pdf"
+      "site_pdf": "files/COURSE_MAP_EN.pdf",
+      "content_license": "CC-BY-4.0"
     },
     "zh": {
       "md": "syllabus/COURSE_MAP_ZH.md",
       "pdf": "syllabus/COURSE_MAP_ZH.pdf",
       "site_md": "files/COURSE_MAP_ZH.md",
-      "site_pdf": "files/COURSE_MAP_ZH.pdf"
+      "site_pdf": "files/COURSE_MAP_ZH.pdf",
+      "content_license": "CC-BY-4.0"
     }
   },
   "pdf_format": {
@@ -533,5 +569,13 @@
     "math_font": "Latin Modern Math",
     "body_font_pt": 10,
     "cjk_scale": 0.9
+  },
+  "license_policy": {
+    "effective_date": "2026-10-22",
+    "legacy_through_commit": "1456e30d30c54b3cb999e9468b677a2640a360cf",
+    "legacy_content_license": "CC-BY-4.0",
+    "scope_en": "The default license applies only to new original contributions first published after the boundary commit and licensed by authorized rights holders. Previously published content keeps its prior licenses even in later versions; third-party licenses and statutory exceptions remain unaffected.",
+    "scope_zh": "默认许可仅适用于分界提交之后首次发布、且经有权许可者授权的新增原创内容。此前已发布内容即使沿用到后续版本仍保留原许可；第三方许可及法定例外不受影响。",
+    "commercial_permissions_contact": "zengx3@sustech.edu.cn"
   }
 }

@@ -30,8 +30,14 @@
 | 16 | 后训练 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_EN.pdf" target="_blank">PDF</a> |
 | 17 | 机器人智能体 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_EN.pdf" target="_blank">PDF</a> |
 
-## 使用与反馈
+## 使用、许可与反馈
 
-欢迎大家下载、修改和提交 PR！反馈请发送至 [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn)。
+欢迎大家在适用许可范围内下载、修改和提交 PR！反馈或另行商业授权申请请发送至 [zengx3@sustech.edu.cn](mailto:zengx3@sustech.edu.cn)。
 
-原创教材采用 [CC BY 4.0](LICENSE)；第三方材料保留原许可。转载或修改教材时请署名、附许可链接并注明改动。
+**新增原创内容：** 自 2026-10-22 起，在[许可分界提交](https://github.com/zengxiong111/Foundation_of_Embodied_AI/tree/1456e30d30c54b3cb999e9468b677a2640a360cf)之后首次发布、且许可人有权授权的新增原创内容，采用 [CC BY-NC-SA 4.0](LICENSE)：
+
+- **署名：** 注明创作者、提供来源和许可链接，并说明修改；不得暗示获得作者背书。
+- **非商业性使用：** 本许可不授权商业使用；商业使用须向相关权利人另行申请授权。
+- **相同方式共享：** 对这些新增内容进行改编后再分享，须采用 CC BY-NC-SA 4.0 或官方认可的兼容许可。
+
+**此前已发布的教材：** 分界提交及之前已发布的内容（包括沿用到后续版本的部分）继续保留 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.zh-hans)。现有教程 Markdown/PDF 保持该许可；更改排版或许可标识不能撤回此前授权，包括其允许的商业使用。第三方材料保留原许可，法定例外不受影响。[官方许可说明](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh-hans)。
