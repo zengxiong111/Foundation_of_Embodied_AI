@@ -113,7 +113,7 @@ flowchart LR
 
 ### 14. World Action Models
 
-[World Action Models](../md/World_Action_Models_EN.md) — Distinguish world models, VLAs and WAMs, then study DreamZero training and accelerated inference, Dream-1 cross-embodiment deployment, and VLA/WAM memory, compute and latency trade-offs. Connect these methods to contact-rich control, recovery and evaluation.
+[World Action Models](../md/World_Action_Models_EN.md) — Distinguish world models, VLAs and WAMs, then study DreamZero training and accelerated inference. Explain Dream-1 zero-shot embodiment transfer through shared EEF/IK interfaces, joint video–action modeling and transferable visual representations; compare FaaS adaptation, VLA/WAM compute, latency, contact control and evaluation.
 
 ### 15. Efficient Training & Inference
 

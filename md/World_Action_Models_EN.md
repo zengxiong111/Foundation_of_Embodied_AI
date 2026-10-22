@@ -1,10 +1,10 @@
 ---
 title: "World Models and World Action Models for Embodied AI"
 subtitle: "From DreamZero and Dream-1 to VLA/WAM Compute: Training, Inference, and Embodiment Transfer"
-date: "2026-10-20"
+date: "2026-10-22"
 lang: en-US
 toc: true
-toc-depth: 1
+toc-depth: 2
 toc-title: Contents
 colorlinks: true
 ---
@@ -13,8 +13,15 @@ colorlinks: true
 
 [Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](World_Action_Models_ZH.md) · [DreamZero paper](https://arxiv.org/abs/2602.15922) · [Dream-1 announcement](https://dreamlabs.ai/research/dream-1/) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/World_Action_Models_EN.pdf)
 
+| Item | Details |
+|---|---|
+| Topic | DreamZero, Dream-1 and cross-embodiment transfer |
+| Revision | 2026-10-22 |
+| License | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
+
 **Scope.** This chapter follows the course material on imitation learning, flow matching, and GR00T/SONIC. It explains how predicted futures become executable robot actions. The original treatment of training data, inference options, efficiency, and deployment constraints is retained and augmented with two substantive case studies: **DreamZero, an open research method**, and **Dream-1, a cross-embodiment deployment system**, followed by a **systems-level VLA/WAM comparison of memory, compute, latency, and deployment costs**. We do not re-derive the flow-matching continuity equation, PPO, or general Transformer fundamentals; there are no programming exercises.
 
+**Key question added in this revision.** Why can Dream-1 sometimes operate on unseen robots and tasks without fine-tuning? The explanation combines **a shared EEF action interface, joint video–action world modeling, and transferable visual representations**; EEF control and inverse kinematics are not exclusive to WAMs. Sections 6, 8, and 11 discuss mechanisms, limits, and controlled comparisons.
 
 ## Contents
 
@@ -27,6 +34,7 @@ colorlinks: true
 - [7. DreamZero versus Dream-1: a precise comparison](#wam-section-07)
 - [8. VLA versus WAM: a systems comparison of capability, compute, and deployment](#wam-section-08)
 - [9. Efficient inference: joining the model clock and robot clock](#wam-section-09)
+- [10. Contact-rich manipulation and recovery](#wam-section-10)
 - [11. Evaluating the contribution of a WAM](#wam-section-11)
 - [12. Boundaries within the course and reading order](#wam-section-12)
 - [13. References and official resources](#wam-section-13)
@@ -116,7 +124,7 @@ Record timestamps, action units, frames, controller mode, proprioception, and th
 | Simulation rollouts | States, contact, commands, reward | Rendering and contact sim-to-real gap |
 | Online robot interactions | Failures, recoveries, distribution shifts | Safety, expense, data governance |
 
-A video-only sample must receive a video or latent-prediction loss, **not fabricated action ground truth**. Loss masks should reflect the modalities actually observed. Retargeted or inverse-dynamics-inferred pseudo-actions must be labeled as such. Joint space, end-effector $SE(3)$ targets, and latent actions are different control semantics and require separate metadata.
+A video-only sample must receive a video or latent-prediction loss, **not fabricated action ground truth**. Loss masks should reflect the modalities actually observed. Retargeted or inverse-dynamics-inferred pseudo-actions must be labeled as such. Joint space, end-effector $SE(3)$ targets, finger positions, and latent actions are different control semantics and require separate metadata.
 
 <a id="wam-section-04"></a>
 
@@ -257,7 +265,7 @@ $$
  q_{t+1}^{(r)}=\operatorname{IK}_r(a_t^{\rm shared};q_t^{(r)},\mathcal C_r).
 $$
 
-Here $T_{EE,i}\in SE(3)$ denotes an EEF target, $g_i$ a gripper signal, and $\operatorname{IK}_r$ the particular robot's solver and constraints. **This equation conveys the public interface at a conceptual level; it is not a disclosed exact action-tensor specification.** Sharing Cartesian EEF semantics removes some dependence on each arm's joint count and link layout.
+Here $T_{EE,i}\in SE(3)$ denotes an EEF target, $g_i$ a gripper signal, and $\operatorname{IK}_r$ the particular robot's solver and constraints. **This equation conveys the public interface at a conceptual level; it is not a disclosed exact action-tensor specification.** Sharing Cartesian EEF semantics removes some dependence on each arm's joint count and link layout. **However, EEF + IK is not specific to WAMs: a VLA with a shared Cartesian action interface can use the same mechanism.** It answers *how to issue commands to a new body*, not by itself *which physical interaction the robot should perform*.
 
 However, IK is primarily a geometric mapping. It does not alone guarantee dynamic feasibility, collision-free paths, safe contact, or comparable reachable workspaces. Dream Labs explicitly notes that performance depends on IK quality; a commanded target pose does not fully specify the path taken by the arm and can become problematic near obstacles or joint limits.
 
@@ -265,9 +273,39 @@ However, IK is primarily a geometric mapping. It does not alone guarantee dynami
 
 The official interface uses **three RGB views: one head camera and two wrist cameras**. The head view offers scene context, while each wrist view provides a local end-effector perspective. Compared with UMI's cross-platform transfer under matched gripper hardware and wrist-camera views, the WAM formulation can use head-camera pixels to model the changing appearance and motion of different robot embodiments.
 
+A robot's joint coordinates and link geometry are embodiment-specific, whereas the visual consequences of reaching, contact, and object motion can exhibit transferable structure. Predicting those consequences supplies temporal supervision; it does not by itself identify contact forces or guarantee physical feasibility.
+
 One useful conceptual chain is **shared visual dynamics representation → intended physical evolution → actions expressed in a shared EEF space → robot-specific IK**. It is a plausible account of the public system design, not a fully identified causal mechanism. The announcement does not demonstrate through released ablations which private internal loss, attention design, or training mixture is necessary for embodiment generalization.
 
-### 6.4 API inference and the clock: action coverage is not latency
+### 6.4 Three complementary mechanisms behind zero-shot transfer
+
+Dream-1's public design suggests **three complementary mechanisms**. Some primarily make commands portable to a new robot; others encourage generalization across appearance and tasks. Their individual causal contributions have **not** been established by a controlled, released ablation.
+
+| Mechanism | Generalization obstacle it addresses | What it cannot guarantee by itself |
+|:--|:--|:--|
+| **Shared action interface (EEF + IK)** | Different joint counts, link geometries, and joint-level action encodings | Collision-free trajectories or dynamics |
+| **Joint video--action world modeling** | Limited temporal supervision when a policy only imitates training actions | Accurate forces or success on arbitrary unseen tasks |
+| **Visual cross-embodiment representation (three cameras)** | Unfamiliar robot appearance and gripper geometry | Compatibility with arbitrary camera layouts and actuator interfaces |
+
+An *explanatory abstraction* separates transferable prediction from embodiment-specific execution:
+
+$$
+(o_{t-k:t}^{(r)},q_t^{(r)},\ell)
+\xrightarrow{\ \text{shared WAM}\ }
+(\hat O_t^+,A_t^{\rm EEF})
+\xrightarrow{\ \operatorname{IK}_r\ }
+ a_t^{(r)}.
+$$
+
+This is **not** a disclosed two-stage Dream-1 computation graph: video and action can be jointly generated, and the diagram does not imply that Dream-1 must first render all frames. **Cross-embodiment transfer** benefits from portable command semantics and temporal visual priors; **cross-task transfer** additionally requires diverse interaction data, language conditioning, and reusable structure in contact and object motion. Experience with reaching, grasping, transporting, and pushing may help with new instructions, but reliability remains empirical.
+
+Compared with a direct-action VLA, joint future prediction provides an extra temporal learning signal; it does **not** imply that VLAs contain no dynamics knowledge or cannot achieve zero-shot transfer. [LAP-3B](https://arxiv.org/abs/2602.10556), which expresses robot actions in language, reports **over 50% mean zero-shot success** on its evaluated previously unseen robots and tasks. To isolate the contribution of video prediction, VLA and WAM variants should be compared with matched cameras, shared action spaces, demonstrations, and control protocols.
+
+### 6.5 Zero-shot coverage is not reliable task completion
+
+Two questions must remain separate: **how much data is needed before using a new body or task**, and **how reliably does the deployed policy complete it**? Predictive video supervision can help with observable reaching and object motion, but insertion, tool use, fine alignment, and slip recovery may still fail because of uncertain contact physics, occlusion, or feasibility constraints. Dream-1 itself reports substantial variation across task categories. Hence “can attempt unseen tasks without adaptation” should never become “reliably solves all unseen tasks without fine-tuning.” Additional demonstrations, FaaS, local feedback control, or RL post-training remain relevant when zero-shot performance is inadequate.
+
+### 6.6 API inference and the clock: action coverage is not latency
 
 Dream Labs offers a cloud API that accepts observations and returns actions from a selected Dream-1 checkpoint. Published pricing is approximately **$3 per hour for Dream-1** and **$2 per hour for Dream-1-flash**. The announcement states that each call returns approximately **1.6 seconds of actions**; continuously requesting coverage corresponds to roughly 2,250 calls per hour. This is a pricing/action-coverage calculation, not a measurement of GPU execution time or network round-trip latency.
 
@@ -280,19 +318,21 @@ $$
 
 **The launch article does not disclose Dream-1's exact parameter count, denoising steps, p95 cloud latency, internal caching design, or motor-control frequency.** DreamZero's two-GB200 150 ms or 7 Hz numbers therefore cannot be copied onto Dream-1. Cloud operation introduces additional requirements for network loss, stale chunks, timestamp alignment, and safe shutdown.
 
-### 6.5 Evidence for unseen-robot generalization
+### 6.7 Evidence for unseen-robot generalization
 
 Dream Labs presents rollouts from **27 unseen simulated robots** and multiple previously unseen real bimanual parallel-gripper robots, alongside examples from **12 partner/beta sites**. The announcement describes a simulation protocol of **300 rollouts per embodiment**: 150 rollouts over 50 language-following tasks and another 150 rollouts over 150 unseen tasks. This protocol is more informative than a video montage, but one must still distinguish selected demonstration clips, individual rollouts, complete success-rate distributions, and confidence intervals.
 
+The official unseen-simulation scores are **normalized to the trained YAM reference (100%)**, rather than absolute task success: for example, two-arm PiPER **91.2%**, two-arm Franka FR3 **58.3%**, and YAM-7 **38.0%**. Their spread demonstrates both real transfer capability and persistent robot-dependent performance gaps.
+
 Dream Labs also cites an external RoboCurve RoboDojo-RC Tier 1 evaluation. That benchmark has a different task and cost definition from DreamZero's task-progress studies. **The two publications' headline numbers are not directly comparable without a shared evaluation protocol.** We should neither turn cherry-picked clips into an aggregate success percentage nor treat a marketing comparison as a universal ranking of robot-control algorithms.
 
-### 6.6 Fine-tuning-as-a-Service and its data-efficiency limits
+### 6.8 Fine-tuning-as-a-Service and its data-efficiency limits
 
-When zero-shot performance is insufficient, the company offers **Fine-tuning-as-a-Service (FaaS)**. The post shows two adaptation examples using around **five minutes of target-robot data each**. The harder examples include a modified YAM end-effector setup requiring approximately **98 minutes**. In one simulation comparison across twelve beta-partner robots, fine-tuning improved language-following scores on ten.
+When zero-shot performance is insufficient, the company offers **Fine-tuning-as-a-Service (FaaS)**. The post shows two adaptation examples using around **five minutes of target-robot data each**. A modified YAM end-effector setup required approximately **98 minutes**. In one simulation comparison across twelve beta-partner robots, fine-tuning improved language-following scores on ten; for example Trossen went from **71% to 88%** and Maker Arm from **56% to 75%** in the reported normalized language-following metric. These are **not absolute success rates**.
 
 These are **data durations used in specific case studies**, not a universal guarantee that five minutes suffices for an arbitrary robot or task. The fine-tuning loss, parameter-update scope, compute budget, uncertainty, and comprehensive safety validation are not fully provided. The phrase “one-shot embodiment learning” in the announcement must not be read as a rigorous claim of adaptation from exactly one demonstration trajectory.
 
-### 6.7 Open architecture questions and present scope
+### 6.9 Open architecture questions and present scope
 
 The Dream-1 announcement does **not** reveal a reproducible specification of its complete backbone, parameter count, prediction loss, action decoder, denoising scheduler, relative amounts of video versus robot data, detailed embodiment description protocol, or which parameters FaaS updates. It should not be asserted to be a simple repackaging of DreamZero's Wan2.1-I2V-14B or DreamZero-Flash.
 
@@ -405,6 +445,8 @@ Hence deployment choices form a continuum rather than a binary choice: **direct 
 
 On a single **RTX 3090/4090 with 24 GB**, reasonable starting points include SmolVLA, $\pi_0/\pi_{0.5}$ inference, appropriately configured OpenVLA, or **LoRA/partially frozen** VLA adaptation. However, openpi's $>22.5$ GB LoRA guideline already sits close to the 24 GB ceiling; measure the effect of batch size, camera count, and peak activation memory. **DreamZero's 14B core weights alone require about 28 GB in BF16**, so its unmodified BF16 model cannot reside wholly on one 24 GB card. Quantization and sharding may enable experiments, but do not inherit its two-GB200 latency figure. Four separate 24 GB cards do not constitute one 96 GB address space: tensor/model parallelism and interconnect costs must be planned.
 
+For a **robot arm and head/wrist RGB-D** performing precision manipulation, use the foundation model as a lower-frequency skill/goal/action-chunk generator, while keeping **joint servoing, IK, collision checks, tactile/current-based contact detection, and emergency stops** in a local high-rate loop. If predictive priors appear valuable, first test a **video-supervised WAM with action-only inference** or **one-pass future latent conditioning**. Pay for multistep video generation only when controlled ablations demonstrate gains in failure recovery, novel contacts, or disturbance robustness.
+
 A fair systems study should hold camera views/resolution, embodiment and action semantics, robot-demonstration budget, task distribution, initial states, action-chunk duration, precision, and replanning protocol fixed. Report **end-to-end $p50/p95/p99$, peak VRAM, GPU-seconds per action chunk, physical task success, out-of-distribution perturbation/regrasp recovery, and safety stops**. Video quality or mean model-only latency is insufficient.
 
 <a id="wam-section-09"></a>
@@ -423,6 +465,18 @@ Real deployments must coordinate camera sampling frequency $f_s$, model update f
 | Quantization/multi-GPU parallelism | GPU compute and memory constraints | Precision, communication, long-tail latency |
 
 **Two different caches:** the causal KV cache stores attention representations of past context; DiT cache methods reuse computations across denoising steps. Their validity depends on distinct invalidation rules. General derivations of FlashAttention and KV caching belong in the companion lecture on efficient training and real-time inference.
+
+<a id="wam-section-10"></a>
+
+## 10. Contact-rich manipulation and recovery
+
+Visual alignment between a predicted and observed video does not reveal normal force, friction margin, or incipient slip. A practical manipulation stack should combine world predictions with joint/motor feedback, optional current and tactile sensing, and uncertainty estimates. One abstract state is
+
+$$z_t=(T_{\rm obj},T_{\rm hand},q_t,\hat c_t,\Sigma_t),$$
+
+where $\hat c_t$ denotes estimated contact mode and $\Sigma_t$ uncertainty. A hallucinated contact force must not be treated as a measured sensor value.
+
+Consider picking a screwdriver from an arbitrary pose and reorienting it at a fixed workstation. The world-prediction branch may anticipate motion and occlusion; the action branch chooses arm targets; the low-level controller maintains grip and joint safety. Measured current residuals, pose deviations, or possible slip must be able to trigger re-observation, hold, and recovery rather than blindly continuing an old action chunk.
 
 <a id="wam-section-11"></a>
 
@@ -445,7 +499,7 @@ Causal claims require separating the contributions of video pretraining, joint m
 
 This chapter covers WAMs from prediction supervision through executable actions, from DreamZero's detailed joint generation to Dream-1's shared robot interface. Refer to the Flow Matching lecture for general probability-path mathematics; imitation learning for BC, DAgger, ACT, and RTC; RL post-training for policy updates; GR00T/SONIC for System 1–System 0 execution; and Robot Agent for outer-loop planning, tool orchestration, success checks, and replanning. **DreamZero and Dream-1 are primarily learned action systems, not automatically complete tool-using Robot Agents.**
 
-Suggested progression: taxonomy $\rightarrow$ aligned data $\rightarrow$ DreamZero joint FM/KV/Flash $\rightarrow$ Dream-1 EEF/IK and zero-shot embodiment generalization $\rightarrow$ latency, safety, and contact boundaries.
+Suggested progression: taxonomy $\rightarrow$ aligned data $\rightarrow$ DreamZero joint FM/KV/Flash $\rightarrow$ Dream-1 EEF/IK and zero-shot embodiment generalization $\rightarrow$ latency, safety, and contact boundaries. A central research question is whether visual dynamics priors can bridge not only arm kinematics, but also end-effector morphology and contact models, without losing motor precision.
 
 <a id="wam-section-13"></a>
 
@@ -465,5 +519,6 @@ Suggested progression: taxonomy $\rightarrow$ aligned data $\rightarrow$ DreamZe
 11. Hugging Face. [*SmolVLA*](https://huggingface.co/blog/smolvla), 2025. A compact 450M VLA and consumer-GPU workflow.
 12. Yuan et al. [*Fast-WAM*](https://arxiv.org/abs/2603.16666); [official implementation](https://github.com/yuantianyuan01/FastWAM). Video co-training, action-only inference, and reported optimized runtimes.
 13. Zhao et al. [*Faster-WAM*](https://arxiv.org/abs/2608.04404), 2026. Sparse future conditioning and LIBERO-Plus OOD evaluation.
+14. Zha et al. [*LAP: Language-Action Pre-Training Enables Zero-shot Cross-Embodiment Transfer*](https://arxiv.org/abs/2602.10556), RSS 2026. An important VLA counterexample reporting zero-shot transfer without target-embodiment fine-tuning.
 
-**Editorial note.** Equations marked schematic are explanatory, not claims about proprietary implementations. No model training or real-robot experiments were conducted for this teaching note. Sources last checked October 20, 2026; neither the Dream-1 launch materials nor these notes constitute a safety certification or performance guarantee.
+**Editorial note.** Equations marked schematic are explanatory, not claims about proprietary implementations. No model training or real-robot experiments were conducted for this teaching note. Sources last checked October 22, 2026; neither the Dream-1 launch materials nor these notes constitute a safety certification or performance guarantee.

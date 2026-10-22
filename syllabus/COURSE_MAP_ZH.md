@@ -113,7 +113,7 @@ flowchart LR
 
 ### 14. 世界动作模型
 
-[世界动作模型](../md/World_Action_Models_ZH.md)：区分世界模型、VLA 与 WAM，学习 DreamZero 训练与加速推理、Dream-1 跨本体部署，以及 VLA/WAM 的显存、算力与时延权衡，连接接触控制、恢复与评估。
+[世界动作模型](../md/World_Action_Models_ZH.md)：区分世界模型、VLA 与 WAM，学习 DreamZero 训练与加速推理；从共享 EEF/IK 接口、视频—动作联合建模和可迁移视觉表征理解 Dream-1 零样本跨本体迁移，并比较 FaaS 适配、VLA/WAM 算力、时延、接触控制与评估。
 
 ### 15. 高效训练与实时推理
 

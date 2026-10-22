@@ -421,11 +421,11 @@
       "id": "world-action",
       "title_en": "World Action Models",
       "title_zh": "世界动作模型",
-      "reviewed_at": "2026-10-20",
-      "review_scope_en": "Supplied bilingual notes integrated; PDFs rebuilt with the shared academic cover and typography. Teaching content retained; no independent model training, benchmarks or robot validation.",
-      "review_scope_zh": "整合用户提供的中英文讲义，PDF 按统一学术首页和字体重新排版。保留教学内容；未独立进行模型训练、基准或真机验证。",
-      "versions_en": "World models and WAMs; DreamZero training and DreamZero-Flash inference; Dream-1 cross-embodiment interfaces; VLA/WAM memory, compute, latency and deployment comparisons; contact-rich control and evaluation.",
-      "versions_zh": "世界模型与 WAM；DreamZero 训练与 DreamZero-Flash 推理；Dream-1 跨本体接口；VLA/WAM 显存、算力、时延与部署比较；接触控制与评估。",
+      "reviewed_at": "2026-10-22",
+      "review_scope_en": "Supplied bilingual notes integrated with the course-wide exclusions for evidence-boundary introductions and dedicated dexterous-hand material; PDFs use the shared academic cover and fonts. No independent model training, benchmarks or robot validation.",
+      "review_scope_zh": "整合用户提供的中英文讲义，沿用课程对导言证据边界与灵巧手专门内容的删减要求；PDF 采用统一学术首页与字体。未独立进行模型训练、基准或真机验证。",
+      "versions_en": "World models and WAMs; DreamZero joint training and Flash inference; Dream-1 shared EEF/IK interfaces, three transfer mechanisms, zero-shot coverage and FaaS; VLA/WAM compute, latency and controlled comparisons.",
+      "versions_zh": "世界模型与 WAM；DreamZero 联合训练与 Flash 推理；Dream-1 共享 EEF/IK 接口、三类迁移机制、零样本覆盖与 FaaS；VLA/WAM 算力、时延与受控比较。",
       "source_refs": [],
       "documents": {
         "en": {
@@ -433,14 +433,14 @@
           "pdf": "pdf/World_Action_Models_EN.pdf",
           "site_md": "files/World_Action_Models_EN.md",
           "site_pdf": "files/World_Action_Models_EN.pdf",
-          "content_license": "CC-BY-4.0"
+          "content_license": "CC-BY-NC-SA-4.0"
         },
         "zh": {
           "md": "md/World_Action_Models_ZH.md",
           "pdf": "pdf/World_Action_Models_ZH.pdf",
           "site_md": "files/World_Action_Models_ZH.md",
           "site_pdf": "files/World_Action_Models_ZH.pdf",
-          "content_license": "CC-BY-4.0"
+          "content_license": "CC-BY-NC-SA-4.0"
         }
       }
     },
