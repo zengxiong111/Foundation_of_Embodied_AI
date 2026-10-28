@@ -1,7 +1,7 @@
 ---
 title: "Deep Learning Foundations for Embodied AI: From Gradient Descent to Transformers"
 subtitle: "Supervised Learning, Backpropagation, MLPs, Attention, and Robot Foundation Models"
-date: "2026-10-19"
+date: "2026-10-28"
 lang: en
 ---
 
@@ -9,15 +9,24 @@ lang: en
 
 [Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [中文 Markdown](Deep_Learning_Foundations_ZH.md) · [English PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Deep_Learning_Foundations_EN.pdf)
 
+| Item | Details |
+|---|---|
+| Topic | Deep Learning Basics |
+| Revision | 2026-10-28 |
+| License | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
+
+
 *Supervised learning, backpropagation, MLPs, Transformers, and robot policy networks*  
 **Updated: October 19, 2026**
 
 **Central questions.** How does a robot learn an action from demonstrations? How does an objective change network parameters through backpropagation? What are the distinct roles of an MLP and a Transformer? How do vision, language, and proprioception produce commands that a robot can execute?
 
 
+---
+
 ## Contents
 
-- [1. Deep learning as a robot-learning problem](#deep-section-01)
+- [1. Deep learning as a robot-learning problem](#supplement-course-section-01)
 - [2. Supervised learning: examples, objectives, generalization](#deep-section-02)
 - [3. Gradient descent and backpropagation: a step-by-step derivation](#deep-section-03)
 - [4. MLPs: the simplest neural robot policies](#deep-section-04)
@@ -28,8 +37,9 @@ lang: en
 - [9. Real-time inference and deployment](#deep-section-09)
 - [10. Model choice, misconceptions, and reading paths](#deep-section-10)
 - [11. Glossary and references](#deep-section-11)
+- [New Supplement: From Backpropagation to BPTT for SuperMimic](#supplement-course-section-12)
 
----
+<a id="supplement-course-section-01"></a>
 
 <a id="deep-section-01"></a>
 
@@ -515,3 +525,73 @@ After this course, follow two complementary paths in the repository. **Imitation
 10. Kim et al. (2024), *OpenVLA: An Open-Source Vision-Language-Action Model*. [arXiv:2406.09246](https://arxiv.org/abs/2406.09246).
 
 Original instructional text is available under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Diagrams are conceptual, not official end-to-end architecture claims for a particular VLA. Papers and third-party projects retain their respective licenses.
+
+---
+
+<a id="supplement-course-section-12"></a>
+
+## New Supplement: From Backpropagation to BPTT for SuperMimic
+
+> Added 2026-10-28. All preceding course text is unchanged. Prerequisites: chain rule, MLPs, and actor–critic; continue with the new *Model-Based Reinforcement Learning* tutorial.
+
+### 1. A time-unrolled computation graph
+
+Ordinary supervised learning evaluates $y=f_\omega(x)$ and differentiates $\ell(y,y^*)$. A closed-loop robot controller instead defines
+
+$$
+a_t=\pi_\theta(o_t,g_t),\qquad
+\hat s_{t+1}=f_\omega(\hat s_t,a_t,\xi),\qquad
+\hat o_{t+1}=h_\omega(\hat s_{t+1},\xi).
+$$
+
+The policy parameters influence the present action **and**, by changing future states, subsequent actions and rewards. **Backpropagation through time (BPTT)** is simply the chain rule on this finite unrolled graph; the policy need not be recurrent.
+
+### 2. Total derivatives include indirect state effects
+
+Define $D_t=\mathrm d\hat s_t/\mathrm d\theta$. For clarity assume $o_t=h(\hat s_t)$ and a fixed goal; hold $\omega$ fixed during the actor update:
+
+$$
+\begin{aligned}
+\frac{\mathrm da_t}{\mathrm d\theta}
+ &=\frac{\partial\pi_\theta}{\partial\theta}
+ +\frac{\partial\pi_\theta}{\partial o_t}
+   \frac{\partial h}{\partial s_t}D_t,\\
+D_{t+1}
+ &=\frac{\partial f_\omega}{\partial s_t}D_t
+ +\frac{\partial f_\omega}{\partial a_t}
+   \frac{\mathrm da_t}{\mathrm d\theta}.
+\end{aligned}
+$$
+
+Thus the return gradient accounts for the policy's indirect influence on later states. Accidentally detaching intermediate $\hat s_t$ removes these temporal terms and yields an incomplete pathwise gradient.
+
+### 3. Frozen model weights do not imply frozen input derivatives
+
+During a SuperMimic actor update, the **world-model parameters are not optimized**, but its Jacobians with respect to the state and action must remain available:
+
+- Correct: freeze $\omega$ while retaining $\partial f_\omega/\partial a_t$ and $\partial f_\omega/\partial s_t$.
+- Incorrect: wrap the entire model rollout in `no_grad()`; that destroys the policy's differentiation path.
+- Account separately for gradient stops, action saturation, normalization, and numerical clipping.
+
+### 4. Short horizons plus terminal value
+
+For imagination length $H$:
+
+$$
+\hat J_H(\theta)=\mathbb E\!\left[
+\sum_{t=0}^{H-1}\gamma^t\hat c_t\hat r_{t+1}
++\gamma^H\hat c_H V_\psi(\hat s_H,g_H,\xi)
+\right].
+$$
+
+The survival weights $\hat c_t$ account for predicted termination and the value function estimates return beyond $H$. Short horizons limit exploding/vanishing gradients and compounding model error; a critic reduces truncation-induced myopia. PPO instead estimates gradients through $\nabla_\theta\log\pi_\theta$ and does not differentiate the environment.
+
+### 5. Self-check
+
+1. Why must the learned dynamics be differentiable when the data-generating MuJoCo Warp simulator need not be?
+2. Why can a model achieve low state MSE but yield a misleading action Jacobian?
+3. What delayed outcomes are ignored when $H=1$ and the terminal critic is removed?
+
+**References:** [SuperMimic](https://arxiv.org/abs/2610.28480), [SHAC](https://arxiv.org/abs/2204.07137), and the new *Model-Based Reinforcement Learning* tutorial.
+
+*License note: New original supplementary text is CC BY-NC-SA 4.0; prior sections and cited third-party works retain their existing licenses.*

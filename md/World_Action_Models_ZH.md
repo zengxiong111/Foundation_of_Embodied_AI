@@ -1,7 +1,7 @@
 ---
 title: "具身智能中的世界模型与世界动作模型：训练、推理与部署"
 subtitle: "从 DreamZero、Dream-1 到 VLA/WAM 算力比较：训练、推理与跨本体迁移"
-date: "2026-10-22"
+date: "2026-10-28"
 lang: zh-CN
 toc: true
 toc-depth: 2
@@ -16,7 +16,7 @@ colorlinks: true
 | 项目 | 说明 |
 |---|---|
 | 主题 | DreamZero、Dream-1 与跨本体迁移 |
-| 修订日期 | 2026-10-22 |
+| 修订日期 | 2026-10-28 |
 | 许可 | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
 **本讲定位。** 承接本课程的 Flow Matching、模仿学习及 GR00T/SONIC，解释未来世界预测如何与可执行机器人动作耦合。课程保留通用训练、推理与部署基础，以 **DreamZero 为公开算法案例**、以 **Dream-1 为跨机器人部署案例**，并系统比较 **VLA 与 WAM 的能力、训练/推理算力和真机部署成本**。不重复连续性方程、PPO 或通用 Transformer 的完整推导，也不设置编程实验。
@@ -25,7 +25,7 @@ colorlinks: true
 
 ## 目录
 
-- [1. 为什么具身策略需要世界预测？](#wam-section-01)
+- [1. 为什么具身策略需要世界预测？](#supplement-course-section-01)
 - [2. WAM 的四种建模范式](#wam-section-02)
 - [3. 训练数据：视频、动作与本体之间如何对齐？](#wam-section-03)
 - [4. WAM 的通用训练与推理接口](#wam-section-04)
@@ -38,6 +38,9 @@ colorlinks: true
 - [11. 如何评价 WAM 的真实研究贡献？](#wam-section-11)
 - [12. 与现有课程的边界与阅读顺序](#wam-section-12)
 - [13. 论文与官方资料](#wam-section-13)
+- [新增概念辨析：SuperMimic 的动力学世界模型与视觉 WAM 有何不同？](#supplement-course-section-14)
+
+<a id="supplement-course-section-01"></a>
 
 <a id="wam-section-01"></a>
 
@@ -520,3 +523,29 @@ $\hat c_t$ 为估计接触模式，$\Sigma_t$ 表示不确定性；若没有触�
 14. Zha et al. [*LAP: Language-Action Pre-Training Enables Zero-shot Cross-Embodiment Transfer*](https://arxiv.org/abs/2602.10556), RSS 2026：反例与对照，说明 VLA 同样可能实现未见本体零样本迁移。
 
 **文档说明：** 标注为“教学抽象”的公式不代表官方原始实现；本文不包含未执行的训练或真机实验声明。资料核对日期：2026-10-22。本文为教学材料，供公开资料学习与技术比较，不构成 Dream-1 的安全认证或性能保证。
+
+---
+
+<a id="supplement-course-section-14"></a>
+
+## 新增概念辨析：SuperMimic 的动力学世界模型与视觉 WAM 有何不同？
+
+> 2026-10-28 增补；不修改此前 DreamZero、Dream-1、VLA/WAM 的内容。
+
+**World Model 是“学习世界如何演化”的模型类别；Model-Based RL 是“利用模型优化控制”的决策方法。** 二者并非同义词；同样，SuperMimic 并不是 DreamZero 或 Dream-1 的直接替代。
+
+| 维度 | SuperMimic | DreamZero / Dream-1 等视觉 WAM |
+|---|---|---|
+| 建模对象 | 关节与刚体状态动力学 | 图像/视频中的状态演化与动作关联 |
+| 核心训练样本 | 仿真 $(s,a,s')$、奖励、终止等 | 视频、多模态条件、机器人动作 |
+| 典型生成内容 | 下一状态和辅助预测 | 未来视觉表征或视频以及相关动作 |
+| 模型主要用途 | BPTT 优化运动控制策略 | 视觉预测、动作生成、跨任务/本体泛化 |
+| 部署需求 | 常见部署为精简的低层状态反馈策略 | 常需要视觉输入和更高计算量的推理模块 |
+
+两者也可以结合：视觉 WAM 为技能选择/目标提供先验，低层状态动力学模型负责接触和动作优化。但**联合使用的收益需要独立实验验证**，不能从两个模型分别有效推断集成成功。
+
+**阅读建议：**对 SuperMimic 的数学细节转至新增《基于世界模型的强化学习》；对掌内旋转和部署问题转至新增《基于学习世界模型的灵巧操作》；本课程原有 WAM 章节继续聚焦视觉世界建模、跨本体动作空间与高效推理。
+
+参考：[SuperMimic](https://arxiv.org/abs/2610.28480) · [Dream-1](https://dreamlabs.ai/research/dream-1/)。
+
+*增补原创文字采用 CC BY-NC-SA 4.0；先前内容和第三方作品许可不变。*

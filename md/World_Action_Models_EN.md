@@ -1,7 +1,7 @@
 ---
 title: "World Models and World Action Models for Embodied AI"
 subtitle: "From DreamZero and Dream-1 to VLA/WAM Compute: Training, Inference, and Embodiment Transfer"
-date: "2026-10-22"
+date: "2026-10-28"
 lang: en-US
 toc: true
 toc-depth: 2
@@ -16,7 +16,7 @@ colorlinks: true
 | Item | Details |
 |---|---|
 | Topic | DreamZero, Dream-1 and cross-embodiment transfer |
-| Revision | 2026-10-22 |
+| Revision | 2026-10-28 |
 | License | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
 **Scope.** This chapter follows the course material on imitation learning, flow matching, and GR00T/SONIC. It explains how predicted futures become executable robot actions. The original treatment of training data, inference options, efficiency, and deployment constraints is retained and augmented with two substantive case studies: **DreamZero, an open research method**, and **Dream-1, a cross-embodiment deployment system**, followed by a **systems-level VLA/WAM comparison of memory, compute, latency, and deployment costs**. We do not re-derive the flow-matching continuity equation, PPO, or general Transformer fundamentals; there are no programming exercises.
@@ -25,7 +25,7 @@ colorlinks: true
 
 ## Contents
 
-- [1. Why predict the world before or while acting?](#wam-section-01)
+- [1. Why predict the world before or while acting?](#supplement-course-section-01)
 - [2. Four architectural paradigms for WAMs](#wam-section-02)
 - [3. Data: aligning video, action, and embodiment](#wam-section-03)
 - [4. Generic WAM training and inference interfaces](#wam-section-04)
@@ -38,6 +38,9 @@ colorlinks: true
 - [11. Evaluating the contribution of a WAM](#wam-section-11)
 - [12. Boundaries within the course and reading order](#wam-section-12)
 - [13. References and official resources](#wam-section-13)
+- [New Clarification: SuperMimic's State-Dynamics Model versus Visual WAMs](#supplement-course-section-14)
+
+<a id="supplement-course-section-01"></a>
 
 <a id="wam-section-01"></a>
 
@@ -522,3 +525,29 @@ Suggested progression: taxonomy $\rightarrow$ aligned data $\rightarrow$ DreamZe
 14. Zha et al. [*LAP: Language-Action Pre-Training Enables Zero-shot Cross-Embodiment Transfer*](https://arxiv.org/abs/2602.10556), RSS 2026. An important VLA counterexample reporting zero-shot transfer without target-embodiment fine-tuning.
 
 **Editorial note.** Equations marked schematic are explanatory, not claims about proprietary implementations. No model training or real-robot experiments were conducted for this teaching note. Sources last checked October 22, 2026; neither the Dream-1 launch materials nor these notes constitute a safety certification or performance guarantee.
+
+---
+
+<a id="supplement-course-section-14"></a>
+
+## New Clarification: SuperMimic's State-Dynamics Model versus Visual WAMs
+
+> Added 2026-10-28. The existing DreamZero, Dream-1 and VLA/WAM material remains unchanged.
+
+A **world model** predicts aspects of the environment's evolution; **model-based RL** uses such predictions for decision making and/or policy optimization. The terms are not interchangeable. SuperMimic is not a direct replacement for DreamZero or Dream-1.
+
+| Aspect | SuperMimic | Visual WAMs such as DreamZero / Dream-1 |
+|---|---|---|
+| What is modeled? | Joint/rigid-body state transitions | Visual/video dynamics and actions |
+| Typical data | Simulator $(s,a,s')$, rewards, termination | Video, multimodal conditions, robot actions |
+| Main outputs | Next state and auxiliary predictions | Future visual representations/video and action-related outputs |
+| Why predict? | Differentiate imagined trajectories to train a controller | Support visual prediction, action generation and cross-embodiment transfer |
+| Deployment | Often a compact, state-feedback low-level policy | Usually more demanding visual inference components |
+
+They can be composed: a visual WAM may propose goals or skills, while a low-level learned dynamics model supports contact-rich action optimization. **The benefit of this combination is a hypothesis requiring evaluation**, not an established result.
+
+**Reading guidance:** use the new *Model-Based RL* tutorial for SuperMimic's math and the new *Dexterous World Models* case study for in-hand control. Keep this course's existing WAM chapters focused on video world modeling, embodiment-independent interfaces and efficient inference.
+
+References: [SuperMimic](https://arxiv.org/abs/2610.28480) · [Dream-1](https://dreamlabs.ai/research/dream-1/).
+
+*New original text CC BY-NC-SA 4.0; pre-existing and third-party rights unchanged.*

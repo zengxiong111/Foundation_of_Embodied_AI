@@ -1,7 +1,7 @@
 ---
 title: "Robot Dynamics for Embodied Intelligence"
 subtitle: "From Joint Actions to Contact-Rich Manipulation | MuJoCo and NVIDIA Isaac Sim / Isaac Lab | Code-Free Edition"
-date: "October 2026 · Revised Edition"
+date: "2026-10-28"
 lang: en-US
 ---
 
@@ -13,74 +13,12 @@ lang: en-US
 | Item | Details |
 |---|---|
 | Applicability | Rigid-body theory; MuJoCo and Isaac examples are conceptual, not a tested cross-engine pair |
-| Documentation review date | 2026-10-18 |
-| License | CC BY 4.0 · Xiong Zeng and contributors |
+| Documentation review date | 2026-10-28 |
+| License | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
 <!-- course-meta:end -->
 
 <!-- course-toc:start -->
-## Contents
-
-- [Reading guide: follow the physical chain, not a collection of formulas](#course-section-01)
-- [Chapter 1. Dynamics through an embodied manipulation task](#course-section-02)
-  - [1.1 Kinematics says where; dynamics explains motion](#course-section-03)
-  - [1.2 State, action, and observation are different quantities](#course-section-04)
-  - [1.3 One equation organizes the entire tutorial](#course-section-05)
-- [Chapter 2. Only the kinematics needed for dynamics](#course-section-06)
-  - [2.1 Joint coordinates versus end-effector coordinates](#course-section-07)
-  - [2.2 The Jacobian connects velocity and force](#course-section-08)
-  - [2.3 Why inverse kinematics cannot replace dynamics](#course-section-09)
-- [Chapter 3. Mass, inertia, and gravity from one rigid link](#course-section-10)
-  - [3.1 Translation: mass resists acceleration](#course-section-11)
-  - [3.2 Rotation: inertia depends on mass distribution](#course-section-12)
-  - [3.3 A one-joint pendulum already contains the main ideas](#course-section-13)
-  - [3.4 Velocity-dependent coupling in three-dimensional rotation](#course-section-14)
-- [Chapter 4. From one link to the manipulator equation](#course-section-15)
-  - [4.1 Why a mass matrix appears](#course-section-16)
-  - [4.2 Deriving the standard equation from energy](#course-section-17)
-  - [4.3 Forward dynamics versus inverse dynamics](#course-section-18)
-  - [4.4 Energy provides a useful consistency check](#course-section-19)
-- [Chapter 5. A complete two-link planar manipulator example](#course-section-20)
-  - [5.1 Geometry and sign conventions](#course-section-21)
-  - [5.2 Kinetic energy reveals joint coupling](#course-section-22)
-  - [5.3 Velocity coupling and gravity](#course-section-23)
-  - [5.4 Four representative dynamics cases](#course-section-24)
-- [Chapter 6. How dynamics scales to complex robots](#course-section-25)
-  - [6.1 Why we do not expand every rigid-body equation](#course-section-26)
-  - [6.2 Gravity compensation is a special inverse-dynamics case](#course-section-27)
-- [Chapter 7. Actuators: how policy actions reach the real robot](#course-section-28)
-  - [7.1 A position target is not an instantaneous position jump](#course-section-29)
-  - [7.2 Nonideal effects that materially change behavior](#course-section-30)
-  - [7.3 Map policy action spaces to physical interfaces](#course-section-31)
-- [Chapter 8. Contact dynamics: grasping, pushing, sliding, and dropping](#course-section-32)
-  - [8.1 Where does contact force come from?](#course-section-33)
-  - [8.2 Why contact is unilateral](#course-section-34)
-  - [8.3 The friction cone determines whether an object stays grasped](#course-section-35)
-  - [8.4 An impact produces a rapid velocity change](#course-section-36)
-  - [8.5 Distinguish four modes during a grasp](#course-section-37)
-- [Chapter 10. Humanoids: from fixed-base to floating-base dynamics](#course-section-42)
-  - [10.1 Why the torso cannot be driven like an ordinary joint](#course-section-43)
-  - [10.2 Balance requires external support forces](#course-section-44)
-  - [10.3 Only the essential centroidal dynamics and WBC concepts](#course-section-45)
-- [Chapter 11. Dynamics-based control that matters for embodied intelligence](#course-section-46)
-  - [11.1 PD with and without gravity compensation](#course-section-47)
-  - [11.2 Computed-torque control](#course-section-48)
-  - [11.3 Impedance control supports compliant contact](#course-section-49)
-  - [11.4 Where MPC and WBC fit](#course-section-50)
-- [Chapter 12. MuJoCo versus Isaac Sim / Isaac Lab: appropriate roles](#course-section-51)
-  - [12.1 What each platform contributes](#course-section-52)
-  - [12.2 Matching model filenames is not enough](#course-section-53)
-  - [12.3 Three time scales must be identified separately](#course-section-54)
-- [Chapter 15. From simulation to real robots: a concise checklist](#course-section-68)
-  - [15.1 Physical parameters must remain self-consistent](#course-section-69)
-  - [15.2 Prioritize sim-to-real variation by plausible error sources](#course-section-70)
-  - [15.3 Four misconceptions to avoid](#course-section-71)
-  - [15.4 One-page equation reference](#course-section-72)
-- [Appendix A. What was kept from the original course](#course-section-73)
-- [Appendix B. Notation, reading route, and references](#course-section-74)
-<!-- course-toc:end -->
-
-<!-- course-visual:start -->
 **Chapter concept map**
 
 ```mermaid
@@ -93,6 +31,27 @@ flowchart LR
   A0 --> A1 --> A2 --> A3 --> A4
 ```
 <!-- course-visual:end -->
+
+## Contents
+
+- [Reading guide: follow the physical chain, not a collection of formulas](#supplement-course-section-01)
+- [Chapter 1. Dynamics through an embodied manipulation task](#course-section-02)
+- [Chapter 2. Only the kinematics needed for dynamics](#course-section-06)
+- [Chapter 3. Mass, inertia, and gravity from one rigid link](#course-section-10)
+- [Chapter 4. From one link to the manipulator equation](#course-section-15)
+- [Chapter 5. A complete two-link planar manipulator example](#course-section-20)
+- [Chapter 6. How dynamics scales to complex robots](#course-section-25)
+- [Chapter 7. Actuators: how policy actions reach the real robot](#course-section-28)
+- [Chapter 8. Contact dynamics: grasping, pushing, sliding, and dropping](#course-section-32)
+- [Chapter 10. Humanoids: from fixed-base to floating-base dynamics](#course-section-42)
+- [Chapter 11. Dynamics-based control that matters for embodied intelligence](#course-section-46)
+- [Chapter 12. MuJoCo versus Isaac Sim / Isaac Lab: appropriate roles](#course-section-51)
+- [Chapter 15. From simulation to real robots: a concise checklist](#course-section-68)
+- [Appendix A. What was kept from the original course](#course-section-73)
+- [Appendix B. Notation, reading route, and references](#course-section-74)
+- [New Supplement: Differentiable Dynamics, Contact Gradients, and Learned Surrogates](#supplement-course-section-16)
+
+<a id="supplement-course-section-01"></a>
 
 <a id="course-section-01"></a>
 
@@ -708,3 +667,62 @@ With RGB-D observations, also assess visual noise, calibration error, and occlus
 [r6]: https://isaac-sim.github.io/IsaacLab/main/source/api/lab/isaaclab.assets.html
 [r7]: https://isaac-sim.github.io/IsaacLab/develop/source/concepts/actuators.html
 [r8]: https://underactuated.mit.edu/multibody.html
+
+---
+
+<a id="supplement-course-section-16"></a>
+
+## New Supplement: Differentiable Dynamics, Contact Gradients, and Learned Surrogates
+
+> Added 2026-10-28, without changing preceding derivations. This supplement connects rigid-body simulation to the learned differentiable dynamics used by SuperMimic.
+
+### 1. Three layers: physics, simulation, learned transition
+
+Robot dynamics satisfy
+
+$$
+M(q)\ddot q+C(q,\dot q)\dot q+g(q)=\tau+J_c(q)^\top\lambda.
+$$
+
+MuJoCo or Isaac implements a discrete transition $s_{t+1}=F_{\mathrm{sim}}(s_t,a_t,\xi)$ given integration, solver, contact and actuator settings. SuperMimic fits a **differentiable surrogate** to transitions:
+
+$$
+\hat s_{t+1}=f_\omega(\hat s_t,a_t,\xi),\quad
+\omega^*=\arg\min_\omega\mathbb E_{\mathcal B}\|f_\omega(s_t,a_t,\xi)-s_{t+1}\|^2.
+$$
+
+The surrogate can be an MLP trained autoregressively across several steps. It neither replaces the laws of mechanics nor requires differentiation through the rigid-body solver.
+
+### 2. Why contact makes gradients difficult
+
+Manipulation and locomotion switch between **separation, impact, sticking, and sliding**. Contact inequalities $\phi(q)\ge0$, $\lambda_n\ge0$ and complementarity $\lambda_n\phi(q)=0$ make this a unilateral, often nonsmooth, system. At mode transitions the classical Jacobian of $F_{\mathrm{sim}}$ may be discontinuous or undefined.
+
+Where local derivatives exist, distinguish **state error** from **sensitivity error**:
+
+$$
+E_s=\|f_\omega(s,a)-F_{\mathrm{sim}}(s,a)\|,
+\qquad
+E_J=\left\|\frac{\partial f_\omega}{\partial a}-\frac{\partial F_{\mathrm{sim}}}{\partial a}\right\|.
+$$
+
+The second quantity is not globally meaningful across impacts. At such points, use one-sided perturbations, directional finite differences or consistency of realized rewards. **Low state MSE does not guarantee a useful action gradient.**
+
+### 3. Do not omit actuator and object dynamics
+
+For dexterous hands, the surrogate should represent joint position/velocity, object pose/twist, action saturation and delay. Randomized context may capture joint damping, inertia, friction and low-level PD gains. Under a position-setpoint interface,
+
+$$
+\tau_t=\mathrm{clip}\left[K_p(a_t-q_t)-K_d\dot q_t,\tau_{\min},\tau_{\max}\right].
+$$
+
+**The command is not the next realized joint angle.** Training and deployment must match the control contract and time scales.
+
+### 4. Why short imagined rollouts need periodic corrections
+
+Prediction error compounds through temporal Jacobians and contact switches. SuperMimic refreshes its replay buffer with rigid-body simulation, retrains the surrogate, then differentiates short imagined rollouts to update the actor. This reduces but does not eliminate model bias; a policy can exploit an inaccurate learned model.
+
+**Validation:** stratify one-, eight-, and 32-step prediction error by free motion, contact onset, sliding, impact and contact loss; additionally test whether the model-gradient update improves return in the original simulator.
+
+**Further reading:** [SuperMimic](https://arxiv.org/abs/2610.28480), [SHAC](https://arxiv.org/abs/2204.07137), and the new *Model-Based Reinforcement Learning* tutorial.
+
+*New original text: CC BY-NC-SA 4.0. Existing sections and third-party rights are unchanged.*

@@ -1,9 +1,11 @@
 ---
 title: "Reinforcement Learning for Motion Control in Embodied AI: A Complete Tutorial"
 subtitle: "Motion Tracking, Residual RL, Teacher–Student Learning, Universal Control, and Sim-to-Real"
-date: "2026-10-19"
+date: "2026-10-28"
 lang: en-US
 ---
+
+# Reinforcement Learning for Motion Control in Embodied AI: A Complete Tutorial
 
 [Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](Embodied_Motion_Control_RL_Tutorial_ZH.md) · [Simulation and RL tools](Isaac_MuJoCo_RL_Complete_Guide_EN.md)
 
@@ -11,13 +13,32 @@ lang: en-US
 |---|---|
 | Scope | Algorithms and control methods (What to Learn); see separate materials for PPO/SAC derivations and simulator operations |
 | Core question | How can we train stable, generalizable, recoverable robot motion policies with versatile command interfaces? |
-| Documentation review | 2026-10-19 |
-| License | CC BY 4.0 · Xiong Zeng and contributors |
+| Documentation review | 2026-10-28 |
+| License | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
 > **Reading note：** Example rewards, rates, and task settings illustrate design principles; they are not validated safe hardware parameters. Paper and tool links are clickable.
 
 
 **Course knowledge map:** Reference motion/goal command → RL policy → safeguarded actuator → robot feedback → error correction.
+
+## Contents
+
+- [1. Scope and Taxonomy of Motion-Control RL](#supplement-course-section-01)
+- [2. States, Commands, and Actions for Motion Control](#supplement-course-section-02)
+- [3. Methods: PPO, SAC, Imitation, and Residual Learning](#supplement-course-section-03)
+- [4. Motion Tracking and Physics-Based Imitation RL](#supplement-course-section-04)
+- [5. HOVER, BeyondMimic, SONIC, and Universal Controllers](#supplement-course-section-05)
+- [6. Privileged Teachers, Distillation, and Dynamics Adaptation](#supplement-course-section-06)
+- [7. Residual RL, Closed-Loop Recovery, and Safety](#supplement-course-section-07)
+- [8. Case Study: Legged Velocity Control and Coordination](#supplement-course-section-08)
+- [9. Case Study: Manipulators, Dexterous Hands, and Contact](#supplement-course-section-09)
+- [10. Robust Control Learning and Sim-to-Real](#supplement-course-section-10)
+- [11. Evaluation of Motion, Generalization, and Recovery](#supplement-course-section-11)
+- [12. Paper Roadmap, Tool Index, and Research Directions](#supplement-course-section-12)
+- [References and Open-Source Resources](#supplement-course-section-13)
+- [New Supplement: SONIC versus SuperMimic for Motion Tracking](#supplement-course-section-14)
+
+<a id="supplement-course-section-01"></a>
 
 ## 1. Scope and Taxonomy of Motion-Control RL
 
@@ -157,6 +178,8 @@ Loco-manipulation combines moving the robot and interacting with objects. Exampl
 
 These strategies can be combined. For instance, train a privileged teacher with imitation-guided RL, distill its behavior into a student that only sees deployable sensors, and transfer that student to hardware.
 
+
+<a id="supplement-course-section-02"></a>
 
 ## 2. States, Commands, and Actions for Motion Control
 
@@ -305,6 +328,8 @@ then initialize the robot near the corresponding reference state.
 **Event-biased RSI:** increase the sampling probability near takeoff, landing, contact switches, grasp initiation, or release. Ensure sampled states are physically and contact consistent; unrealistic resets can make learning harder rather than easier.
 
 
+<a id="supplement-course-section-03"></a>
+
 ## 3. Methods: PPO, SAC, Imitation, and Residual Learning
 
 This tutorial retains only the **control-method selection** aspects of PPO and SAC. Their derivations (GAE, actor/critic updates, Q-learning and entropy objectives) belong in the dedicated PPO/SAC notes.
@@ -319,6 +344,8 @@ This tutorial retains only the **control-method selection** aspects of PPO and S
 
 Write the actor as $a_t=\pi_\theta(o_{\le t},c_t)$. In safety-critical motion, actuators receive a constrained command $u_t=\operatorname{Shield}(g(a_t),x_t)$, not an unrestricted neural output. Simulator/trainer interfacing is handled by the companion tools guide.
 
+
+<a id="supplement-course-section-04"></a>
 
 ## 4. Motion Tracking and Physics-Based Imitation RL
 
@@ -409,6 +436,8 @@ This is an illustrative reward structure, not an exact implementation from a pap
 **Trajectory consistency:** When randomizing a trajectory's initial SE(3) pose, apply the *same rigid transformation* to every subsequent reference pose and goal; otherwise the policy sees artificial command discontinuities.
 
 
+<a id="supplement-course-section-05"></a>
+
 ## 5. HOVER, BeyondMimic, SONIC, and Universal Controllers
 
 The distinction between a single-task policy and a universal controller is not just model size; it is whether **the command interface covers multiple goals, the training distribution covers diverse motions, and closed-loop control turns goals into physical movement**.
@@ -437,6 +466,8 @@ Consider $a_t=\pi_\theta(o_{\le t},c_t,z_t)$, where $c_t$ may be root velocity, 
 
 Report unseen-motion tracking, command-mode transition robustness, perturbation recovery, coverage of body/contact states, and real-time closed-loop latency. **Low average tracking error on training motions does not establish a universal controller.**
 
+
+<a id="supplement-course-section-06"></a>
 
 ## 6. Privileged Teachers, Distillation, and Dynamics Adaptation
 
@@ -497,6 +528,8 @@ Rapid Motor Adaptation (RMA) integrates a motor policy with a mechanism for adap
 Paper: https://arxiv.org/abs/2107.04034
 
 
+<a id="supplement-course-section-07"></a>
+
 ## 7. Residual RL, Closed-Loop Recovery, and Safety
 
 ### 7.1 Residual RL preserves a useful nominal controller
@@ -523,6 +556,8 @@ A task may transition through `approach → contact → manipulate → slip/drop
 
 Fast PD, impedance control, IK and WBC still handle actuator-level feedback and constraints. RL usually improves references and robust corrective behavior. For impacts, high-speed tasks or precise assembly, independently enforce joint/workspace limits, speed/torque bounds, emergency stops and supervision. Empirical rollout success is not a proof of ISS, CLF or contraction stability.
 
+
+<a id="supplement-course-section-08"></a>
 
 ## 8. Case Study: Legged Velocity Control and Coordination
 
@@ -576,6 +611,8 @@ The command and terrain distributions can be expanded continuously. A separate c
 
 **First controlled study:** reproduce flat-ground walking, then ablate action smoothness, domain randomization, observation history, and the foot-slip penalty. Compare convergence, velocity tracking, and perturbation recovery.
 
+
+<a id="supplement-course-section-09"></a>
 
 ## 9. Case Study: Manipulators, Dexterous Hands, and Contact
 
@@ -676,6 +713,8 @@ A policy with only a terminal rotation-success reward may rarely discover useful
 When reference trajectories are available, Uniform RSI and Event-biased RSI can emphasize critical segments such as contact establishment, release, and object rotation.
 
 
+<a id="supplement-course-section-10"></a>
+
 ## 10. Robust Control Learning and Sim-to-Real
 
 ### 10.1 Why simulation success does not ensure hardware success
@@ -754,6 +793,8 @@ Work such as ASAP uses data from real robots to help align simulated and physica
 The tools guide explains *how* to implement and verify parameters in a simulator. This chapter explains *how policies* should use feedback to retain competence under unmodeled errors. Sim-to-real is not a magic replacement for URDF validation, extrinsic calibration or communications debugging.
 
 
+<a id="supplement-course-section-11"></a>
+
 ## 11. Evaluation of Motion, Generalization, and Recovery
 
 An increasing training reward does not necessarily imply a better deployable controller. Use held-out conditions and independent task metrics.
@@ -798,6 +839,8 @@ An increasing training reward does not necessarily imply a better deployable con
 
 **Fair comparison:** match the environment and task, the interaction budget, and test conditions; report multiple random seeds, unseen initial states, and metrics independent of the training reward. Keep training success, simulated generalization, and real-world performance separate.
 
+
+<a id="supplement-course-section-12"></a>
 
 ## 12. Paper Roadmap, Tool Index, and Research Directions
 
@@ -869,6 +912,8 @@ $$
 The condition $c_t$ may encode desired velocity, target pose, a reference-motion segment, desired object motion, or skill identity. Related directions include goal-conditioned motion control, universal motion tracking, hierarchical motion policies, residual motor adaptation, and learning-based whole-body control.
 
 
+<a id="supplement-course-section-13"></a>
+
 ## References and Open-Source Resources
 
 The following links point primarily to papers, project pages, and official repositories. Confirm final bibliographic details and currently supported task IDs from the relevant publication and software release.
@@ -894,3 +939,48 @@ The following links point primarily to papers, project pages, and official repos
 16. [HOVER paper and multi-mode command interface](https://arxiv.org/abs/2410.21229)
 
 **Course boundary:** Robot modeling, Isaac/MuJoCo setup, actuator matching, parallel training and performance diagnostics belong in the companion simulation/tools guide. Detailed PPO/GAE and SAC/Q-learning derivations belong in the dedicated algorithm notes.
+
+---
+
+<a id="supplement-course-section-14"></a>
+
+## New Supplement: SONIC versus SuperMimic for Motion Tracking
+
+> Added 2026-10-28. This builds on the unchanged DeepMimic, BeyondMimic, SONIC, PPO, and residual-control chapters.
+
+### 1. One control task, two approaches to policy gradients
+
+Both methods seek a policy producing joint-level commands $a_t$ from robot observations $o_t$ and reference motion $g_t$. Tracking reward may combine body pose, orientation, velocity, contact and effort; fair comparisons must hold the exact objective fixed.
+
+| Dimension | SONIC-style model-free RL | SuperMimic |
+|---|---|---|
+| Data source | Parallel rigid-body simulation | Parallel rigid-body simulation |
+| Learn dynamics surrogate? | No | **Yes**, refreshed repeatedly |
+| Actor update | PPO likelihood-ratio gradient | BPTT through imagined transitions |
+| Value function | Value/advantage estimation | Terminal value after short imagination |
+| Principal risk | Simulator samples, gradient variance | Model bias, misleading model gradients |
+| Differentiable physics required? | No | No: differentiate the **learned model** |
+
+Reference motions, control frequency and joint-action semantics can be identical, although published systems differ in additional implementation choices.
+
+### 2. SuperMimic's alternating three-phase loop
+
+1. Run the current policy in MuJoCo Warp and record transitions $(s_t,a_t,r_t,s_{t+1},d_t,\xi)$.
+2. Train a shared dynamics model using short autoregressive replay-buffer windows, predicting state and available reward, clean observation and termination targets.
+3. Start imagined trajectories from simulator-recorded states; optimize actor and critic with BPTT over $H$ learned transitions.
+
+The paper reports **eight-step autoregressive fitting** and **32-step imagined actor updates**. During the actor phase, world-model weights are held fixed while state/action derivatives remain live. New simulator transitions continually refresh the model's data distribution.
+
+### 3. Interpreting the published compute comparison
+
+The authors report that approximately three hours on one H100 surpassed the return of a released SONIC checkpoint, with longer runs lowering motion-benchmark failures. **Hardware, motion data and engineering differ**, so this is not a matched-hardware/model-free PPO ablation. It is not valid to attribute the complete speedup to BPTT alone.
+
+A controlled study must match: motion dataset split, action/observation semantics, control rate, reward and termination, policy capacity, hyperparameter search budgets, actual GPU resources, multiple seeds and held-out evaluation.
+
+### 4. Extending motion tracking to dexterous manipulation
+
+A hand requires object pose/twist estimation, contact transitions and task-level rotation objectives. Start with **Wuji Hand2 cube reorientation**, comparing a matched PPO policy against learned-world-model BPTT. Evaluate unseen goal rotations, drops, time to goal, and whether a world-model gradient actually improves simulator outcomes. [Dex-Supermimic](https://github.com/CumulusAlpha/Dex-Supermimic) is an independent community adaptation, **not real-world dexterous-hand validation**.
+
+**Reading path:** existing Motion Tracking → PPO → new Model-Based RL → new Dexterous World-Model case study. [Original paper](https://arxiv.org/abs/2610.28480).
+
+*New supplemental text is CC BY-NC-SA 4.0; prior sections and cited third-party work retain their licenses.*

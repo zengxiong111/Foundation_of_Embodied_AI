@@ -1,7 +1,7 @@
 ---
 title: "具身智能中的深度学习基础：从梯度下降到 Transformer"
 subtitle: "监督学习、反向传播、MLP、注意力与机器人基础模型"
-date: "2026-10-19"
+date: "2026-10-28"
 lang: zh-CN
 ---
 
@@ -9,15 +9,24 @@ lang: zh-CN
 
 [课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [English Markdown](Deep_Learning_Foundations_EN.md) · [中文 PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Deep_Learning_Foundations_ZH.pdf)
 
+| 项目 | 说明 |
+|---|---|
+| 主题 | 深度学习基础 |
+| 修订日期 | 2026-10-28 |
+| 许可 | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
+
+
 *监督学习、反向传播、MLP、Transformer 与机器人策略网络*  
 **更新日期：2026 年 10 月 19 日**
 
 **核心问题：**机器人如何从示教数据中学习动作？损失函数如何通过反向传播改变网络参数？MLP 与 Transformer 各自负责什么？视觉、语言、本体状态怎样形成可执行的动作？
 
 
+---
+
 ## 目录
 
-- [1. 从机器人任务理解深度学习](#deep-section-01)
+- [1. 从机器人任务理解深度学习](#supplement-course-section-01)
 - [2. 监督学习：样本、目标与泛化](#deep-section-02)
 - [3. 梯度下降与反向传播：逐步推导](#deep-section-03)
 - [4. MLP：最简单的机器人策略网络](#deep-section-04)
@@ -28,8 +37,9 @@ lang: zh-CN
 - [9. 实时推理与部署：模型计算不等于机器人控制](#deep-section-09)
 - [10. 架构选择、误区与学习路径](#deep-section-10)
 - [11. 术语对照与参考资料](#deep-section-11)
+- [新增专题：从反向传播到 BPTT——理解 SuperMimic 所需的微分计算](#supplement-course-section-12)
 
----
+<a id="supplement-course-section-01"></a>
 
 <a id="deep-section-01"></a>
 
@@ -513,3 +523,73 @@ KV Cache 可在**自回归生成**时复用历史 Token 的 Key/Value，减少�
 10. Kim et al. (2024), *OpenVLA: An Open-Source Vision-Language-Action Model*. [arXiv:2406.09246](https://arxiv.org/abs/2406.09246).
 
 原创教学文字按 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 许可共享。示意图用于概念教学，并不表示某一特定 VLA 的完整官方架构；所引论文与第三方项目遵循各自许可。
+
+---
+
+<a id="supplement-course-section-12"></a>
+
+## 新增专题：从反向传播到 BPTT——理解 SuperMimic 所需的微分计算
+
+> 本专题为 2026-10-28 增补内容。前述课程正文保持不变。先修：第 3 章链式法则、MLP、Actor–Critic；进阶参见新教程《基于世界模型的强化学习》。
+
+### 1. 从单步网络到跨时间计算图
+
+普通监督学习计算 $y=f_\omega(x)$ 并根据损失 $\ell(y,y^*)$ 更新参数。机器人控制则产生**闭环计算图**：
+
+$$
+a_t=\pi_\theta(o_t,g_t),\qquad
+\hat s_{t+1}=f_\omega(\hat s_t,a_t,\xi),\qquad
+\hat o_{t+1}=h_\omega(\hat s_{t+1},\xi).
+$$
+
+策略参数 $\theta$ 改变当前动作，也通过未来状态改变之后的动作和奖励。**Backpropagation Through Time（BPTT）**就是在有限时间展开的计算图上应用链式法则；它并不要求网络本身必须是 RNN。
+
+### 2. 展开全导数，而非只看局部梯度
+
+令 $D_t=\mathrm d\hat s_t/\mathrm d\theta$；为清晰起见，暂设 $o_t=h(\hat s_t)$，任务目标 $g_t$ 固定，世界模型参数 $\omega$ 在策略更新时冻结。
+
+$$
+\begin{aligned}
+\frac{\mathrm da_t}{\mathrm d\theta}
+ &=\frac{\partial\pi_\theta}{\partial\theta}
+ +\frac{\partial\pi_\theta}{\partial o_t}
+   \frac{\partial h}{\partial s_t}D_t,\\
+D_{t+1}
+ &=\frac{\partial f_\omega}{\partial s_t}D_t
+ +\frac{\partial f_\omega}{\partial a_t}
+   \frac{\mathrm da_t}{\mathrm d\theta}.
+\end{aligned}
+$$
+
+由此可见，奖励对 $\theta$ 的梯度包含整个短期未来的间接影响。若把中间 $\hat s_t$ 错误地 `detach`，就会切断这些依赖，只剩下不完整的局部梯度。
+
+### 3. 冻结模型权重不等于切断模型梯度
+
+SuperMimic 的一次策略更新中，**世界模型权重不更新**，但梯度仍必须穿过模型对状态、动作输入的映射：
+
+- 合理：模型参数 `requires_grad=False`，保持 $\partial f_\omega/\partial a_t$ 可用；
+- 错误：对整个模型前向计算使用 `no_grad()`，导致路径梯度断开；
+- 实际系统还需区分数值裁剪、动作限幅、状态归一化与梯度停止的位置。
+
+### 4. 短视野和 Critic 为什么同时出现？
+
+世界模型想象时域为 $H$，策略优化的目标可以写为：
+
+$$
+\hat J_H(\theta)=\mathbb E\!\left[
+\sum_{t=0}^{H-1}\gamma^t\hat c_t\hat r_{t+1}
++\gamma^H\hat c_H V_\psi(\hat s_H,g_H,\xi)
+\right].
+$$
+
+$\hat c_t$ 表示预测存活权重，$V_\psi$ 为末端价值估计。短视野缓解长时域梯度爆炸、消失和模型偏差；Critic 近似补足 $H$ 之后的回报。对比 PPO：它用 $\nabla_\theta\log\pi_\theta$ 形式的估计器，不要求对物理环境求导。
+
+### 5. 三个应当能够回答的检查题
+
+1. 为什么世界模型输入需要可微，而外部 MuJoCo Warp 并不需要可微？
+2. 为什么小的状态预测误差不能保证动作方向上的梯度准确？
+3. 设 $H=1$ 且不使用 Critic，策略会忽略哪些长期效应？
+
+**后续阅读**：[SuperMimic 论文](https://arxiv.org/abs/2610.28480)；[SHAC](https://arxiv.org/abs/2204.07137)；《基于世界模型的强化学习》新增教程。
+
+*版权说明：本新增原创专题使用 CC BY-NC-SA 4.0；原有章节及第三方引用的许可不因本次增补而改变。*

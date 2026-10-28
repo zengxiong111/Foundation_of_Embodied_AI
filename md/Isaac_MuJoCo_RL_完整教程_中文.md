@@ -1,7 +1,10 @@
 ---
+date: "2026-10-28"
 title: "Isaac Sim、Isaac Lab 与 MuJoCo：机器人仿真和强化学习完整使用教程"
 lang: zh-CN
 ---
+
+# Isaac Sim、Isaac Lab 与 MuJoCo：机器人仿真和强化学习完整使用教程
 
 [课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](Isaac_MuJoCo_RL_Complete_Guide_EN.md) · [运动控制 RL 教程](Embodied_Motion_Control_RL_Tutorial_ZH.md)
 
@@ -9,14 +12,32 @@ lang: zh-CN
 |---|---|
 | 定位 | 工程工具与训练基础设施（How to Use）；不重复 PPO、SAC 或运动控制原理 |
 | 版本边界 | Isaac Lab 2.3.2 / Isaac Sim 5.1; Isaac Lab 3.0 Early Access / Isaac Sim 6.1; MuJoCo/MJX/MJWarp 按具体任务选版本 |
-| 核验日期 | 2026-10-19 |
-| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
+| 核验日期 | 2026-10-28 |
+| 许可 | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
 
 > **课程分工：** 本讲义回答“如何构建可靠、高效、可复现的仿真训练平台”；运动控制 RL 讲义回答“如何学习运动、跟踪和恢复等控制能力”。
 
 
 **章节知识地图：** 机器人模型 → 仿真场景 → 环境接口 → 并行训练 → 部署核验。
+
+## 目录
+
+- [1. 平台角色与研究任务选择](#supplement-course-section-01)
+- [2. 版本、硬件与工具入门](#supplement-course-section-02)
+- [3. 机器人资产：URDF、MJCF、USD](#supplement-course-section-03)
+- [4. 动力学、控制、接触与传感器](#supplement-course-section-04)
+- [5. RL 训练环境的工程接口](#supplement-course-section-05)
+- [6. Isaac Lab 的并行训练工作流](#supplement-course-section-06)
+- [7. MuJoCo、MJX 与 MJWarp 的训练工作流](#supplement-course-section-07)
+- [8. 训练效率、显存与调试](#supplement-course-section-08)
+- [9. 域随机化实现、评估与复现](#supplement-course-section-09)
+- [10. 部署接口、标定与跨仿真器验证](#supplement-course-section-10)
+- [12. 故障诊断与交付检查](#supplement-course-section-11)
+- [参考资料与扩展阅读（官方优先）](#supplement-course-section-12)
+- [新增专题：MuJoCo Warp 到可微世界模型的完整训练接口](#supplement-course-section-13)
+
+<a id="supplement-course-section-01"></a>
 
 ## 1. 平台角色与研究任务选择
 
@@ -49,6 +70,8 @@ lang: zh-CN
 
 **核心原则：** 首先根据任务选择物理模型与观测类型，其次才根据峰值仿真帧率决定工具。视觉、接触和真机一致性可能比原始 FPS 更重要。
 
+
+<a id="supplement-course-section-02"></a>
 
 ## 2. 版本、硬件与工具入门
 
@@ -109,6 +132,8 @@ lang: zh-CN
 不要一开始就把不同平台中的两个机器人拿来比较。建议固定机器人、物体、桌高、末端点、初始位姿与动作接口，完成四次递进实验：**单关节响应 → 末端轨迹 → 方块抓取 → 加扰动的重新抓取**。
 
 
+<a id="supplement-course-section-03"></a>
+
 ## 3. 机器人资产：URDF、MJCF、USD
 
 ### 3.1 不存在无损“一键转换”
@@ -127,6 +152,8 @@ lang: zh-CN
 
 1. 机器人基座坐标系与世界系是否一致；2. 关节名称与顺序是否匹配；3. 关节正方向是否正确；4. 角度与长度单位是否一致；5. 末端 TCP 定义是否一致；6. 质量与质心是否正确；7. 惯量是否物理可行；8. 碰撞体是否合理简化；9. 自碰撞过滤是否符合真实机构；10. actuator 的限幅、刚度、阻尼及控制频率是否一致。
 
+
+<a id="supplement-course-section-04"></a>
 
 ## 4. 动力学、控制、接触与传感器
 
@@ -162,6 +189,8 @@ lang: zh-CN
 
 比较前固定四件事：**相同任务空间或关节空间动作定义、相同动作缩放、相同低层控制器语义、相同有效采样周期。** 不满足这些条件的性能差异不能简单归因于物理引擎。
 
+<a id="supplement-course-section-05"></a>
+
 ## 5. RL 训练环境的工程接口
 
 这份讲义只介绍**仿真环境接口的工程契约**，不再展开如何理论性地设计任务奖励；数学设计和运动技能的选择见配套《运动控制强化学习》教程。
@@ -187,6 +216,8 @@ lang: zh-CN
 
 PPO 常用于大规模同步 rollout；SAC 需要 replay buffer、off-policy 更新和妥善处理并行采样的训练栈。这里的选择标准是**训练器是否实际支持所需算法、能否稳定适配当前环境和设备**，而不是再次推导 actor–critic。算法原理和实际控制策略设计放到独立课程。
 
+
+<a id="supplement-course-section-06"></a>
 
 ## 6. Isaac Lab 的并行训练工作流
 
@@ -226,6 +257,8 @@ PPO 常用于大规模同步 rollout；SAC 需要 replay buffer、off-policy 更
 **显存：** 相机数量 × 分辨率 × 环境数会显著提高显存占用，加入视觉之后应重新进行吞吐基准。**Headless：** 不打开交互式窗口不等于自动关闭全部离屏渲染；也不等于视觉训练无需配置相机输出。**Reset：** 并行环境各自独立结束，必须正确处理环境索引及历史观测清空。**奖励：** 物理频率或策略 decimation 改变后，要检查按时间积累的奖励是否被无意缩放。
 
 
+<a id="supplement-course-section-07"></a>
+
 ## 7. MuJoCo、MJX 与 MJWarp 的训练工作流
 
 ### 7.1 经典 MuJoCo：验证逻辑优先
@@ -246,6 +279,8 @@ PPO 常用于大规模同步 rollout；SAC 需要 replay buffer、off-policy 更
 
 **并行后端注意事项：** GPU 版本的求解能力与模型特性并非完全等价；迁移时重点检查 tendon、复杂约束、接触数量限制、传感器，以及批量重置行为。并非所有 CPU MuJoCo 模型都能无修改地获得同样物理结果。
 
+
+<a id="supplement-course-section-08"></a>
 
 ## 8. 训练效率、显存与调试
 
@@ -272,6 +307,8 @@ PPO 常用于大规模同步 rollout；SAC 需要 replay buffer、off-policy 更
 
 若使用视觉，需同时记录图像尺寸、相机个数、渲染 FPS、编码器用时、GPU 显存，以及渲染到策略推理的排队延迟。只有总 wall-clock 训练时间缩短、性能在相同评测协议下不下降，才能称为真正的提速。
 
+
+<a id="supplement-course-section-09"></a>
 
 ## 9. 域随机化实现、评估与复现
 
@@ -311,6 +348,8 @@ PPO 常用于大规模同步 rollout；SAC 需要 replay buffer、off-policy 更
 - **不要只保存最终权重。** 还要保存观测归一化统计、动作缩放和依赖版本。
 
 
+<a id="supplement-course-section-10"></a>
+
 ## 10. 部署接口、标定与跨仿真器验证
 
 ### 10.1 部署前的六个校准层
@@ -328,6 +367,8 @@ PPO 常用于大规模同步 rollout；SAC 需要 replay buffer、off-policy 更
 
 **真机性能低于仿真时的诊断顺序：** 先查坐标系与观测同步，再查动作语义与伺服频率，然后查接触和动力学参数，最后才考虑扩大 RL 网络或调算法超参数。
 
+
+<a id="supplement-course-section-11"></a>
 
 ## 12. 故障诊断与交付检查
 
@@ -354,6 +395,8 @@ PPO 常用于大规模同步 rollout；SAC 需要 replay buffer、off-policy 更
 > **一句话总结：** MuJoCo 负责把物理模型和控制接口“解释清楚”；Isaac Sim 负责把机器人、场景和视觉“搭建可信”；Isaac Lab 或 MuJoCo Playground 负责把 RL “训练系统化”；最后用跨引擎、OOD 与真机结果验证策略，而不是只看训练奖励。
 
 
+<a id="supplement-course-section-12"></a>
+
 ## 参考资料与扩展阅读（官方优先）
 
 1. Isaac Lab Releases（含 3.0 Early Access 与迁移说明）：https://github.com/isaac-sim/IsaacLab/releases
@@ -375,3 +418,61 @@ PPO 常用于大规模同步 rollout；SAC 需要 replay buffer、off-policy 更
 14. [Isaac Lab 3.0 Early Access Release Notes](https://github.com/isaac-sim/IsaacLab/releases)
 
 **跨课程说明：** 算法目标、动作跟踪、Residual RL、Teacher–Student 和失败恢复详见《具身智能中的运动控制强化学习》。
+
+---
+
+<a id="supplement-course-section-13"></a>
+
+## 新增专题：MuJoCo Warp 到可微世界模型的完整训练接口
+
+> 2026-10-28 增补。保留现有 Isaac/MuJoCo 教程的工具选型、控制接口与部署建议；这里仅补足 SuperMimic 风格的 Model-Based RL 工程闭环。
+
+### 1. 区分“生成数据的仿真器”与“产生梯度的世界模型”
+
+- **MuJoCo Warp / Isaac 仿真**：高吞吐模拟接触和执行器，产生监督目标；通常不在策略 BPTT 的梯度图内。
+- **学习动力学 $f_\omega$**：将状态、动作、可选环境上下文映射到下一状态；在策略训练时冻结参数但开放输入 Jacobian。
+- **策略与 Critic**：通过模型想象轨迹计算短期奖励，尾部以价值函数引导。
+
+闭环可表示为：
+
+```text
+Current policy --> Parallel MuJoCo Warp --> Replay Buffer
+      ^                                       |
+      |                                       v
+      |                             Train world model
+      |                                       |
+      +--- BPTT actor/critic <-- Imagined rollouts
+```
+
+### 2. 最小 Replay Buffer 数据合同
+
+| 字段 | 用途与防错要点 |
+|---|---|
+| $s_t,s_{t+1}$ | 精确定义状态坐标、四元数顺序、归一化方式 |
+| $a_t$ | 保存实际施加（含探索噪声、限幅）的动作，勿仅保存命令前数值 |
+| $r_t,d_t$ | 明确环境终止、超时截断与成功标志的不同语义 |
+| $o_t$ | 区分干净观测与传感噪声，避免双重随机化 |
+| $g_t$ | 轨迹命令或目标方向必须与对应采样时间对齐 |
+| $\xi$ | 质量、摩擦、关节阻尼、PD 参数等每个环境固定/变化的上下文 |
+| 时间标记 | 物理步长、控制降采样和预测步数不能混用 |
+
+多步窗口训练应保持数据连续、不能跨越 episode reset。对有旋转状态的机器人，建议使用适当的 SO(3) 相对旋转表示或严格归一化四元数，并处理符号等价 $q$ 与 $-q$。
+
+### 3. 从采样到部署的阶段门槛
+
+1. **仿真验收**：独立检查单关节响应、PD 稳定性、接触、物体惯量、时间步和动作限幅。
+2. **基线**：先训练/复现同动作接口与观测接口的 PPO；固定成功率定义和评估种子。
+3. **模型拟合**：先单步，再 8 步自回归；按接触模式统计误差；验证无异常跨 reset 的窗口。
+4. **想象策略优化**：示例可从 $H=16,32$ 和末端 Critic 入手；监测梯度范数及模型利用现象。
+5. **重新采样**：每次策略更新阶段后回到物理仿真验证、更新 Replay Buffer，避免只优化错误代理。
+6. **真机前**：仿真域随机化、跨模拟器验证、硬件急停与速度/力矩约束是独立必要步骤。
+
+原始 SuperMimic 的 8 步建模窗口与 32 步想象时域是论文设置，**不是不同机械手的通用最优超参数**。
+
+### 4. 对 MuJoCo Warp 与 Isaac Lab 的公平测量
+
+同时报告 `simulation FPS`、`imagined FPS`、world-model update 时间、actor/critic update 时间、总 GPU-hours、真实仿真交互数，以及独立评估成功率。不要仅比较一张 GPU 与一组 GPU 的墙钟时间，或把 imagined transitions 当成真实仿真交互样本。
+
+**延伸案例**：[SuperMimic](https://arxiv.org/abs/2610.28480)；[Dex-Supermimic（非官方灵巧手复现）](https://github.com/CumulusAlpha/Dex-Supermimic)。
+
+*新专题许可 CC BY-NC-SA 4.0，旧章节和引用保持原许可。*

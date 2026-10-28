@@ -139,26 +139,28 @@
       "id": "deep-learning",
       "title_en": "Deep Learning Basics",
       "title_zh": "深度学习基础",
-      "versions_en": "Supervised learning, gradient descent and backpropagation; MLPs, Attention and Transformers; multimodal action heads, pretraining, LoRA, RL post-training and robot-policy evaluation. No code or laboratory exercises.",
-      "versions_zh": "监督学习、梯度下降与反向传播；MLP、Attention 与 Transformer；多模态动作头、预训练、LoRA、RL 后训练与机器人策略评估。不含代码或实验练习。",
-      "reviewed_at": "2026-10-19",
-      "review_scope_en": "Supplied bilingual notes integrated; PDFs rebuilt with the shared academic cover and typography. Teaching content retained; no independent benchmarks, training or robot validation.",
-      "review_scope_zh": "整合用户提供的中英文讲义，PDF 按统一学术首页和字体重新排版。保留教学内容；未独立进行基准、训练或真机验证。",
-      "source_refs": [],
+      "versions_en": "Supervised learning, gradient descent and backpropagation; MLPs, Attention and Transformers; multimodal action heads, pretraining, LoRA, RL post-training and robot-policy evaluation. No code or laboratory exercises. SuperMimic supplement: learned dynamics, differentiable optimization and connections to this topic.",
+      "versions_zh": "监督学习、梯度下降与反向传播；MLP、Attention 与 Transformer；多模态动作头、预训练、LoRA、RL 后训练与机器人策略评估。不含代码或实验练习。 SuperMimic 补充：学习动力学、可微优化及其与本主题的联系。",
+      "reviewed_at": "2026-10-28",
+      "review_scope_en": "Bilingual sources and SuperMimic supplements integrated; shared academic PDF covers, fonts and retained formulas checked. Proposed comparisons and adaptations are teaching designs, not independently validated training or hardware results.",
+      "review_scope_zh": "整合中英文源码与 SuperMimic 补充内容，核对统一学术 PDF 首页、字体及保留公式；所述对比与迁移为教学设计，不代表独立验证的训练或硬件结果。",
+      "source_refs": [
+        "https://arxiv.org/abs/2610.28480"
+      ],
       "documents": {
         "en": {
           "md": "md/Deep_Learning_Foundations_EN.md",
           "pdf": "pdf/Deep_Learning_Foundations_EN.pdf",
           "site_md": "files/Deep_Learning_Foundations_EN.md",
           "site_pdf": "files/Deep_Learning_Foundations_EN.pdf",
-          "content_license": "CC-BY-4.0"
+          "content_license": "CC-BY-NC-SA-4.0"
         },
         "zh": {
           "md": "md/Deep_Learning_Foundations_ZH.md",
           "pdf": "pdf/Deep_Learning_Foundations_ZH.pdf",
           "site_md": "files/Deep_Learning_Foundations_ZH.md",
           "site_pdf": "files/Deep_Learning_Foundations_ZH.pdf",
-          "content_license": "CC-BY-4.0"
+          "content_license": "CC-BY-NC-SA-4.0"
         }
       }
     },
@@ -193,13 +195,14 @@
       "id": "dynamics",
       "title_en": "Robot Dynamics",
       "title_zh": "机器人动力学",
-      "reviewed_at": "2026-10-18",
-      "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
-      "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
-      "versions_en": "Rigid-body theory; MuJoCo and Isaac examples are conceptual, not a tested cross-engine pair",
-      "versions_zh": "刚体动力学理论；MuJoCo 与 Isaac 示例为概念说明，非已测试的跨引擎组合",
+      "reviewed_at": "2026-10-28",
+      "review_scope_en": "Bilingual sources and SuperMimic supplements integrated; shared academic PDF covers, fonts and retained formulas checked. Proposed comparisons and adaptations are teaching designs, not independently validated training or hardware results.",
+      "review_scope_zh": "整合中英文源码与 SuperMimic 补充内容，核对统一学术 PDF 首页、字体及保留公式；所述对比与迁移为教学设计，不代表独立验证的训练或硬件结果。",
+      "versions_en": "Rigid-body theory; MuJoCo and Isaac examples are conceptual, not a tested cross-engine pair SuperMimic supplement: learned dynamics, differentiable optimization and connections to this topic.",
+      "versions_zh": "刚体动力学理论；MuJoCo 与 Isaac 示例为概念说明，非已测试的跨引擎组合 SuperMimic 补充：学习动力学、可微优化及其与本主题的联系。",
       "source_refs": [
-        "isaac-sim/IsaacLab@v2.3.2"
+        "isaac-sim/IsaacLab@v2.3.2",
+        "https://arxiv.org/abs/2610.28480"
       ],
       "documents": {
         "zh": {
@@ -207,14 +210,14 @@
           "pdf": "pdf/Robot_Dynamics_Embodied_CN.pdf",
           "site_md": "files/Robot_Dynamics_Embodied_CN.md",
           "site_pdf": "files/Robot_Dynamics_Embodied_CN.pdf",
-          "content_license": "CC-BY-4.0"
+          "content_license": "CC-BY-NC-SA-4.0"
         },
         "en": {
           "md": "md/Robot_Dynamics_Embodied_EN.md",
           "pdf": "pdf/Robot_Dynamics_Embodied_EN.pdf",
           "site_md": "files/Robot_Dynamics_Embodied_EN.md",
           "site_pdf": "files/Robot_Dynamics_Embodied_EN.pdf",
-          "content_license": "CC-BY-4.0"
+          "content_license": "CC-BY-NC-SA-4.0"
         }
       }
     },
@@ -222,14 +225,15 @@
       "id": "simulation",
       "title_en": "Isaac / MuJoCo Simulation",
       "title_zh": "Isaac / MuJoCo 仿真",
-      "reviewed_at": "2026-10-19",
-      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDFs rebuilt with a shared academic cover and typography; teaching content retained. No independent training, simulation or robot validation.",
-      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 采用统一学术首页和字体重新排版，教学内容保持不变；未独立进行训练、仿真或真机验证。",
-      "versions_en": "No-code simulation and RL tooling guide: Isaac Lab 2.3.2 / Isaac Sim 5.1 and Lab 3.0 Early Access / Sim 6.1; MuJoCo/MJX/MJWarp; assets, environment contracts, library selection, throughput, calibration, Sim-to-Sim.",
-      "versions_zh": "无代码仿真与 RL 工具指南：Isaac Lab 2.3.2 / Isaac Sim 5.1 与 Lab 3.0 Early Access / Sim 6.1；MuJoCo/MJX/MJWarp；资产、环境契约、训练库选择、吞吐率、标定、Sim-to-Sim。",
+      "reviewed_at": "2026-10-28",
+      "review_scope_en": "Bilingual sources and SuperMimic supplements integrated; shared academic PDF covers, fonts and retained formulas checked. Proposed comparisons and adaptations are teaching designs, not independently validated training or hardware results.",
+      "review_scope_zh": "整合中英文源码与 SuperMimic 补充内容，核对统一学术 PDF 首页、字体及保留公式；所述对比与迁移为教学设计，不代表独立验证的训练或硬件结果。",
+      "versions_en": "No-code simulation and RL tooling guide: Isaac Lab 2.3.2 / Isaac Sim 5.1 and Lab 3.0 Early Access / Sim 6.1; MuJoCo/MJX/MJWarp; assets, environment contracts, library selection, throughput, calibration, Sim-to-Sim. SuperMimic supplement: learned dynamics, differentiable optimization and connections to this topic.",
+      "versions_zh": "无代码仿真与 RL 工具指南：Isaac Lab 2.3.2 / Isaac Sim 5.1 与 Lab 3.0 Early Access / Sim 6.1；MuJoCo/MJX/MJWarp；资产、环境契约、训练库选择、吞吐率、标定、Sim-to-Sim。 SuperMimic 补充：学习动力学、可微优化及其与本主题的联系。",
       "source_refs": [
         "isaac-sim/IsaacLab@v2.3.2",
-        "isaac-sim/IsaacLab@release/3.0.0"
+        "isaac-sim/IsaacLab@release/3.0.0",
+        "https://arxiv.org/abs/2610.28480"
       ],
       "documents": {
         "zh": {
@@ -237,14 +241,14 @@
           "pdf": "pdf/Isaac_MuJoCo_RL_完整教程_中文.pdf",
           "site_md": "files/Isaac_MuJoCo_RL_完整教程_中文.md",
           "site_pdf": "files/Isaac_MuJoCo_RL_完整教程_中文.pdf",
-          "content_license": "CC-BY-4.0"
+          "content_license": "CC-BY-NC-SA-4.0"
         },
         "en": {
           "md": "md/Isaac_MuJoCo_RL_Complete_Guide_EN.md",
           "pdf": "pdf/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf",
           "site_md": "files/Isaac_MuJoCo_RL_Complete_Guide_EN.md",
           "site_pdf": "files/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf",
-          "content_license": "CC-BY-4.0"
+          "content_license": "CC-BY-NC-SA-4.0"
         }
       }
     },
@@ -252,13 +256,14 @@
       "id": "motion-rl",
       "title_en": "Motion Control RL",
       "title_zh": "运动控制 RL",
-      "reviewed_at": "2026-10-19",
-      "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDFs rebuilt with a shared academic cover and typography; teaching content retained. No independent training, simulation or robot validation.",
-      "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 采用统一学术首页和字体重新排版，教学内容保持不变；未独立进行训练、仿真或真机验证。",
-      "versions_en": "Motion-control algorithms and learning strategies: PPO/SAC interfaces, motion tracking, DeepMimic/AMP, HOVER/BeyondMimic/SONIC, privileged teachers, distillation, RMA, residual RL, recovery and Sim-to-Real; legged and dexterous-manipulation case studies.",
-      "versions_zh": "运动控制算法与学习策略：PPO/SAC 接口、运动跟踪、DeepMimic/AMP、HOVER/BeyondMimic/SONIC、特权教师、蒸馏、RMA、Residual RL、恢复与 Sim-to-Real；足式及灵巧操作案例。",
+      "reviewed_at": "2026-10-28",
+      "review_scope_en": "Bilingual sources and SuperMimic supplements integrated; shared academic PDF covers, fonts and retained formulas checked. Proposed comparisons and adaptations are teaching designs, not independently validated training or hardware results.",
+      "review_scope_zh": "整合中英文源码与 SuperMimic 补充内容，核对统一学术 PDF 首页、字体及保留公式；所述对比与迁移为教学设计，不代表独立验证的训练或硬件结果。",
+      "versions_en": "Motion-control algorithms and learning strategies: PPO/SAC interfaces, motion tracking, DeepMimic/AMP, HOVER/BeyondMimic/SONIC, privileged teachers, distillation, RMA, residual RL, recovery and Sim-to-Real; legged and dexterous-manipulation case studies. SuperMimic supplement: learned dynamics, differentiable optimization and connections to this topic.",
+      "versions_zh": "运动控制算法与学习策略：PPO/SAC 接口、运动跟踪、DeepMimic/AMP、HOVER/BeyondMimic/SONIC、特权教师、蒸馏、RMA、Residual RL、恢复与 Sim-to-Real；足式及灵巧操作案例。 SuperMimic 补充：学习动力学、可微优化及其与本主题的联系。",
       "source_refs": [
-        "isaac-sim/IsaacLab@v2.3.2"
+        "isaac-sim/IsaacLab@v2.3.2",
+        "https://arxiv.org/abs/2610.28480"
       ],
       "documents": {
         "zh": {
@@ -266,14 +271,14 @@
           "pdf": "pdf/Embodied_Motion_Control_RL_Tutorial_ZH.pdf",
           "site_md": "files/Embodied_Motion_Control_RL_Tutorial_ZH.md",
           "site_pdf": "files/Embodied_Motion_Control_RL_Tutorial_ZH.pdf",
-          "content_license": "CC-BY-4.0"
+          "content_license": "CC-BY-NC-SA-4.0"
         },
         "en": {
           "md": "md/Embodied_Motion_Control_RL_Tutorial_EN.md",
           "pdf": "pdf/Embodied_Motion_Control_RL_Tutorial_EN.pdf",
           "site_md": "files/Embodied_Motion_Control_RL_Tutorial_EN.md",
           "site_pdf": "files/Embodied_Motion_Control_RL_Tutorial_EN.pdf",
-          "content_license": "CC-BY-4.0"
+          "content_license": "CC-BY-NC-SA-4.0"
         }
       }
     },
@@ -421,12 +426,14 @@
       "id": "world-action",
       "title_en": "World Action Models",
       "title_zh": "世界动作模型",
-      "reviewed_at": "2026-10-22",
-      "review_scope_en": "Supplied bilingual notes integrated with the course-wide exclusions for evidence-boundary introductions and dedicated dexterous-hand material; PDFs use the shared academic cover and fonts. No independent model training, benchmarks or robot validation.",
-      "review_scope_zh": "整合用户提供的中英文讲义，沿用课程对导言证据边界与灵巧手专门内容的删减要求；PDF 采用统一学术首页与字体。未独立进行模型训练、基准或真机验证。",
-      "versions_en": "World models and WAMs; DreamZero joint training and Flash inference; Dream-1 shared EEF/IK interfaces, three transfer mechanisms, zero-shot coverage and FaaS; VLA/WAM compute, latency and controlled comparisons.",
-      "versions_zh": "世界模型与 WAM；DreamZero 联合训练与 Flash 推理；Dream-1 共享 EEF/IK 接口、三类迁移机制、零样本覆盖与 FaaS；VLA/WAM 算力、时延与受控比较。",
-      "source_refs": [],
+      "reviewed_at": "2026-10-28",
+      "review_scope_en": "Bilingual sources and SuperMimic supplements integrated; shared academic PDF covers, fonts and retained formulas checked. Proposed comparisons and adaptations are teaching designs, not independently validated training or hardware results.",
+      "review_scope_zh": "整合中英文源码与 SuperMimic 补充内容，核对统一学术 PDF 首页、字体及保留公式；所述对比与迁移为教学设计，不代表独立验证的训练或硬件结果。",
+      "versions_en": "World models and WAMs; DreamZero joint training and Flash inference; Dream-1 shared EEF/IK interfaces, three transfer mechanisms, zero-shot coverage and FaaS; VLA/WAM compute, latency and controlled comparisons. SuperMimic supplement: learned dynamics, differentiable optimization and connections to this topic.",
+      "versions_zh": "世界模型与 WAM；DreamZero 联合训练与 Flash 推理；Dream-1 共享 EEF/IK 接口、三类迁移机制、零样本覆盖与 FaaS；VLA/WAM 算力、时延与受控比较。 SuperMimic 补充：学习动力学、可微优化及其与本主题的联系。",
+      "source_refs": [
+        "https://arxiv.org/abs/2610.28480"
+      ],
       "documents": {
         "en": {
           "md": "md/World_Action_Models_EN.md",
@@ -538,6 +545,64 @@
           "site_md": "files/Robot_Agent_Workflow_RPent_EN.md",
           "site_pdf": "files/Robot_Agent_Workflow_RPent_EN.pdf",
           "content_license": "CC-BY-4.0"
+        }
+      }
+    },
+    {
+      "id": "model-based-rl",
+      "title_en": "Model-Based RL",
+      "title_zh": "基于模型的强化学习",
+      "reviewed_at": "2026-10-28",
+      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Research plans are not completed training or hardware validation.",
+      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；研究计划不代表已完成训练或硬件验证。",
+      "versions_en": "Dyna, PETS, Dreamer, SHAC, SuperMimic; differentiable learned dynamics, BPTT, truncated actor–critic and model bias.",
+      "versions_zh": "Dyna、PETS、Dreamer、SHAC、SuperMimic；可微学习动力学、BPTT、截断行动者–评论家与模型偏差。",
+      "source_refs": [
+        "https://arxiv.org/abs/2610.28480"
+      ],
+      "documents": {
+        "en": {
+          "md": "md/Model_Based_RL_Differentiable_World_Models_EN.md",
+          "pdf": "pdf/Model_Based_RL_Differentiable_World_Models_EN.pdf",
+          "site_md": "files/Model_Based_RL_Differentiable_World_Models_EN.md",
+          "site_pdf": "files/Model_Based_RL_Differentiable_World_Models_EN.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        },
+        "zh": {
+          "md": "md/Model_Based_RL_Differentiable_World_Models_ZH.md",
+          "pdf": "pdf/Model_Based_RL_Differentiable_World_Models_ZH.pdf",
+          "site_md": "files/Model_Based_RL_Differentiable_World_Models_ZH.md",
+          "site_pdf": "files/Model_Based_RL_Differentiable_World_Models_ZH.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        }
+      }
+    },
+    {
+      "id": "dexterous-world-models",
+      "title_en": "Dexterous World Models",
+      "title_zh": "灵巧操作世界模型",
+      "reviewed_at": "2026-10-28",
+      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Research plans are not completed training or hardware validation.",
+      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；研究计划不代表已完成训练或硬件验证。",
+      "versions_en": "Wuji Hand2 in-hand reorientation; PPO, CEM/MPPI and BPTT, contact-aware models, actuator contracts and Real2Sim2Real research design.",
+      "versions_zh": "Wuji Hand2 掌内旋转；PPO、CEM/MPPI 与 BPTT、接触感知模型、执行器接口与 Real2Sim2Real 研究设计。",
+      "source_refs": [
+        "https://arxiv.org/abs/2610.28480"
+      ],
+      "documents": {
+        "en": {
+          "md": "md/Dexterous_Manipulation_Learned_World_Models_EN.md",
+          "pdf": "pdf/Dexterous_Manipulation_Learned_World_Models_EN.pdf",
+          "site_md": "files/Dexterous_Manipulation_Learned_World_Models_EN.md",
+          "site_pdf": "files/Dexterous_Manipulation_Learned_World_Models_EN.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        },
+        "zh": {
+          "md": "md/Dexterous_Manipulation_Learned_World_Models_ZH.md",
+          "pdf": "pdf/Dexterous_Manipulation_Learned_World_Models_ZH.pdf",
+          "site_md": "files/Dexterous_Manipulation_Learned_World_Models_ZH.md",
+          "site_pdf": "files/Dexterous_Manipulation_Learned_World_Models_ZH.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
         }
       }
     }

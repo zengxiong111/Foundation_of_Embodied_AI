@@ -8,7 +8,7 @@
 
 ## 课程资料
 
-17 个主题，34 份 Markdown 和 34 份 PDF。点击表格中的链接阅读或下载。所有 PDF 采用统一的学术排版，第一章从第 2 页开始。涵盖 VLA 模仿学习、FQI/SAC 和 Dream-1 零样本跨本体迁移。
+19 个主题，38 份 Markdown 和 38 份 PDF。点击表格中的链接阅读或下载。所有 PDF 采用统一的学术排版，第一章从第 2 页开始。涵盖 VLA 模仿学习、FQI/SAC 和 Dream-1 零样本跨本体迁移。
 
 | 序号 | 主题 | 中文 Markdown | 英文 Markdown | 中文 PDF | 英文 PDF |
 |---|---|---|---|---|---|
@@ -29,6 +29,8 @@
 | 15 | 高效训练与实时推理 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_EN.pdf" target="_blank">PDF</a> |
 | 16 | 后训练 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_EN.pdf" target="_blank">PDF</a> |
 | 17 | 机器人智能体 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Robot_Agent_Workflow_RPent_EN.pdf" target="_blank">PDF</a> |
+| 18 | 基于模型的强化学习 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Model_Based_RL_Differentiable_World_Models_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Model_Based_RL_Differentiable_World_Models_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Model_Based_RL_Differentiable_World_Models_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Model_Based_RL_Differentiable_World_Models_EN.pdf" target="_blank">PDF</a> |
+| 19 | 灵巧操作世界模型 | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Dexterous_Manipulation_Learned_World_Models_ZH.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Dexterous_Manipulation_Learned_World_Models_EN.md" target="_blank">MD</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Dexterous_Manipulation_Learned_World_Models_ZH.pdf" target="_blank">PDF</a> | <a href="https://zengxiong111.github.io/zengxiong.github.io/files/Dexterous_Manipulation_Learned_World_Models_EN.pdf" target="_blank">PDF</a> |
 
 ## 使用、许可与反馈
 

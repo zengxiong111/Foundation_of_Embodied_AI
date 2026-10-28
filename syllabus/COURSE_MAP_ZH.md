@@ -2,9 +2,9 @@
 
 **简体中文** | [English](COURSE_MAP_EN.md) | [PDF](COURSE_MAP_ZH.pdf)
 
-本课程按“工具 → 标定与深度学习 → 物理与视觉 → 机器人强化学习 → 示教与生成策略 → 系统集成”组织，共 17 个专题。原有长篇技术教程保留为深入阅读，不等于所有章节必须依次完成。
+本课程按“工具 → 标定与深度学习 → 物理与视觉 → 机器人强化学习 → 示教与生成策略 → 系统集成”组织，共 19 个专题。原有长篇技术教程保留为深入阅读，不等于所有章节必须依次完成。
 
-教程编号 1–17 与 [README](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) 中的课程顺序一致。
+教程编号 1–19 与 [README](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) 中的课程顺序一致。
 
 ## 目录
 
@@ -22,7 +22,7 @@
 | 0. 导论 | 全栈知识地图与阅读说明 | 看懂感知—策略—控制—机器人闭环 |
 | 1. 工程工具 | Git、ROS 2 | 版本管理；理解 ROS 通信与 TF |
 | 2. 物理、视觉与神经网络基础 | 相机标定、深度学习基础、视觉基础模型、机器人动力学、Isaac / MuJoCo | 连接标定几何、神经网络、物理模型与仿真 |
-| 3. 强化学习 | 运动控制强化学习、PPO、SAC | 设计观测、动作、奖励及数据收集方式 |
+| 3. 强化学习 | 运动控制强化学习、PPO、SAC、基于模型的强化学习、灵巧操作世界模型 | 设计观测、动作、奖励及数据收集方式 |
 | 4. 演示与基础模型 | 模仿学习、流匹配、GR00T / SONIC、世界动作模型、高效训练与实时推理、后训练 | 学习生成式与预测式策略并连接高效推理与分层控制 |
 | 5. 机器人智能体集成 | 机器人智能体：任务规划、工具调用、验证与恢复 | 编排视觉、策略和控制，完成长时任务闭环 |
 
@@ -38,9 +38,12 @@ flowchart LR
  D --> E["机器人与环境"]
  E --> B
  F["示教数据 / 模仿学习"] --> C
- G["Isaac / MuJoCo 仿真"] --> H["PPO / SAC 等策略优化"]
+ G["Isaac / MuJoCo 仿真"] --> H["PPO / SAC / MBRL 策略优化"]
  H --> C
  H --> D
+ M["学习动力学 / BPTT"]
+ G --> M
+ M --> H
  X["机器人智能体 / 任务编排"] --> B
  X --> C
  E --> X
@@ -51,7 +54,7 @@ flowchart LR
 ## 推荐学习顺序与先修关系
 
 1. 初学者：先阅读本导论，跳读 Git / ROS 2 的必要部分，再学习相机标定、深度学习基础、动力学、视觉基础模型与仿真。
-2. 运控方向：动力学 → 仿真 → 深度学习基础 → PPO / SAC → 运动控制强化学习。
+2. 运控方向：动力学 → 仿真 → 深度学习基础 → PPO / SAC → 运动控制强化学习 → 基于模型的强化学习 → 灵巧操作世界模型。
 3. VLA 方向：相机标定 → 深度学习基础 → 视觉基础模型 → 模仿学习 → 流匹配 → GR00T / SONIC → 世界动作模型 → 高效训练与实时推理 → 后训练 → 机器人智能体。
 4. 深度推导：PPO、SAC、流匹配的完整数学推导是独立深入阅读材料，并非先学完所有公式才能开始实践。
 
@@ -73,7 +76,7 @@ flowchart LR
 
 ### 4. 深度学习基础
 
-[深度学习基础](../md/Deep_Learning_Foundations_ZH.md)：学习监督目标、梯度下降与反向传播，将 MLP、Attention 和 Transformer 连接到多模态机器人动作头，理解预训练、微调及后续策略方法所需的网络基础。
+[深度学习基础](../md/Deep_Learning_Foundations_ZH.md)：学习监督目标、梯度下降与反向传播，将 MLP、Attention 和 Transformer 连接到多模态机器人动作头，理解预训练、微调及后续策略方法所需的网络基础。补充 SuperMimic 的 BPTT、状态导数、冻结模型梯度与短视野价值自举。
 
 ### 5. 视觉基础模型
 
@@ -81,15 +84,15 @@ flowchart LR
 
 ### 6. 机器人动力学
 
-[机器人动力学](../md/Robot_Dynamics_Embodied_CN.md)：从坐标系、雅可比矩阵、惯性与运动方程建立刚体运动和动力学基础，理解接触、摩擦及控制模型与机器人仿真的联系。
+[机器人动力学](../md/Robot_Dynamics_Embodied_CN.md)：从坐标系、雅可比矩阵、惯性与运动方程建立刚体运动和动力学基础，理解接触、摩擦及控制模型与机器人仿真的联系。补充学习代理动力学、接触梯度及执行器和物体模型的作用。
 
 ### 7. Isaac / MuJoCo 仿真
 
-[Isaac / MuJoCo 仿真](../md/Isaac_MuJoCo_RL_完整教程_中文.md)：理解 Isaac Sim、Isaac Lab 与 MuJoCo 作为仿真和训练工具的分工，学习资产导入、环境契约、强化学习训练库选择、并行吞吐率、部署接口。
+[Isaac / MuJoCo 仿真](../md/Isaac_MuJoCo_RL_完整教程_中文.md)：理解 Isaac Sim、Isaac Lab 与 MuJoCo 作为仿真和训练工具的分工，学习资产导入、环境契约、强化学习训练库选择、并行吞吐率、部署接口。补充 MuJoCo Warp 采样、回放、世界模型拟合与可微策略更新接口。
 
 ### 8. 运动控制强化学习
 
-[运动控制强化学习](../md/Embodied_Motion_Control_RL_Tutorial_ZH.md)：学习运动跟踪、DeepMimic/AMP、通用控制器、教师–学生、RMA 与残差强化学习，并联系足式与灵巧操作、失败恢复及仿真到现实。
+[运动控制强化学习](../md/Embodied_Motion_Control_RL_Tutorial_ZH.md)：学习运动跟踪、DeepMimic/AMP、通用控制器、教师–学生、RMA 与残差强化学习，并联系足式与灵巧操作、失败恢复及仿真到现实。补充 SONIC/SuperMimic 对比与可微运动跟踪的联系。
 
 ### 9. PPO / 行动者–评论家
 
@@ -113,7 +116,7 @@ flowchart LR
 
 ### 14. 世界动作模型
 
-[世界动作模型](../md/World_Action_Models_ZH.md)：区分世界模型、VLA 与 WAM，学习 DreamZero 训练与加速推理；从共享 EEF/IK 接口、视频—动作联合建模和可迁移视觉表征理解 Dream-1 零样本跨本体迁移，并比较 FaaS 适配、VLA/WAM 算力、时延、接触控制与评估。
+[世界动作模型](../md/World_Action_Models_ZH.md)：区分世界模型、VLA 与 WAM，学习 DreamZero 训练与加速推理；从共享 EEF/IK 接口、视频—动作联合建模和可迁移视觉表征理解 Dream-1 零样本跨本体迁移，并比较 FaaS 适配、VLA/WAM 算力、时延、接触控制与评估。进一步区分 SuperMimic 状态动力学模型与视觉 WAM。
 
 ### 15. 高效训练与实时推理
 
@@ -126,3 +129,11 @@ flowchart LR
 ### 17. 机器人智能体
 
 [机器人智能体](../md/Robot_Agent_Workflow_RPent_ZH.md)：区分基础模型、编程智能体与智能体运行框架，将 RAX 探索、ASPIRE 轨迹修复及 RPent 工具集、记忆、Flash 模式和 RLinf 数据飞轮连接为可复用机器人工作流。
+
+### 18. 基于模型的强化学习
+
+[基于模型的强化学习](../md/Model_Based_RL_Differentiable_World_Models_ZH.md)：学习 Dyna、PETS、Dreamer、SHAC 与 SuperMimic，推导学习动力学中的 BPTT，联系截断行动者–评论家与模型偏差，并区分数据增强、规划和可微策略学习。
+
+### 19. 灵巧操作世界模型
+
+[灵巧操作世界模型](../md/Dexterous_Manipulation_Learned_World_Models_ZH.md)：以 Wuji Hand2 掌内旋转为研究案例，比较 PPO、CEM/MPPI 与 BPTT，联系接触感知模型、执行器接口与 Real2Sim2Real 评估；案例不代表已验证的真机结果。

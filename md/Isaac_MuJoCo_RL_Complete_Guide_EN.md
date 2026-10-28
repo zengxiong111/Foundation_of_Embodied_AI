@@ -1,7 +1,10 @@
 ---
+date: "2026-10-28"
 title: "Isaac Sim, Isaac Lab, and MuJoCo: A Complete Guide to Robot Simulation and Reinforcement Learning"
 lang: en-US
 ---
+
+# Isaac Sim, Isaac Lab, and MuJoCo: A Complete Guide to Robot Simulation and Reinforcement Learning
 
 [Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](Isaac_MuJoCo_RL_完整教程_中文.md) · [Motion-control RL](Embodied_Motion_Control_RL_Tutorial_EN.md)
 
@@ -9,14 +12,32 @@ lang: en-US
 |---|---|
 | Scope | Engineering tools and training infrastructure (How to Use); not a duplicate treatment of PPO, SAC, or control theory |
 | Version scope | Isaac Lab 2.3.2 / Isaac Sim 5.1; Isaac Lab 3.0 Early Access / Isaac Sim 6.1; MuJoCo/MJX/MJWarp versions depend on workload |
-| Documentation review | 2026-10-19 |
-| License | CC BY 4.0 · Xiong Zeng and contributors |
+| Documentation review | 2026-10-28 |
+| License | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
 
 > **Boundary with the companion course：** This guide asks how to build a reliable, efficient, reproducible simulation/training platform; the companion motion-control RL guide asks how to learn tracking, dynamic skills, and recovery.
 
 
 **Course knowledge map:** Robot model → simulation scene → environment contract → parallel training → deployment validation.
+
+## Contents
+
+- [1. Platform Roles and Research-Task Selection](#supplement-course-section-01)
+- [2. Versions, Hardware, and Platform Orientation](#supplement-course-section-02)
+- [3. Robot Assets: URDF, MJCF, and USD](#supplement-course-section-03)
+- [4. Dynamics, Control, Contact, and Sensors](#supplement-course-section-04)
+- [5. The Engineering Contract of an RL Environment](#supplement-course-section-05)
+- [6. Parallel Learning Workflows in Isaac Lab](#supplement-course-section-06)
+- [7. MuJoCo, MJX, and MJWarp Workflows](#supplement-course-section-07)
+- [8. Training Throughput, Memory, and Debugging](#supplement-course-section-08)
+- [9. Randomization Implementation, Evaluation, and Reproducibility](#supplement-course-section-09)
+- [10. Deployment Interfaces, Calibration, and Sim-to-Sim](#supplement-course-section-10)
+- [12. Troubleshooting and Readiness Checks](#supplement-course-section-11)
+- [Official References and Further Reading](#supplement-course-section-12)
+- [New Supplement: From MuJoCo Warp to a Differentiable World-Model Pipeline](#supplement-course-section-13)
+
+<a id="supplement-course-section-01"></a>
 
 ## 1. Platform Roles and Research-Task Selection
 
@@ -49,6 +70,8 @@ lang: en-US
 
 **Selection rule:** Decide on the physical task and observations before optimizing raw simulation FPS. Photorealism, contact fidelity, and real-world compatibility may be more consequential than peak steps per second.
 
+
+<a id="supplement-course-section-02"></a>
 
 ## 2. Versions, Hardware, and Platform Orientation
 
@@ -109,6 +132,8 @@ Official Isaac Sim 5.1 requirements specify supported Ubuntu configurations, GPU
 Do not begin by comparing two entirely different robots in different engines. Fix the robot, cube dimensions, table height, tool frame, initial pose distribution, and action definition. Progress through **single-joint response → end-effector tracking → cube grasping → perturbed regrasping**.
 
 
+<a id="supplement-course-section-03"></a>
+
 ## 3. Robot Assets: URDF, MJCF, and USD
 
 ### 3.1 There is no universally lossless conversion
@@ -127,6 +152,8 @@ Maintain a **canonical physical parameter sheet** covering joint names, axis ori
 
 1. Base and world frames; 2. joint names and ordering; 3. positive rotation directions; 4. angle and length units; 5. tool-center-point definition; 6. mass and center of mass; 7. physically plausible inertias; 8. collision simplification; 9. appropriate self-collision filtering; and 10. actuation limits, stiffness, damping, and control period.
 
+
+<a id="supplement-course-section-04"></a>
 
 ## 4. Dynamics, Control, Contact, and Sensors
 
@@ -162,6 +189,8 @@ Example: 500 Hz physics and 50 Hz policy inference imply **10 physics steps per 
 
 Hold four things constant: **action meaning in joint or task space, action scaling, low-level controller semantics, and effective sampling period**. Without those controls, measured differences cannot be cleanly attributed to the physics engine.
 
+<a id="supplement-course-section-05"></a>
+
 ## 5. The Engineering Contract of an RL Environment
 
 This section specifies an **engineering contract for simulation interfaces** rather than repeating reward-design theory. For mathematical control objectives, see the companion motion-control RL tutorial.
@@ -187,6 +216,8 @@ This section specifies an **engineering contract for simulation interfaces** rat
 
 PPO commonly uses synchronized, high-throughput rollouts. SAC requires replay buffers, off-policy updates, and reliable handling of parallel sampling. The **engineering** question here is whether the selected trainer supports the algorithm and the environment correctly; the algorithmic derivation belongs in the dedicated PPO/SAC tutorials.
 
+
+<a id="supplement-course-section-06"></a>
 
 ## 6. Parallel Learning Workflows in Isaac Lab
 
@@ -226,6 +257,8 @@ PPO commonly uses synchronized, high-throughput rollouts. SAC requires replay bu
 **VRAM:** Memory can grow rapidly with camera count × resolution × environment count; benchmark again after adding vision. **Headless mode:** No interactive viewport does not imply that all offscreen rendering is disabled, or that camera-based RL works without configuring camera outputs. **Reset correctness:** Individual environments terminate asynchronously; reset indices and observation history must be updated correctly. **Reward timing:** Changing physics rate or policy decimation can unintentionally change accumulated reward magnitudes if time weighting is inconsistent.
 
 
+<a id="supplement-course-section-07"></a>
+
 ## 7. MuJoCo, MJX, and MJWarp Workflows
 
 ### 7.1 Classic MuJoCo: correctness first
@@ -246,6 +279,8 @@ Use classic MuJoCo to validate the robot model, reward, reset, contact behavior,
 
 **Backend feature check:** GPU implementations need not have full one-to-one support for every solver feature. Revalidate tendons, unusual constraints, contact capacities, sensors, and batched resets. A CPU MuJoCo model should not automatically be assumed to produce identical results after migration to GPU simulation.
 
+
+<a id="supplement-course-section-08"></a>
 
 ## 8. Training Throughput, Memory, and Debugging
 
@@ -272,6 +307,8 @@ When learning fails, check data contracts first: observation shape and normaliza
 
 For image-based RL, report image sizes, camera count, rendering throughput, encoder latency, peak VRAM and queuing delays from rendering to action execution. A genuine speedup reduces wall-clock time without sacrificing performance under an identical evaluation protocol.
 
+
+<a id="supplement-course-section-09"></a>
 
 ## 9. Randomization Implementation, Evaluation, and Reproducibility
 
@@ -311,6 +348,8 @@ Use multiple random seeds, report central estimates and uncertainty, and avoid c
 - **Checkpoint weights are not the entire policy.** Retain normalization statistics, action scaling, and software dependencies.
 
 
+<a id="supplement-course-section-10"></a>
+
 ## 10. Deployment Interfaces, Calibration, and Sim-to-Sim
 
 ### 10.1 Six calibration layers
@@ -328,6 +367,8 @@ Use multiple random seeds, report central estimates and uncertainty, and avoid c
 
 **If hardware results lag behind simulation:** First inspect frames and synchronization, then action meaning and servo period, then contacts and mechanical parameters. Only afterward should you consider a larger neural network or more complex RL hyperparameter search.
 
+
+<a id="supplement-course-section-11"></a>
 
 ## 12. Troubleshooting and Readiness Checks
 
@@ -354,6 +395,8 @@ Use multiple random seeds, report central estimates and uncertainty, and avoid c
 
 > **One-sentence takeaway:** MuJoCo clarifies the mechanics and actuation; Isaac Sim provides rich scenes and realistic sensing; Isaac Lab or MuJoCo Playground structures RL training; cross-engine, out-of-distribution, and real-hardware evaluation determine whether the policy is genuinely robust.
 
+<a id="supplement-course-section-12"></a>
+
 ## Official References and Further Reading
 
 1. [Isaac Lab Releases and compatibility](https://github.com/isaac-sim/IsaacLab/releases)
@@ -372,3 +415,59 @@ Use multiple random seeds, report central estimates and uncertainty, and avoid c
 14. [Isaac Lab 3.0 Early Access release notes](https://github.com/isaac-sim/IsaacLab/releases)
 
 **Companion guide:** Motion tracking, Residual RL, Teacher–Student methods and recovery are covered in *Reinforcement Learning for Motion Control in Embodied AI*.
+
+---
+
+<a id="supplement-course-section-13"></a>
+
+## New Supplement: From MuJoCo Warp to a Differentiable World-Model Pipeline
+
+> Added 2026-10-28. Existing Isaac/MuJoCo material, controller choices, and deployment recommendations remain unchanged. This supplement adds a SuperMimic-style model-based training interface.
+
+### 1. Separate the data simulator from the gradient model
+
+- **MuJoCo Warp or Isaac simulation**: produces high-throughput state transitions with contact and actuator physics; it need not appear inside the actor's differentiation graph.
+- **Learned dynamics $f_\omega$**: maps states, applied actions, and optional environment context into subsequent states; its parameters are frozen, but its input Jacobians remain active during actor training.
+- **Actor and critic**: optimize imagined short-horizon rewards and estimate value beyond the imagination window.
+
+```text
+Current policy --> Parallel MuJoCo Warp --> Replay Buffer
+      ^                                       |
+      |                                       v
+      |                             Train world model
+      |                                       |
+      +--- BPTT actor/critic <-- Imagined rollouts
+```
+
+### 2. Minimal replay-buffer contract
+
+| Field | Essential semantics |
+|---|---|
+| $s_t,s_{t+1}$ | State coordinate frames, quaternion ordering, normalization |
+| $a_t$ | **Actually executed** action after exploration noise and saturation |
+| $r_t,d_t$ | Distinguish terminal failures, timeouts, and successes |
+| $o_t$ | Separate noise-free observation targets from sensor perturbations |
+| $g_t$ | Correctly time-aligned goals or motion reference |
+| $\xi$ | Context: friction, mass, actuator gains, damping, etc. |
+| timestamps | Keep physics substeps, controller rate, and model steps distinct |
+
+Autoregressive training windows must not cross episode resets. For rotational states, use an appropriate SO(3) representation or carefully normalized unit quaternions, accounting for the $q\sim -q$ equivalence.
+
+### 3. Stage gates from simulator to trained policy
+
+1. **Asset validation:** joint step response, PD behavior, contact, object inertia, time step, action limits.
+2. **Matched baseline:** obtain PPO results under the same observation/action specification and evaluation seeds.
+3. **Model training:** progress from one-step loss to eight-step autoregressive loss and stratify errors by contact mode.
+4. **Policy optimization:** compare imagination horizons such as $H=16$ and $H=32$, use terminal value, monitor model exploitation and gradient norms.
+5. **Refresh:** periodically return to the original simulator to evaluate policies and update the replay buffer.
+6. **Deployment boundary:** domain randomization, cross-engine validation, torque/velocity limits and emergency stop remain independent prerequisites.
+
+The eight-step model-training and 32-step imagination horizons are **paper-specific SuperMimic choices**, not universal dexterous-hand settings.
+
+### 4. Fair throughput and efficiency accounting
+
+Report simulator FPS, imagined FPS, world-model optimization time, actor/critic training time, GPU-hours, physical-simulator transitions, and held-out success rate. Never conflate imagined transitions with real-simulator interaction or compare incomparable GPU clusters by wall-clock alone.
+
+**References:** [SuperMimic](https://arxiv.org/abs/2610.28480); [Dex-Supermimic (independent hand adaptation)](https://github.com/CumulusAlpha/Dex-Supermimic).
+
+*New supplement CC BY-NC-SA 4.0; prior text and third-party permissions are unchanged.*

@@ -1,7 +1,7 @@
 ---
 title: "机器人动力学：面向具身智能的理论与仿真实践"
 subtitle: "从关节动作到接触操作｜MuJoCo 与 NVIDIA Isaac Sim / Isaac Lab｜无代码版"
-date: "2026 年 10 月 · 修订版"
+date: "2026-10-28"
 lang: zh-CN
 ---
 
@@ -13,74 +13,12 @@ lang: zh-CN
 | 项目 | 说明 |
 |---|---|
 | 适用范围 | 刚体动力学理论；MuJoCo 与 Isaac 示例为概念说明，非已测试的跨引擎组合 |
-| 文档核验日期 | 2026-10-18 |
-| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
+| 文档核验日期 | 2026-10-28 |
+| 许可 | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
 <!-- course-meta:end -->
 
 <!-- course-toc:start -->
-## 目录
-
-- [阅读指南：先理解物理链，再学习公式](#course-section-01)
-- [第一章 从一个具身任务看动力学](#course-section-02)
-  - [1.1 运动学告诉你“在哪里”，动力学告诉你“为什么动”](#course-section-03)
-  - [1.2 状态、动作与观测不能混为一谈](#course-section-04)
-  - [1.3 一条必须掌握的核心方程](#course-section-05)
-- [第二章 只学动力学需要的运动学](#course-section-06)
-  - [2.1 为什么需要关节坐标与末端坐标](#course-section-07)
-  - [2.2 Jacobian 是从运动通向力的桥梁](#course-section-08)
-  - [2.3 为什么 IK 不能代替动力学](#course-section-09)
-- [第三章 从一根杆理解质量、惯量与重力](#course-section-10)
-  - [3.1 平移：质量抵抗加速度](#course-section-11)
-  - [3.2 旋转：惯量不仅取决于质量](#course-section-12)
-  - [3.3 单关节摆：最简单的机器人动力学](#course-section-13)
-  - [3.4 刚体旋转中的速度耦合](#course-section-14)
-- [第四章 从单关节推广到整台机器人](#course-section-15)
-  - [4.1 为什么会出现质量矩阵](#course-section-16)
-  - [4.2 从能量得到标准方程](#course-section-17)
-  - [4.3 正向动力学与逆动力学](#course-section-18)
-  - [4.4 能量解释为什么模型值得信任](#course-section-19)
-- [第五章 二连杆机械臂：一遍算懂 M、速度项和重力](#course-section-20)
-  - [5.1 几何与约定](#course-section-21)
-  - [5.2 从动能看关节耦合](#course-section-22)
-  - [5.3 速度项与重力项](#course-section-23)
-  - [5.4 四种典型动力学情形](#course-section-24)
-- [第六章 复杂机器人如何快速计算动力学](#course-section-25)
-  - [6.1 机器人为什么不用手工推导所有连杆](#course-section-26)
-  - [6.2 重力补偿是逆动力学的特例](#course-section-27)
-- [第七章 执行器：策略动作如何真正作用于机器人](#course-section-28)
-  - [7.1 位置动作不等于立即到达目标位置](#course-section-29)
-  - [7.2 必须考虑的非理想因素](#course-section-30)
-  - [7.3 强化学习动作空间与物理接口对应关系](#course-section-31)
-- [第八章 接触动力学：抓住、推动、滑动和掉落](#course-section-32)
-  - [8.1 运动受限时，接触力从哪里来](#course-section-33)
-  - [8.2 为什么接触是单边约束](#course-section-34)
-  - [8.3 摩擦锥决定物体能不能被握住](#course-section-35)
-  - [8.4 碰撞是速度的快速变化](#course-section-36)
-  - [8.5 抓取中要区分四种接触模式](#course-section-37)
-- [第十章 人形机器人：从固定基座到浮动基座](#course-section-42)
-  - [10.1 为什么人形机器人的身体不能像关节一样直接控制](#course-section-43)
-  - [10.2 站稳需要外部支持力](#course-section-44)
-  - [10.3 质心动力学与全身控制只保留最重要部分](#course-section-45)
-- [第十一章 动力学控制：哪些方法对具身智能最有用](#course-section-46)
-  - [11.1 PD 与重力补偿](#course-section-47)
-  - [11.2 计算力矩控制](#course-section-48)
-  - [11.3 阻抗控制用于柔顺接触](#course-section-49)
-  - [11.4 MPC/WBC 的位置](#course-section-50)
-- [第十二章 MuJoCo 与 Isaac Sim / Isaac Lab：如何理解差异](#course-section-51)
-  - [12.1 两套软件分别承担什么角色](#course-section-52)
-  - [12.2 不能只对齐 URDF 文件名](#course-section-53)
-  - [12.3 必须区分三个时间尺度](#course-section-54)
-- [第十五章 从仿真走向真实机器人：检查清单](#course-section-68)
-  - [15.1 模型首先要物理自洽](#course-section-69)
-  - [15.2 Sim2Real 优先随机化什么](#course-section-70)
-  - [15.3 四个常见误区](#course-section-71)
-  - [15.4 一页公式速查](#course-section-72)
-- [附录 A：课程知识点与本教程的取舍](#course-section-73)
-- [附录 B：符号、阅读建议与参考资料](#course-section-74)
-<!-- course-toc:end -->
-
-<!-- course-visual:start -->
 **本章知识地图**
 
 ```mermaid
@@ -93,6 +31,27 @@ flowchart LR
   A0 --> A1 --> A2 --> A3 --> A4
 ```
 <!-- course-visual:end -->
+
+## 目录
+
+- [阅读指南：先理解物理链，再学习公式](#supplement-course-section-01)
+- [第一章 从一个具身任务看动力学](#course-section-02)
+- [第二章 只学动力学需要的运动学](#course-section-06)
+- [第三章 从一根杆理解质量、惯量与重力](#course-section-10)
+- [第四章 从单关节推广到整台机器人](#course-section-15)
+- [第五章 二连杆机械臂：一遍算懂 M、速度项和重力](#course-section-20)
+- [第六章 复杂机器人如何快速计算动力学](#course-section-25)
+- [第七章 执行器：策略动作如何真正作用于机器人](#course-section-28)
+- [第八章 接触动力学：抓住、推动、滑动和掉落](#course-section-32)
+- [第十章 人形机器人：从固定基座到浮动基座](#course-section-42)
+- [第十一章 动力学控制：哪些方法对具身智能最有用](#course-section-46)
+- [第十二章 MuJoCo 与 Isaac Sim / Isaac Lab：如何理解差异](#course-section-51)
+- [第十五章 从仿真走向真实机器人：检查清单](#course-section-68)
+- [附录 A：课程知识点与本教程的取舍](#course-section-73)
+- [附录 B：符号、阅读建议与参考资料](#course-section-74)
+- [新增专题：可微动力学、接触梯度与学习世界模型](#supplement-course-section-16)
+
+<a id="supplement-course-section-01"></a>
 
 <a id="course-section-01"></a>
 
@@ -708,3 +667,64 @@ MPC 用动力学预测未来若干步并优化控制输入；WBC 则更侧重同
 [r6]: https://isaac-sim.github.io/IsaacLab/main/source/api/lab/isaaclab.assets.html
 [r7]: https://isaac-sim.github.io/IsaacLab/develop/source/concepts/actuators.html
 [r8]: https://underactuated.mit.edu/multibody.html
+
+---
+
+<a id="supplement-course-section-16"></a>
+
+## 新增专题：可微动力学、接触梯度与学习世界模型
+
+> 2026-10-28 增补；本专题不修改前述动力学推导。目标：说明刚体模拟器与 SuperMimic 的神经动力学代理模型如何协作。
+
+### 1. 物理动力学、离散仿真与学习动力学的三个层次
+
+机器人力学满足
+
+$$
+M(q)\ddot q+C(q,\dot q)\dot q+g(q)=\tau+J_c(q)^\top\lambda.
+$$
+
+MuJoCo / Isaac 按求解器、时间步、接触约束与执行器模型给出离散映射 $s_{t+1}=F_{\mathrm{sim}}(s_t,a_t,\xi)$。SuperMimic 再用样本拟合连续可微的**代理映射**：
+
+$$
+\hat s_{t+1}=f_\omega(\hat s_t,a_t,\xi),\quad
+\omega^*=\arg\min_\omega\mathbb E_{\mathcal B}\|f_\omega(s_t,a_t,\xi)-s_{t+1}\|^2.
+$$
+
+代理模型可用 MLP，并可以多步自回归训练；它并没有替代真实动力学定律，也不要求模拟器的接触求解过程可微。
+
+### 2. 接触切换造成的非光滑性
+
+抓取和行走可能发生 **separation、impact、sticking、sliding** 四种不同接触模式。几何间隙 $\phi(q)\ge 0$、法向反力 $\lambda_n\ge0$ 和互补约束 $\lambda_n\phi(q)=0$ 说明接触是单边的。模式切换附近，$F_{\mathrm{sim}}$ 的经典 Jacobian 可能不连续或不存在。
+
+在导数存在的局部，分别检查**状态预测误差**与**敏感度误差**：
+
+$$
+E_s=\|f_\omega(s,a)-F_{\mathrm{sim}}(s,a)\|,
+\qquad
+E_J=\left\|\frac{\partial f_\omega}{\partial a}-\frac{\partial F_{\mathrm{sim}}}{\partial a}\right\|.
+$$
+
+第二项并非所有接触状态都有数学定义；可用单侧扰动、有限差分方向导数或对受控扰动的结果一致性作实际评估。**低 $E_s$ 不保证低 $E_J$。**
+
+### 3. 执行器与物体动力学不能省略
+
+对于灵巧手，世界模型至少需要覆盖：关节位置/速度、物体位姿/速度、动作限幅与控制延迟；上下文还应包含影响动态响应的转动惯量、关节阻尼、接触摩擦、PD 增益等。
+
+当真实系统采用目标位置控制时，动作 $a_t$ 经执行器产生力矩，例如
+
+$$
+\tau_t=\mathrm{clip}\left[K_p(a_t-q_t)-K_d\dot q_t,\tau_{\min},\tau_{\max}\right].
+$$
+
+**切勿把目标位置当成实际下一时刻关节角。** 模型训练与部署必须使用一致的动作定义和时钟。
+
+### 4. 为什么要进行短视野想象和周期性校正？
+
+多步误差不仅取决于每步预测误差，还与 Jacobian 放大和接触切换有关。SuperMimic 以真实仿真数据更新 Replay Buffer，周期性重新拟合世界模型，再利用短期想象轨迹优化策略。这降低而非消除 Model Bias；策略仍可能利用模型错误获得虚假高奖励。
+
+**建议验收：**自由运动/接触建立/滑移/碰撞/接触丢失分别统计 1、8、32 步误差，模型梯度方向有效性，以及真实仿真中执行更新后策略的回报。
+
+**延伸阅读：**[SuperMimic](https://arxiv.org/abs/2610.28480)、[SHAC](https://arxiv.org/abs/2204.07137)、新增《基于世界模型的强化学习》。
+
+*新增文字许可 CC BY-NC-SA 4.0；既有课程及第三方作品权利不变。*

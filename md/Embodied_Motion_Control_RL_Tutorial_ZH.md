@@ -1,9 +1,11 @@
 ---
 title: "具身智能中的运动控制强化学习：完整教程"
 subtitle: "Motion Tracking、Residual RL、Teacher–Student、通用运动控制与 Sim-to-Real"
-date: "2026-10-19"
+date: "2026-10-28"
 lang: zh-CN
 ---
+
+# 具身智能中的运动控制强化学习：完整教程
 
 [课程首页](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.zh-CN.md) · [English](Embodied_Motion_Control_RL_Tutorial_EN.md) · [仿真工具课程](Isaac_MuJoCo_RL_完整教程_中文.md)
 
@@ -11,13 +13,32 @@ lang: zh-CN
 |---|---|
 | 定位 | 算法与控制方法（What to Learn）；PPO/SAC 推导与仿真器操作见独立教程 |
 | 关键问题 | 如何训练稳定、可泛化、可恢复、能接受多种目标的机器人运动策略？ |
-| 核验日期 | 2026-10-19 |
-| 许可 | CC BY 4.0 · Xiong Zeng and contributors |
+| 核验日期 | 2026-10-28 |
+| 许可 | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
 > **阅读说明：** 示例中的奖励权重、频率和任务设置只用于解释设计原则，并非实机部署的现成安全参数；论文和工具链接可直接点击。
 
 
 **章节知识地图：** 参考运动/目标命令 → RL 策略 → 安全执行器 → 机器人反馈 → 误差修正。
+
+## 目录
+
+- [1. 运动控制强化学习的定位与任务分类](#supplement-course-section-01)
+- [2. 运动控制问题的状态、命令与动作](#supplement-course-section-02)
+- [3. 方法选择：PPO、SAC、模仿与残差](#supplement-course-section-03)
+- [4. Motion Tracking 与动作模仿强化学习](#supplement-course-section-04)
+- [5. HOVER、BeyondMimic、SONIC 与通用控制器](#supplement-course-section-05)
+- [6. 特权教师、学生蒸馏与动力学自适应](#supplement-course-section-06)
+- [7. Residual RL、闭环恢复与安全边界](#supplement-course-section-07)
+- [8. 案例：腿式速度控制与全身协调](#supplement-course-section-08)
+- [9. 案例：机械臂、灵巧手与接触任务](#supplement-course-section-09)
+- [10. 鲁棒控制学习与 Sim-to-Real](#supplement-course-section-10)
+- [11. 运动性能、泛化与恢复能力评估](#supplement-course-section-11)
+- [12. 论文阅读、工具索引与研究路线](#supplement-course-section-12)
+- [参考资料与开源链接](#supplement-course-section-13)
+- [新增专题：SONIC 与 SuperMimic——Motion Tracking 的两条强化学习路线](#supplement-course-section-14)
+
+<a id="supplement-course-section-01"></a>
 
 ## 1. 运动控制强化学习的定位与任务分类
 
@@ -157,6 +178,8 @@ $$
 
 这些方法可以组合：先通过模仿强化学习训练教师，再将策略蒸馏到真实传感器可观测的学生模型，最后进行部署。
 
+
+<a id="supplement-course-section-02"></a>
 
 ## 2. 运动控制问题的状态、命令与动作
 
@@ -303,6 +326,8 @@ $$
 **Event-biased RSI** 在起跳、落地、接触切换、开始抓取或释放等关键事件附近增加采样密度。初始化应尽量满足动力学和接触一致性，避免把不合理的跳跃状态强加给策略。
 
 
+<a id="supplement-course-section-03"></a>
+
 ## 3. 方法选择：PPO、SAC、模仿与残差
 
 本教程只保留与**控制方法选型**直接相关的结论。PPO、GAE、actor/critic 学习与 SAC、Q-learning 的公式推导分别参见课程中独立的 PPO、SAC 讲义。
@@ -317,6 +342,8 @@ $$
 
 运动控制中的 actor 可写为 $a_t=\pi_\theta(o_{\le t},c_t)$。对具有安全约束的任务，执行器实际接收的是受限制的 $u_t=\operatorname{Shield}(g(a_t),x_t)$，而不是网络输出直接作用于电机。环境/训练器接口归属仿真工具讲义。
 
+
+<a id="supplement-course-section-04"></a>
 
 ## 4. Motion Tracking 与动作模仿强化学习
 
@@ -407,6 +434,8 @@ $$
 **时序连续性**：随机化参考轨迹的初始 SE(3) 位姿时，必须对后续参考位置、方向和目标条件施加一致变换，否则会人为制造不连续命令。
 
 
+<a id="supplement-course-section-05"></a>
+
 ## 5. HOVER、BeyondMimic、SONIC 与通用控制器
 
 单任务策略与通用控制器的关键区别，不是网络大小，而是**命令接口是否能覆盖多类目标，训练分布是否覆盖运动变化，闭环策略是否能把目标变成真实运动**。
@@ -435,6 +464,8 @@ $$
 
 需要分别测量：① 未见动作的动态跟踪质量；② 不同命令模式切换的延迟与失败率；③ 扰动下恢复能力；④ 不同本体状态与接触模式的覆盖；⑤ 符合时延预算的真机闭环性能。**只报告训练轨迹的平均姿态误差无法证明“通用控制器”。**
 
+
+<a id="supplement-course-section-06"></a>
 
 ## 6. 特权教师、学生蒸馏与动力学自适应
 
@@ -494,6 +525,8 @@ RMA 将动力学适应问题与机器人运动策略结合，利用近期观测�
 论文：https://arxiv.org/abs/2107.04034
 
 
+<a id="supplement-course-section-07"></a>
+
 ## 7. Residual RL、闭环恢复与安全边界
 
 ### 7.1 Residual RL 不是把已有控制器丢掉
@@ -520,6 +553,8 @@ $$
 
 PD/阻抗/IK/WBC 仍负责执行器快速闭环与约束处理，RL 主要优化其参考、策略和鲁棒修正。对于碰撞、高速或精密装配，必须有独立于策略权重的限位、力矩/速度上限、急停与人工监护。理论稳定性（ISS/CLF/收缩性等）不能由训练成功率自动推出。
 
+
+<a id="supplement-course-section-08"></a>
 
 ## 8. 案例：腿式速度控制与全身协调
 
@@ -573,6 +608,8 @@ $$
 
 **第一个研究实验：**先复现平地行走，再分别修改 Action Smoothness、Domain Randomization、Observation History 和 Foot Slip Penalty，观察训练收敛、速度误差和扰动恢复是否变化。
 
+
+<a id="supplement-course-section-09"></a>
 
 ## 9. 案例：机械臂、灵巧手与接触任务
 
@@ -671,6 +708,8 @@ $$
 对于有参考轨迹的任务，可将 Uniform RSI 与 Event-biased RSI 结合，使训练更多覆盖接触建立、释放和物体转动等关键片段。
 
 
+<a id="supplement-course-section-10"></a>
+
 ## 10. 鲁棒控制学习与 Sim-to-Real
 
 ### 10.1 为什么仿真成功不保证真机成功？
@@ -749,6 +788,8 @@ ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，
 仿真工具课程给出各类参数怎样在平台里实现与验证；这里重点讨论策略应当怎样利用反馈在未知误差下维持任务能力。不要把 Sim-to-Real 误解为一个能自动修正任意 URDF、外参和通信延迟错误的单独算法。
 
 
+<a id="supplement-course-section-11"></a>
+
 ## 11. 运动性能、泛化与恢复能力评估
 
 训练 Reward 上升不代表真实任务表现一定改善。必须构建独立测试集和性能指标。
@@ -793,6 +834,8 @@ ASAP 等工作尝试利用真实机器人数据对齐仿真与真实动力学，
 
 **公平对比原则：**相同环境与任务、相同交互预算、多个随机种子、未见过的测试状态，以及与训练奖励独立的性能指标。尤其要区分训练表现、仿真泛化和真机表现。
 
+
+<a id="supplement-course-section-12"></a>
 
 ## 12. 论文阅读、工具索引与研究路线
 
@@ -864,6 +907,8 @@ $$
 其中 $c_t$ 可编码目标速度、目标位姿、参考运动片段、目标物体运动或技能条件。对应方向包括 Goal-conditioned Motion Control、Universal Motion Tracking、Hierarchical Motion Policies、Residual Motion Adaptation 和 Learning-based Whole-Body Control。
 
 
+<a id="supplement-course-section-13"></a>
+
 ## 参考资料与开源链接
 
 以下资料主要为教程中提及的论文主页、论文页面和官方开源仓库。论文年份与任务名称应以其最终发表版本/仓库当前版本为准。
@@ -889,3 +934,48 @@ $$
 16. [HOVER 论文及多模式控制介绍](https://arxiv.org/abs/2410.21229)
 
 **课程边界：** Isaac Sim、Isaac Lab、MuJoCo 的建模、安装、执行器对齐、并行训练和性能排错统一见配套工具教程。PPO/GAE 与 SAC/Q-learning 的详细推导见本课程体系独立讲义。
+
+---
+
+<a id="supplement-course-section-14"></a>
+
+## 新增专题：SONIC 与 SuperMimic——Motion Tracking 的两条强化学习路线
+
+> 2026-10-28 增补，与原文 DeepMimic、BeyondMimic、SONIC、PPO、残差控制等章节互补，不替换原有内容。
+
+### 1. 相同控制任务，不同的策略梯度
+
+目标：跟踪多条参考运动 $g_t$，根据观测 $o_t$ 输出关节目标 $a_t$，通过接触与动力学实现稳定动作。典型奖励可包括位置、姿态、关节速度、足底接触和能耗项，具体权重应与所对比实现保持一致。
+
+| 维度 | SONIC 风格模型无关 RL | SuperMimic |
+|---|---|---|
+| 生成监督数据 | 并行物理仿真 | 并行物理仿真 |
+| 需要学习动力学模型 | 不需要 | **需要**，并重复更新 |
+| 更新 Actor | PPO 似然比梯度 | 模型想象轨迹上的 BPTT 梯度 |
+| Critic | PPO 的优势/价值估计 | 想象短视野末端的价值补全 |
+| 主要风险 | 高仿真交互开销，方差与调参 | 模型误差、误导性动作梯度 |
+| 物理仿真器是否需要可微 | 否 | 否（通过学习模型求导） |
+
+两者可以使用相同的目标运动、控制周期、关节动作接口；具体原始实现可能在网络、观测、数据集及硬件上有差异。
+
+### 2. SuperMimic 三阶段训练循环
+
+1. 当前策略在 MuJoCo Warp 中采样轨迹、保存 $(s_t,a_t,r_t,s_{t+1},d_t,\xi)$；
+2. 在 Replay Buffer 的短窗口上训练一个共享动力学世界模型，包含状态、奖励、观测与终止建模；
+3. 从真实仿真采集的状态开始，利用世界模型想象 $H$ 步，并通过 BPTT 更新 Actor 和 Critic。
+
+论文报告常见设置：**8 步自回归拟合**和 **32 步想象时域**。策略更新期间世界模型参数不更新，但必须保持对输入的梯度。每轮重新采集真实仿真数据，使世界模型适应不断变化的策略分布。
+
+### 3. 对 SuperMimic 效率数字的正确解读
+
+原论文报告：单张 H100 约 3 小时超越所比较的 SONIC 已发布 checkpoint 的 return；较长训练可进一步降低其运动跟踪基准的失败数。此对比涉及**不同 GPU、训练数据与工程优化**，不是同硬件、同数据、同代码的受控 PPO 消融，不能直接归因于 BPTT 一个因素。
+
+若要发表严格的算法比较，应控制：任务集合和训练/测试划分、模型大小、观测/动作、控制频率、奖励和终止、每条基线的调参预算、相同 GPU 或按算力标准化的总时间、独立随机种子。
+
+### 4. 从全身运动跟踪扩展到灵巧手
+
+灵巧手增加物体状态、复杂接触切换和末端操作目标。建议先以 **Wuji Hand2 方块掌内旋转**为最小案例：对比 PPO 与学习世界模型+BPTT，报告新目标朝向的成功率、掉落率、时间和模型梯度的实际有效性。社区项目 [Dex-Supermimic](https://github.com/CumulusAlpha/Dex-Supermimic) 提供一个独立复现起点，不能把其中的仿真视频视为真机验证。
+
+**阅读路径：**本课程 Motion Tracking → 第 9 讲 PPO → 新增 Model-Based RL → 新增 Dexterous World Models 案例。[原论文](https://arxiv.org/abs/2610.28480)。
+
+*本增补为 CC BY-NC-SA 4.0；原有内容与第三方许可保持不变。*
