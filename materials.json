@@ -222,6 +222,39 @@
       }
     },
     {
+      "id": "low-level-control",
+      "title_en": "Low-Level Control",
+      "title_zh": "底层控制",
+      "reviewed_at": "2026-10-29",
+      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Hardware examples are conceptual, not measured device specifications.",
+      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；硬件案例为概念说明，不代表实测设备规格。",
+      "versions_en": "PD/PID, MIT Mode, impedance/admittance, contact control and actuator alignment.",
+      "versions_zh": "PD/PID、MIT 模式、阻抗与导纳、接触控制及执行器对齐。",
+      "source_refs": [
+        "https://docs.nvidia.com/isaaclab/concepts/actuators",
+        "https://mujoco.readthedocs.io/en/stable/computation.html",
+        "https://www.cubemars.com/how-to-use-cubemars-actuators.html",
+        "https://modernrobotics.northwestern.edu/",
+        "https://control.ros.org/jazzy/"
+      ],
+      "documents": {
+        "en": {
+          "md": "md/Robot_Low_Level_Control_EN.md",
+          "pdf": "pdf/Robot_Low_Level_Control_EN.pdf",
+          "site_md": "files/Robot_Low_Level_Control_EN.md",
+          "site_pdf": "files/Robot_Low_Level_Control_EN.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        },
+        "zh": {
+          "md": "md/Robot_Low_Level_Control_ZH.md",
+          "pdf": "pdf/Robot_Low_Level_Control_ZH.pdf",
+          "site_md": "files/Robot_Low_Level_Control_ZH.md",
+          "site_pdf": "files/Robot_Low_Level_Control_ZH.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        }
+      }
+    },
+    {
       "id": "simulation",
       "title_en": "Isaac / MuJoCo Simulation",
       "title_zh": "Isaac / MuJoCo 仿真",
@@ -255,7 +288,7 @@
     {
       "id": "motion-rl",
       "title_en": "Motion Control RL",
-      "title_zh": "运动控制 RL",
+      "title_zh": "运动控制强化学习",
       "reviewed_at": "2026-10-28",
       "review_scope_en": "Bilingual sources and SuperMimic supplements integrated; shared academic PDF covers, fonts and retained formulas checked. Proposed comparisons and adaptations are teaching designs, not independently validated training or hardware results.",
       "review_scope_zh": "整合中英文源码与 SuperMimic 补充内容，核对统一学术 PDF 首页、字体及保留公式；所述对比与迁移为教学设计，不代表独立验证的训练或硬件结果。",
@@ -284,8 +317,8 @@
     },
     {
       "id": "ppo",
-      "title_en": "PPO",
-      "title_zh": "PPO",
+      "title_en": "PPO / Actor–Critic",
+      "title_zh": "PPO / 行动者–评论家",
       "reviewed_at": "2026-10-19",
       "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDFs rebuilt with a shared academic cover and typography; teaching content retained. Code examples have not undergone complete environment, training or robot validation.",
       "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 采用统一学术首页和字体重新排版，教学内容保持不变；代码示例未经完整环境、训练或真机验证。",
@@ -311,8 +344,8 @@
     },
     {
       "id": "sac",
-      "title_en": "SAC",
-      "title_zh": "SAC",
+      "title_en": "Q-learning / SAC",
+      "title_zh": "Q 学习 / SAC",
       "reviewed_at": "2026-10-22",
       "review_scope_en": "Supplied bilingual materials integrated and PDFs rebuilt with the shared academic cover and fonts; notation, formulas, tables and diagrams checked. No training or robot validation. No programming or experimental chapter.",
       "review_scope_zh": "整合用户提供的中英文资料，PDF 采用统一学术首页与字体，核对记号、公式、表格及流程图；未进行训练或真机验证，不含编程实验章节。",
@@ -333,6 +366,64 @@
           "site_md": "files/SAC_Complete_Derivation_EN.md",
           "site_pdf": "files/SAC_Complete_Derivation_EN.pdf",
           "content_license": "CC-BY-4.0"
+        }
+      }
+    },
+    {
+      "id": "model-based-rl",
+      "title_en": "Model-Based RL",
+      "title_zh": "基于模型的强化学习",
+      "reviewed_at": "2026-10-28",
+      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Research plans are not completed training or hardware validation.",
+      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；研究计划不代表已完成训练或硬件验证。",
+      "versions_en": "Dyna, PETS, Dreamer, SHAC, SuperMimic; differentiable learned dynamics, BPTT, truncated actor–critic and model bias.",
+      "versions_zh": "Dyna、PETS、Dreamer、SHAC、SuperMimic；可微学习动力学、BPTT、截断行动者–评论家与模型偏差。",
+      "source_refs": [
+        "https://arxiv.org/abs/2610.28480"
+      ],
+      "documents": {
+        "en": {
+          "md": "md/Model_Based_RL_Differentiable_World_Models_EN.md",
+          "pdf": "pdf/Model_Based_RL_Differentiable_World_Models_EN.pdf",
+          "site_md": "files/Model_Based_RL_Differentiable_World_Models_EN.md",
+          "site_pdf": "files/Model_Based_RL_Differentiable_World_Models_EN.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        },
+        "zh": {
+          "md": "md/Model_Based_RL_Differentiable_World_Models_ZH.md",
+          "pdf": "pdf/Model_Based_RL_Differentiable_World_Models_ZH.pdf",
+          "site_md": "files/Model_Based_RL_Differentiable_World_Models_ZH.md",
+          "site_pdf": "files/Model_Based_RL_Differentiable_World_Models_ZH.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        }
+      }
+    },
+    {
+      "id": "dexterous-world-models",
+      "title_en": "Dexterous World Models",
+      "title_zh": "灵巧操作世界模型",
+      "reviewed_at": "2026-10-28",
+      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Research plans are not completed training or hardware validation.",
+      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；研究计划不代表已完成训练或硬件验证。",
+      "versions_en": "Wuji Hand2 in-hand reorientation; PPO, CEM/MPPI and BPTT, contact-aware models, actuator contracts and Real2Sim2Real research design.",
+      "versions_zh": "Wuji Hand2 掌内旋转；PPO、CEM/MPPI 与 BPTT、接触感知模型、执行器接口与 Real2Sim2Real 研究设计。",
+      "source_refs": [
+        "https://arxiv.org/abs/2610.28480"
+      ],
+      "documents": {
+        "en": {
+          "md": "md/Dexterous_Manipulation_Learned_World_Models_EN.md",
+          "pdf": "pdf/Dexterous_Manipulation_Learned_World_Models_EN.pdf",
+          "site_md": "files/Dexterous_Manipulation_Learned_World_Models_EN.md",
+          "site_pdf": "files/Dexterous_Manipulation_Learned_World_Models_EN.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        },
+        "zh": {
+          "md": "md/Dexterous_Manipulation_Learned_World_Models_ZH.md",
+          "pdf": "pdf/Dexterous_Manipulation_Learned_World_Models_ZH.pdf",
+          "site_md": "files/Dexterous_Manipulation_Learned_World_Models_ZH.md",
+          "site_pdf": "files/Dexterous_Manipulation_Learned_World_Models_ZH.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
         }
       }
     },
@@ -366,7 +457,7 @@
     {
       "id": "flow-matching",
       "title_en": "Flow Matching",
-      "title_zh": "Flow Matching",
+      "title_zh": "流匹配",
       "reviewed_at": "2026-10-18",
       "review_scope_en": "Documentation organization and upstream reference snapshot; no tutorial runtime, training or hardware validation.",
       "review_scope_zh": "文档整理与上游引用快照核对；未进行教程环境、训练或硬件验证。",
@@ -522,9 +613,77 @@
       }
     },
     {
+      "id": "communication-real-time",
+      "title_en": "Communication & Real-Time Systems",
+      "title_zh": "通信与实时系统",
+      "reviewed_at": "2026-10-29",
+      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Hardware examples are conceptual, not measured device specifications.",
+      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；硬件案例为概念说明，不代表实测设备规格。",
+      "versions_en": "ROS 2/DDS, SDKs, CAN/EtherCAT, clock alignment, latency, multirate scheduling and fault handling.",
+      "versions_zh": "ROS 2/DDS、SDK、CAN/EtherCAT、时钟对齐、延迟、多频率调度与故障处理。",
+      "source_refs": [
+        "https://control.ros.org/jazzy/",
+        "https://control.ros.org/jazzy/doc/getting_started/getting_started.html",
+        "https://www.ethercat.org/en/technology.html",
+        "https://www.ethercat.org/en/compendium.htm",
+        "https://docs.kernel.org/next/core-api/real-time/",
+        "https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Quality-of-Service-Settings.html",
+        "https://docs.ros.org/en/jazzy/Tutorials.html"
+      ],
+      "documents": {
+        "en": {
+          "md": "md/Robot_Communication_Real_Time_Systems_EN.md",
+          "pdf": "pdf/Robot_Communication_Real_Time_Systems_EN.pdf",
+          "site_md": "files/Robot_Communication_Real_Time_Systems_EN.md",
+          "site_pdf": "files/Robot_Communication_Real_Time_Systems_EN.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        },
+        "zh": {
+          "md": "md/Robot_Communication_Real_Time_Systems_ZH.md",
+          "pdf": "pdf/Robot_Communication_Real_Time_Systems_ZH.pdf",
+          "site_md": "files/Robot_Communication_Real_Time_Systems_ZH.md",
+          "site_pdf": "files/Robot_Communication_Real_Time_Systems_ZH.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        }
+      }
+    },
+    {
+      "id": "policy-deployment",
+      "title_en": "Policy Deployment & Sim-to-Real",
+      "title_zh": "策略部署与仿真到现实",
+      "reviewed_at": "2026-10-29",
+      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Hardware examples are conceptual, not measured device specifications.",
+      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；硬件案例为概念说明，不代表实测设备规格。",
+      "versions_en": "Observation/action contracts, state estimation, action adapters, asynchronous execution and staged deployment.",
+      "versions_zh": "观测与动作契约、状态估计、动作适配、异步执行及分阶段部署。",
+      "source_refs": [
+        "https://docs.nvidia.com/isaaclab/concepts/actuators",
+        "https://mujoco.readthedocs.io/en/stable/modeling.html",
+        "https://control.ros.org/jazzy/",
+        "https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Quality-of-Service-Settings.html",
+        "https://github.com/NVlabs/FoundationPose"
+      ],
+      "documents": {
+        "en": {
+          "md": "md/Robot_Policy_Deployment_Sim2Real_EN.md",
+          "pdf": "pdf/Robot_Policy_Deployment_Sim2Real_EN.pdf",
+          "site_md": "files/Robot_Policy_Deployment_Sim2Real_EN.md",
+          "site_pdf": "files/Robot_Policy_Deployment_Sim2Real_EN.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        },
+        "zh": {
+          "md": "md/Robot_Policy_Deployment_Sim2Real_ZH.md",
+          "pdf": "pdf/Robot_Policy_Deployment_Sim2Real_ZH.pdf",
+          "site_md": "files/Robot_Policy_Deployment_Sim2Real_ZH.md",
+          "site_pdf": "files/Robot_Policy_Deployment_Sim2Real_ZH.pdf",
+          "content_license": "CC-BY-NC-SA-4.0"
+        }
+      }
+    },
+    {
       "id": "robot-agent",
-      "title_en": "Advanced Robot Agents",
-      "title_zh": "先进 Robot Agent",
+      "title_en": "Robot Agents",
+      "title_zh": "机器人智能体",
       "reviewed_at": "2026-10-19",
       "review_scope_en": "Supplied bilingual Markdown and PDFs integrated; PDFs rebuilt with a shared academic cover and typography; teaching content retained. No independent training, simulation or robot validation.",
       "review_scope_zh": "整合用户提供的中英文 Markdown 和 PDF，PDF 采用统一学术首页和字体重新排版，教学内容保持不变；未独立进行训练、仿真或真机验证。",
@@ -545,64 +704,6 @@
           "site_md": "files/Robot_Agent_Workflow_RPent_EN.md",
           "site_pdf": "files/Robot_Agent_Workflow_RPent_EN.pdf",
           "content_license": "CC-BY-4.0"
-        }
-      }
-    },
-    {
-      "id": "model-based-rl",
-      "title_en": "Model-Based RL",
-      "title_zh": "基于模型的强化学习",
-      "reviewed_at": "2026-10-28",
-      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Research plans are not completed training or hardware validation.",
-      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；研究计划不代表已完成训练或硬件验证。",
-      "versions_en": "Dyna, PETS, Dreamer, SHAC, SuperMimic; differentiable learned dynamics, BPTT, truncated actor–critic and model bias.",
-      "versions_zh": "Dyna、PETS、Dreamer、SHAC、SuperMimic；可微学习动力学、BPTT、截断行动者–评论家与模型偏差。",
-      "source_refs": [
-        "https://arxiv.org/abs/2610.28480"
-      ],
-      "documents": {
-        "en": {
-          "md": "md/Model_Based_RL_Differentiable_World_Models_EN.md",
-          "pdf": "pdf/Model_Based_RL_Differentiable_World_Models_EN.pdf",
-          "site_md": "files/Model_Based_RL_Differentiable_World_Models_EN.md",
-          "site_pdf": "files/Model_Based_RL_Differentiable_World_Models_EN.pdf",
-          "content_license": "CC-BY-NC-SA-4.0"
-        },
-        "zh": {
-          "md": "md/Model_Based_RL_Differentiable_World_Models_ZH.md",
-          "pdf": "pdf/Model_Based_RL_Differentiable_World_Models_ZH.pdf",
-          "site_md": "files/Model_Based_RL_Differentiable_World_Models_ZH.md",
-          "site_pdf": "files/Model_Based_RL_Differentiable_World_Models_ZH.pdf",
-          "content_license": "CC-BY-NC-SA-4.0"
-        }
-      }
-    },
-    {
-      "id": "dexterous-world-models",
-      "title_en": "Dexterous World Models",
-      "title_zh": "灵巧操作世界模型",
-      "reviewed_at": "2026-10-28",
-      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Research plans are not completed training or hardware validation.",
-      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；研究计划不代表已完成训练或硬件验证。",
-      "versions_en": "Wuji Hand2 in-hand reorientation; PPO, CEM/MPPI and BPTT, contact-aware models, actuator contracts and Real2Sim2Real research design.",
-      "versions_zh": "Wuji Hand2 掌内旋转；PPO、CEM/MPPI 与 BPTT、接触感知模型、执行器接口与 Real2Sim2Real 研究设计。",
-      "source_refs": [
-        "https://arxiv.org/abs/2610.28480"
-      ],
-      "documents": {
-        "en": {
-          "md": "md/Dexterous_Manipulation_Learned_World_Models_EN.md",
-          "pdf": "pdf/Dexterous_Manipulation_Learned_World_Models_EN.pdf",
-          "site_md": "files/Dexterous_Manipulation_Learned_World_Models_EN.md",
-          "site_pdf": "files/Dexterous_Manipulation_Learned_World_Models_EN.pdf",
-          "content_license": "CC-BY-NC-SA-4.0"
-        },
-        "zh": {
-          "md": "md/Dexterous_Manipulation_Learned_World_Models_ZH.md",
-          "pdf": "pdf/Dexterous_Manipulation_Learned_World_Models_ZH.pdf",
-          "site_md": "files/Dexterous_Manipulation_Learned_World_Models_ZH.md",
-          "site_pdf": "files/Dexterous_Manipulation_Learned_World_Models_ZH.pdf",
-          "content_license": "CC-BY-NC-SA-4.0"
         }
       }
     }

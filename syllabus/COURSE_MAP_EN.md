@@ -2,9 +2,9 @@
 
 [简体中文](COURSE_MAP_ZH.md) | **English** | [PDF](COURSE_MAP_EN.pdf)
 
-Nineteen topics are organized as tools → calibration and deep learning → physics and perception → robot RL → demonstrations and generative policies → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
+Twenty-two topics are organized as tools → calibration and deep learning → physics, perception and control → robot RL → demonstrations and generative policies → communication and deployment → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
 
-Tutorial numbers 1–19 match the course order in the [README](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.md).
+Tutorial numbers 1–22 match the course order in the [README](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.md).
 
 ## Contents
 
@@ -21,10 +21,10 @@ Tutorial numbers 1–19 match the course order in the [README](https://github.co
 |---|---|---|
 | 0. Orientation | Systems map and guide | Explain perception–policy–control loops |
 | 1. Tools | Git, ROS 2 | Manage code and understand ROS communication and TF |
-| 2. Physics, perception and neural foundations | Calibration, Deep Learning Basics, vision foundation models, dynamics, Isaac / MuJoCo | Relate calibrated geometry, neural networks, physical models and simulation |
+| 2. Physics, perception and neural foundations | Calibration, Deep Learning Basics, vision foundation models, dynamics, low-level control, Isaac / MuJoCo | Relate calibrated geometry, neural networks, physical models, actuator control and simulation |
 | 3. Reinforcement learning | Motion RL, PPO, SAC, Model-Based RL, Dexterous World Models | Design observations, actions, rewards and data collection |
 | 4. Demonstrations and models | Imitation Learning, Flow Matching, GR00T / SONIC, World Action Models, Efficient Training & Inference, Post-training | Learn generative and predictive policies and connect efficient inference with hierarchical controllers |
-| 5. Robot Agent integration | Robot Agent planning, tool use, verification and recovery | Orchestrate perception, policy and control for long-horizon tasks |
+| 5. Deployment and integration | Communication & Real-Time Systems, Policy Deployment & Sim-to-Real, Robot Agents | Connect synchronized sensing, inference and actuator control, then orchestrate long-horizon tasks |
 
 <a id="map-section-02"></a>
 
@@ -34,8 +34,10 @@ Tutorial numbers 1–19 match the course order in the [README](https://github.co
 flowchart LR
  A["Task command"] --> B["Visual / state estimation"]
  B --> C["High-level VLA / WAM policy"]
- C --> D["Motion policy / servo control"]
- D --> E["Robot and environment"]
+ C --> P["Action adapter / policy deployment"]
+ P --> D["Motion policy / low-level control"]
+ D --> T["SDK / real-time communication"]
+ T --> E["Robot and environment"]
  E --> B
  F["Demonstrations / imitation"] --> C
  G["Isaac / MuJoCo simulator"] --> H["PPO / SAC / MBRL optimization"]
@@ -53,10 +55,11 @@ flowchart LR
 
 ## Reading paths
 
-1. Beginners: orientation → essential Git and ROS 2 → calibration → deep learning → dynamics → vision foundation models → simulation.
-2. Motion control: dynamics → simulation → deep learning → PPO / SAC → motion control RL → Model-Based RL → Dexterous World Models.
-3. VLA: calibration → deep learning → vision foundation models → Imitation Learning → Flow Matching → GR00T / SONIC → World Action Models → efficient training and inference → post-training → Robot Agent.
-4. Mathematical deep dives: full PPO, SAC, and Flow Matching derivations are reference material; hands-on learning does not require deriving everything first.
+1. Beginners: orientation → essential Git and ROS 2 → calibration → deep learning → dynamics → low-level control → vision foundation models → simulation.
+2. Motion control: dynamics → low-level control → simulation → deep learning → PPO / SAC → motion control RL → Model-Based RL → Dexterous World Models → communication and real-time systems → policy deployment.
+3. VLA: calibration → deep learning → vision foundation models → Imitation Learning → Flow Matching → GR00T / SONIC → World Action Models → efficient training and inference → post-training → communication and real-time systems → policy deployment → Robot Agents.
+4. Deployment prerequisites: complete ROS 2 and low-level control before communication and real-time systems; combine a trained motion or VLA policy with these foundations before policy deployment. Robot Agents then coordinate the full system.
+5. Mathematical deep dives: full PPO, SAC, and Flow Matching derivations are reference material; hands-on learning does not require deriving everything first.
 
 <a id="map-section-04"></a>
 
@@ -86,54 +89,66 @@ flowchart LR
 
 [Robot Dynamics](../md/Robot_Dynamics_Embodied_EN.md) — Develop rigid-body motion and dynamics through coordinate frames, Jacobians, inertia and equations of motion. Connect contact, friction and control models to robot simulation. Adds learned surrogate dynamics, contact gradients and the role of actuator and object models.
 
-### 7. Isaac / MuJoCo Simulation
+### 7. Low-Level Control
+
+[Low-Level Control](../md/Robot_Low_Level_Control_EN.md) — Connect motor servo loops, PD/PID and MIT Mode to impedance, admittance and contact control. Relate policy action semantics to actuator response, simulated hardware alignment and protected tuning.
+
+### 8. Isaac / MuJoCo Simulation
 
 [Isaac / MuJoCo Simulation](../md/Isaac_MuJoCo_RL_Complete_Guide_EN.md) — Understand Isaac Sim, Isaac Lab and MuJoCo as simulation and training tools. Cover asset import, environment contracts, RL library selection, parallel throughput, deployment interfaces. Adds MuJoCo Warp sampling, replay, world-model fitting and differentiable policy-update interfaces.
 
-### 8. Motion Control RL
+### 9. Motion Control RL
 
 [Motion Control RL](../md/Embodied_Motion_Control_RL_Tutorial_EN.md) — Study motion tracking, DeepMimic/AMP, universal controllers, teacher–student learning, RMA and residual RL. Connect these methods to legged and dexterous motion, recovery and Sim-to-Real. Adds a SONIC/SuperMimic comparison and differentiable motion-tracking connections.
 
-### 9. PPO / Actor–Critic
+### 10. PPO / Actor–Critic
 
 [PPO / Actor–Critic](../md/PPO_Complete_Derivation_and_Design_Motivations_English.md) — Derive PPO-Clip and Actor–Critic learning from policy gradients, Bellman targets and GAE. Explain Gaussian policy updates, gradient isolation and asymmetric robot observations.
 
-### 10. Q-learning / SAC
+### 11. Q-learning / SAC
 
 [Q-learning / SAC](../md/SAC_Complete_Derivation_EN.md) — Trace Bellman equations, TD/Q-learning and fitted Q-iteration toward DQN and continuous-action actor–critic methods. Derive modern SAC’s critic, actor and temperature losses; compare PPO, DQN and SAC; connect HIL-SERL and VLA/WAM action-chunk value learning, with mathematical details in appendices.
 
-### 11. Imitation Learning
-
-[Imitation Learning](../md/Data_Imitation_Learning_EN.md) — Study BC, DAgger and corrective demonstrations, then connect ACT, Diffusion Policy and Flow Matching to action chunks. Explain VLA architectures and supervised action learning, temporal ensembling, and inference-time versus training-time RTC.
-
-### 12. Flow Matching
-
-[Flow Matching](../md/Flow_Matching_Step_by_Step_Derivation_EN.md) — Derive conditional Flow Matching, velocity fields and the training objective. Explain how ODE integration transforms noise into conditional robot action sequences.
-
-### 13. GR00T & SONIC
-
-[GR00T & SONIC](../md/System1_System0_GR00T_SONIC_EN.md) — Use GR00T and SONIC to explain System 1/System 0 humanoid control. Connect high-level action chunks, motion representations, whole-body policies and low-level execution.
-
-### 14. World Action Models
-
-[World Action Models](../md/World_Action_Models_EN.md) — Distinguish world models, VLAs and WAMs, then study DreamZero training and accelerated inference. Explain Dream-1 zero-shot embodiment transfer through shared EEF/IK interfaces, joint video–action modeling and transferable visual representations; compare FaaS adaptation, VLA/WAM compute, latency, contact control and evaluation. Distinguishes SuperMimic state-dynamics models from visual WAMs.
-
-### 15. Efficient Training & Inference
-
-[Efficient Training & Inference](../md/Efficient_Training_Real_Time_Inference_EN.md) — Connect Transformer and VLA/WAM training costs, FlashAttention and valid caching to DreamZero acceleration, few-step inference, asynchronous robot control, RTC and cloud latency.
-
-### 16. Post-training
-
-[Post-training](../md/Embodied_Post_Training_EN.md) — Compare SFT and RL for pretrained VLA and WAM models. Study six VLA RL routes, WAM-RL with online video SFT and Flow-SDE, then connect actor–critic semantics, RLinf integration and robot deployment limits.
-
-### 17. Robot Agents
-
-[Robot Agents](../md/Robot_Agent_Workflow_RPent_EN.md) — Distinguish foundation models, coding agents and agent harnesses. Connect RAX exploration, ASPIRE trace repair and RPent toolkits, memory, Flash Mode and the RLinf data flywheel to reusable robot workflows.
-
-### 18. Model-Based RL
+### 12. Model-Based RL
 
 [Model-Based RL](../md/Model_Based_RL_Differentiable_World_Models_EN.md) — Study Dyna, PETS, Dreamer, SHAC and SuperMimic. Derive BPTT through learned dynamics, connect truncated actor–critic updates and model bias, and distinguish data augmentation, planning and differentiable policy learning.
 
-### 19. Dexterous World Models
+### 13. Dexterous World Models
 
 [Dexterous World Models](../md/Dexterous_Manipulation_Learned_World_Models_EN.md) — Use Wuji Hand2 in-hand reorientation as a research case. Compare PPO, CEM/MPPI and BPTT, then connect contact-aware models, actuator interfaces and Real2Sim2Real evaluation; the case does not report validated hardware results.
+
+### 14. Imitation Learning
+
+[Imitation Learning](../md/Data_Imitation_Learning_EN.md) — Study BC, DAgger and corrective demonstrations, then connect ACT, Diffusion Policy and Flow Matching to action chunks. Explain VLA architectures and supervised action learning, temporal ensembling, and inference-time versus training-time RTC.
+
+### 15. Flow Matching
+
+[Flow Matching](../md/Flow_Matching_Step_by_Step_Derivation_EN.md) — Derive conditional Flow Matching, velocity fields and the training objective. Explain how ODE integration transforms noise into conditional robot action sequences.
+
+### 16. GR00T & SONIC
+
+[GR00T & SONIC](../md/System1_System0_GR00T_SONIC_EN.md) — Use GR00T and SONIC to explain System 1/System 0 humanoid control. Connect high-level action chunks, motion representations, whole-body policies and low-level execution.
+
+### 17. World Action Models
+
+[World Action Models](../md/World_Action_Models_EN.md) — Distinguish world models, VLAs and WAMs, then study DreamZero training and accelerated inference. Explain Dream-1 zero-shot embodiment transfer through shared EEF/IK interfaces, joint video–action modeling and transferable visual representations; compare FaaS adaptation, VLA/WAM compute, latency, contact control and evaluation. Distinguishes SuperMimic state-dynamics models from visual WAMs.
+
+### 18. Efficient Training & Inference
+
+[Efficient Training & Inference](../md/Efficient_Training_Real_Time_Inference_EN.md) — Connect Transformer and VLA/WAM training costs, FlashAttention and valid caching to DreamZero acceleration, few-step inference, asynchronous robot control, RTC and cloud latency.
+
+### 19. Post-training
+
+[Post-training](../md/Embodied_Post_Training_EN.md) — Compare SFT and RL for pretrained VLA and WAM models. Study six VLA RL routes, WAM-RL with online video SFT and Flow-SDE, then connect actor–critic semantics, RLinf integration and robot deployment limits.
+
+### 20. Communication & Real-Time Systems
+
+[Communication & Real-Time Systems](../md/Robot_Communication_Real_Time_Systems_EN.md) — Separate ROS 2/DDS, SDKs and CAN/EtherCAT buses. Explain timestamps, data freshness, latency and jitter, multirate scheduling, asynchronous inference and fault handling in robot feedback loops.
+
+### 21. Policy Deployment & Sim-to-Real
+
+[Policy Deployment & Sim-to-Real](../md/Robot_Policy_Deployment_Sim2Real_EN.md) — Connect trained policies to real robots through observation/action contracts, state estimation, action adapters and timestamped buffers. Cover system identification, sim-to-real alignment, staged deployment and diagnosis of policy, perception and transport failures.
+
+### 22. Robot Agents
+
+[Robot Agents](../md/Robot_Agent_Workflow_RPent_EN.md) — Distinguish foundation models, coding agents and agent harnesses. Connect RAX exploration, ASPIRE trace repair and RPent toolkits, memory, Flash Mode and the RLinf data flywheel to reusable robot workflows.
