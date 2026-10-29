@@ -79,7 +79,7 @@ flowchart LR
 
 ### 4. 深度学习基础
 
-[深度学习基础](../md/Deep_Learning_Foundations_ZH.md)：学习监督目标、梯度下降与反向传播，将 MLP、Attention 和 Transformer 连接到多模态机器人动作头，理解预训练、微调及后续策略方法所需的网络基础。补充 SuperMimic 的 BPTT、状态导数、冻结模型梯度与短视野价值自举。
+[深度学习基础](../md/Deep_Learning_Foundations_ZH.md)：以机器人任务串联线性模型、MLP、损失函数、反向传播与可靠训练；学习 CNN/ViT 视觉 Token、Q/K/V 与手算注意力、Transformer 模块及多模态动作头，再连接预训练、SFT/LoRA、强化学习后训练、部署时序与控制器接口。BPTT 与可微世界模型作为进阶附录。
 
 ### 5. 视觉基础模型
 
