@@ -399,35 +399,6 @@
       }
     },
     {
-      "id": "dexterous-world-models",
-      "title_en": "Dexterous World Models",
-      "title_zh": "灵巧操作世界模型",
-      "reviewed_at": "2026-10-28",
-      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Research plans are not completed training or hardware validation.",
-      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；研究计划不代表已完成训练或硬件验证。",
-      "versions_en": "Wuji Hand2 in-hand reorientation; PPO, CEM/MPPI and BPTT, contact-aware models, actuator contracts and Real2Sim2Real research design.",
-      "versions_zh": "Wuji Hand2 掌内旋转；PPO、CEM/MPPI 与 BPTT、接触感知模型、执行器接口与 Real2Sim2Real 研究设计。",
-      "source_refs": [
-        "https://arxiv.org/abs/2610.28480"
-      ],
-      "documents": {
-        "en": {
-          "md": "md/Dexterous_Manipulation_Learned_World_Models_EN.md",
-          "pdf": "pdf/Dexterous_Manipulation_Learned_World_Models_EN.pdf",
-          "site_md": "files/Dexterous_Manipulation_Learned_World_Models_EN.md",
-          "site_pdf": "files/Dexterous_Manipulation_Learned_World_Models_EN.pdf",
-          "content_license": "CC-BY-NC-SA-4.0"
-        },
-        "zh": {
-          "md": "md/Dexterous_Manipulation_Learned_World_Models_ZH.md",
-          "pdf": "pdf/Dexterous_Manipulation_Learned_World_Models_ZH.pdf",
-          "site_md": "files/Dexterous_Manipulation_Learned_World_Models_ZH.md",
-          "site_pdf": "files/Dexterous_Manipulation_Learned_World_Models_ZH.pdf",
-          "content_license": "CC-BY-NC-SA-4.0"
-        }
-      }
-    },
-    {
       "id": "data-imitation",
       "title_en": "Imitation Learning",
       "title_zh": "模仿学习",

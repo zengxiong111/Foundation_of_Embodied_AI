@@ -300,7 +300,7 @@ Separate physical-simulator and imagined transitions; time simulator collection,
 
 ## 9. Study route and references
 
-**Recommended path:** original #6 Dynamics → #7 Simulation → #9 PPO and #10 SAC → Sections 1–5 here → SuperMimic in Section 6 → the new Dexterous World Models case study. For online planning use PETS/CEM/MPPI; for video world models use the original WAM tutorial.
+**Recommended path:** Dynamics → Simulation → PPO and SAC → Sections 1–5 here → SuperMimic in Section 6. For online planning use PETS/CEM/MPPI; for video world models use the original WAM tutorial.
 
 **Self-check:**
 

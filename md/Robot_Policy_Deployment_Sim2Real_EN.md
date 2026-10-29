@@ -47,8 +47,7 @@ flowchart LR
 - [7. Sim-to-real alignment: identify, then randomize](#course-section-07)
 - [8. Online RL, real data, and recovery](#course-section-08)
 - [9. Staged deployment with safety gates](#course-section-09)
-- [10. Case studies: screwdriver manipulation and in-hand rotation](#course-section-10)
-- [11. Evaluation matrix, self-check, and conclusions](#course-section-11)
+- [10. Evaluation matrix, self-check, and conclusions](#course-section-11)
 - [References](#course-section-12)
 
 <a id="course-section-01"></a>
@@ -214,25 +213,9 @@ In contact tasks, rewards may be delayed or inferred. Therefore specify the time
 
 Include network loss, occluded cameras, slow inference, joint tracking excursions, frozen state messages, and stop requests. Start fault-injection tests in a simulator/mock driver and apply the robot manufacturer's physical-testing safety process. **An unvalidated policy must not directly drive full-amplitude, high-speed, or high-effort actions.**
 
-<a id="course-section-10"></a>
-
-## 10. Case studies: screwdriver manipulation and in-hand rotation
-
-### 10.1 TRON2 + Revo3 / Wuji Hand2 screwdriver manipulation
-
-**Task:** pick a screwdriver from varied table poses, move it to a target region, turn it, and support controlled recovery after temporary visual loss. The pipeline comprises FoundationPose-style object pose estimation, a higher-level RL/VLA policy, arm IK/trajectory control, finger position servos or a compliance mode **actually supported** by the device, independent limits, and the vendor SDK.
-
-Log object-pose confidence, end-effector error, measured joint state, execution timestamps, contact/drop events, and protective stops. Compare position and compliant-control routes only when the installed hardware actually supports the relevant modes. **Do not assume all robots support MIT Mode or joint-torque control.**
-
-### 10.2 Wuji Hand2 in-hand rotation
-
-In simulation, compare PPO against a learned-world-model/BPTT actor. For deployment, replace true simulator object orientation with visual estimation, replace idealized actuators with measured or identified models, and reevaluate friction and contact transitions. Report angle error, drop rate, time to completion, contact stability, and recovery from perturbation.
-
-**Evidence boundary:** both examples are teaching and research plans, not claims of deployed real-time results or measured performance on the named hardware.
-
 <a id="course-section-11"></a>
 
-## 11. Evaluation matrix, self-check, and conclusions
+## 10. Evaluation matrix, self-check, and conclusions
 
 Report **task, physical, system, and statistical** results together: success/drop/recovery; tracking error, action peaks, and abnormal contacts; end-to-end latency, p99, jitter, timeouts, and fault counts; independent runs, initial object distributions, trial counts, and hardware versions. Avoid reporting only a demonstration video and success rate.
 

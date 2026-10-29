@@ -546,7 +546,7 @@ A **world model** predicts aspects of the environment's evolution; **model-based
 
 They can be composed: a visual WAM may propose goals or skills, while a low-level learned dynamics model supports contact-rich action optimization. **The benefit of this combination is a hypothesis requiring evaluation**, not an established result.
 
-**Reading guidance:** use the new *Model-Based RL* tutorial for SuperMimic's math and the new *Dexterous World Models* case study for in-hand control. Keep this course's existing WAM chapters focused on video world modeling, embodiment-independent interfaces and efficient inference.
+**Reading guidance:** use the new *Model-Based RL* tutorial for SuperMimic's math. Keep this course's existing WAM chapters focused on video world modeling, embodiment-independent interfaces and efficient inference.
 
 References: [SuperMimic](https://arxiv.org/abs/2610.28480) · [Dream-1](https://dreamlabs.ai/research/dream-1/).
 

@@ -981,6 +981,6 @@ A controlled study must match: motion dataset split, action/observation semantic
 
 A hand requires object pose/twist estimation, contact transitions and task-level rotation objectives. Start with **Wuji Hand2 cube reorientation**, comparing a matched PPO policy against learned-world-model BPTT. Evaluate unseen goal rotations, drops, time to goal, and whether a world-model gradient actually improves simulator outcomes. [Dex-Supermimic](https://github.com/CumulusAlpha/Dex-Supermimic) is an independent community adaptation, **not real-world dexterous-hand validation**.
 
-**Reading path:** existing Motion Tracking → PPO → new Model-Based RL → new Dexterous World-Model case study. [Original paper](https://arxiv.org/abs/2610.28480).
+**Reading path:** existing Motion Tracking → PPO → new Model-Based RL. [Original paper](https://arxiv.org/abs/2610.28480).
 
 *New supplemental text is CC BY-NC-SA 4.0; prior sections and cited third-party work retain their licenses.*

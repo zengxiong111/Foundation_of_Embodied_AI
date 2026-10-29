@@ -45,8 +45,7 @@ flowchart LR
 - [6. 实时调度：频率不等于确定性](#course-section-06)
 - [7. 多频率闭环与异步策略推理](#course-section-07)
 - [8. 通信故障与独立安全机制](#course-section-08)
-- [9. 案例：TRON2 + 灵巧手 + 双相机](#course-section-09)
-- [10. 可复现的验证任务与自测](#course-section-10)
+- [9. 可复现的验证任务与自测](#course-section-10)
 - [参考资料](#course-section-11)
 
 <a id="course-section-01"></a>
@@ -184,25 +183,9 @@ $$
 
 ROS 2 的 `Reliable` QoS 不等于功能安全认证；EtherCAT 或 CAN 本身也不等于系统已满足特定安全完整性要求。真实机器人应遵守厂家文档及实验室风险评估。
 
-<a id="course-section-09"></a>
-
-## 9. 案例：TRON2 + 灵巧手 + 双相机
-
-建议把系统拆成四类进程：**感知进程**（头/腕相机与物体位姿）、**策略进程**（GPU 推理）、**控制进程**（轨迹缓存、IK、动作限制）、**硬件接口进程**（厂家 SDK、状态反馈与告警）。两台设备的控制接口不必共享同一个网络协议或同一个控制频率。
-
-| 日志字段 | 用途 |
-|---|---|
-| `capture_time`, `receive_time`, `execute_time` | 计算同步误差、通信延迟和 AoI |
-| `joint_name`, `q`, `dq`, `command` | 对齐关节顺序、目标与执行状态 |
-| `control_mode`, `command_seq`, `ack_status` | 排查模式、旧命令与接收状态 |
-| `camera_frame`, `object_pose`, `confidence` | 处理 TF 与视觉失效 |
-| `fault_code`, `watchdog_state` | 重现异常与安全回退 |
-
-**不预设 TRON2、Revo3 或 Wuji Hand2 的总线种类、最大控制频率或厂商报文字段。** 这些必须从当前固件、SDK 和测试中确认；此表只是上位机应维护的逻辑记录规范。
-
 <a id="course-section-10"></a>
 
-## 10. 可复现的验证任务与自测
+## 9. 可复现的验证任务与自测
 
 **无硬件风险的三个验证练习**：第一，使用两个模拟节点构造不同的发布时间与到达延迟，验证 FIFO/Latest-only 缓存的区别；第二，记录控制循环周期直方图、p99 和 deadline miss；第三，故意中断模拟状态流，确认 Watchdog 能转入安全停止状态，而不是继续执行旧命令。
 

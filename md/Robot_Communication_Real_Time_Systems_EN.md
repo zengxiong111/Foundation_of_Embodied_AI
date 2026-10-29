@@ -45,8 +45,7 @@ flowchart LR
 - [6. Real-time scheduling: frequency is not determinism](#course-section-06)
 - [7. Multirate control and asynchronous inference](#course-section-07)
 - [8. Communication faults and independent safety](#course-section-08)
-- [9. Case study: TRON2, a dexterous hand, and two cameras](#course-section-09)
-- [10. Reproducible exercises and self-check](#course-section-10)
+- [9. Reproducible exercises and self-check](#course-section-10)
 - [References](#course-section-11)
 
 <a id="course-section-01"></a>
@@ -184,25 +183,9 @@ A minimal fault-handling state machine may use **Disabled → Ready → Enabled 
 
 `Reliable` QoS is not a functional-safety certification. Neither CAN nor EtherCAT alone establishes a system-level safety integrity claim. Follow robot vendor documentation and an actual laboratory risk assessment.
 
-<a id="course-section-09"></a>
-
-## 9. Case study: TRON2, a dexterous hand, and two cameras
-
-Partition the design into four services: **perception** (head/wrist camera and object pose); **policy inference** (GPU); **control** (trajectory buffer, IK, and action bounds); and **hardware interface** (vendor SDK, measured state, and fault reporting). The arm and hand need not share a bus protocol or update period.
-
-| Suggested log field | Purpose |
-|---|---|
-| `capture_time`, `receive_time`, `execute_time` | Clock alignment, transport delay, and AoI |
-| `joint_name`, `q`, `dq`, `command` | Joint mapping, target-versus-execution comparison |
-| `control_mode`, `command_seq`, `ack_status` | Mode mismatches, stale commands, acknowledgment semantics |
-| `camera_frame`, `object_pose`, `confidence` | TF, perception confidence, visual recovery |
-| `fault_code`, `watchdog_state` | Fault reproduction and controlled fallback |
-
-**No specific bus, maximum control frequency, or proprietary message format is assumed for TRON2, Revo3, or Wuji Hand2.** These must be established from the particular installed firmware, SDK, and test results. The table defines a logical application-side recording convention only.
-
 <a id="course-section-10"></a>
 
-## 10. Reproducible exercises and self-check
+## 9. Reproducible exercises and self-check
 
 **Three safe simulation exercises:** (1) use two mock nodes with different publication and arrival delays to compare FIFO versus latest-only queues; (2) record servo-period histograms, p99, and deadline misses; (3) interrupt a simulated state stream and verify that the watchdog enters controlled stop instead of continuing to issue obsolete commands.
 

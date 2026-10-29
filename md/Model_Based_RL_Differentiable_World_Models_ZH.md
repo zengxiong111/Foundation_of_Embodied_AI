@@ -300,7 +300,7 @@ SHAC（Short-Horizon Actor-Critic）通过**可微仿真器**对短轨迹求梯�
 
 ## 9. 学习路径、自测题与参考资料
 
-**建议顺序：**原课程 #6 Dynamics → #7 Simulation → #9 PPO / #10 SAC → 本教程第 1–5 章 → SuperMimic 第 6 章 → 新增灵巧手专题。想进一步研究在线规划，可转向 PETS/CEM/MPPI；研究视觉模型则结合原课程 WAM。
+**建议顺序：**机器人动力学 → 仿真 → PPO / SAC → 本教程第 1–5 章 → SuperMimic 第 6 章。想进一步研究在线规划，可转向 PETS/CEM/MPPI；研究视觉模型则结合原课程 WAM。
 
 **自测：**
 

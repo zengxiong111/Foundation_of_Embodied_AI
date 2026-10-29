@@ -976,6 +976,6 @@ $$
 
 灵巧手增加物体状态、复杂接触切换和末端操作目标。建议先以 **Wuji Hand2 方块掌内旋转**为最小案例：对比 PPO 与学习世界模型+BPTT，报告新目标朝向的成功率、掉落率、时间和模型梯度的实际有效性。社区项目 [Dex-Supermimic](https://github.com/CumulusAlpha/Dex-Supermimic) 提供一个独立复现起点，不能把其中的仿真视频视为真机验证。
 
-**阅读路径：**本课程 Motion Tracking → 第 9 讲 PPO → 新增 Model-Based RL → 新增 Dexterous World Models 案例。[原论文](https://arxiv.org/abs/2610.28480)。
+**阅读路径：**本课程 Motion Tracking → PPO → 新增 Model-Based RL。[原论文](https://arxiv.org/abs/2610.28480)。
 
 *本增补为 CC BY-NC-SA 4.0；原有内容与第三方许可保持不变。*
