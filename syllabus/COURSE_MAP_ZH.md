@@ -111,7 +111,7 @@ flowchart LR
 
 ### 12. 基于模型的强化学习
 
-[基于模型的强化学习](../md/Model_Based_RL_Differentiable_World_Models_ZH.md)：学习 Dyna、PETS、Dreamer、SHAC 与 SuperMimic，推导学习动力学中的 BPTT，联系截断行动者–评论家与模型偏差，并区分数据增强、规划和可微策略学习。
+[基于模型的强化学习](../md/Model_Based_RL_Differentiable_World_Models_ZH.md)：从 Dyna、PETS、MBPO 与 Dreamer 理解学习动力学如何支持规划、合成训练数据与潜空间想象；推导闭环中的 BPTT，再由 SHAC 的短视野评论家自举连接到 SuperMimic 的学习代理动力学。区分模型拟合与策略想象的视野，并讨论接触梯度可靠性和模型偏差。
 
 ### 13. 模仿学习
 

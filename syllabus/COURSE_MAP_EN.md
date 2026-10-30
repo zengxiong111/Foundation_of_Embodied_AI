@@ -111,7 +111,7 @@ flowchart LR
 
 ### 12. Model-Based RL
 
-[Model-Based RL](../md/Model_Based_RL_Differentiable_World_Models_EN.md) — Study Dyna, PETS, Dreamer, SHAC and SuperMimic. Derive BPTT through learned dynamics, connect truncated actor–critic updates and model bias, and distinguish data augmentation, planning and differentiable policy learning.
+[Model-Based RL](../md/Model_Based_RL_Differentiable_World_Models_EN.md) — Study how learned dynamics support planning, synthetic training data and latent imagination through Dyna, PETS, MBPO and Dreamer. Derive BPTT through the feedback loop, then connect SHAC’s short-horizon critic bootstrap to SuperMimic’s learned surrogate dynamics. Distinguish model-fitting and policy-imagination horizons, and examine contact-gradient reliability and model bias.
 
 ### 13. Imitation Learning
 

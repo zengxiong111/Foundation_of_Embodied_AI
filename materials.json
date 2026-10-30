@@ -413,12 +413,17 @@
       "id": "model-based-rl",
       "title_en": "Model-Based RL",
       "title_zh": "基于模型的强化学习",
-      "reviewed_at": "2026-10-28",
-      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Research plans are not completed training or hardware validation.",
-      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；研究计划不代表已完成训练或硬件验证。",
-      "versions_en": "Dyna, PETS, Dreamer, SHAC, SuperMimic; differentiable learned dynamics, BPTT, truncated actor–critic and model bias.",
-      "versions_zh": "Dyna、PETS、Dreamer、SHAC、SuperMimic；可微学习动力学、BPTT、截断行动者–评论家与模型偏差。",
+      "reviewed_at": "2026-10-30",
+      "review_scope_en": "Updated user-supplied bilingual notes integrated; shared academic PDF covers, fonts and retained mathematical content checked. Paper results and proposed contact-gradient checks are not independent reproductions.",
+      "review_scope_zh": "整合用户提供的新版中英文讲义，核对统一学术 PDF 首页、字体及保留数学内容；论文结果与所述接触梯度检查不代表独立复现。",
+      "versions_en": "Dyna, PETS, MBPO, Dreamer, SHAC and SuperMimic; learned dynamics, feedback-loop BPTT, short-horizon actor–critic, model-fitting versus policy-imagination horizons and contact-gradient reliability.",
+      "versions_zh": "Dyna、PETS、MBPO、Dreamer、SHAC 与 SuperMimic；学习动力学、闭环 BPTT、短视野行动者–评论家、模型拟合与策略想象视野及接触梯度可靠性。",
       "source_refs": [
+        "https://www.cs.utexas.edu/~pstone/Courses/394Rspring13/resources/sutton91dyna.pdf",
+        "https://arxiv.org/abs/1805.12114",
+        "https://arxiv.org/abs/1906.08253",
+        "https://arxiv.org/abs/1912.01603",
+        "https://arxiv.org/abs/2204.07137",
         "https://arxiv.org/abs/2610.28480"
       ],
       "documents": {

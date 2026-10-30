@@ -1,320 +1,365 @@
 ---
 title: "Model-Based Reinforcement Learning: From Learned Dynamics to Differentiable Policy Optimization"
 subtitle: "Dyna, PETS, Dreamer, SHAC, and SuperMimic | Foundation of Embodied AI"
-date: "2026-10-28"
+date: "2026-10-30"
 lang: en-US
 ---
 
 # Model-Based Reinforcement Learning: From Learned Dynamics to Differentiable Policy Optimization
 
-[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](Model_Based_RL_Differentiable_World_Models_ZH.md) · [SuperMimic](https://arxiv.org/abs/2610.28480) · [SHAC](https://arxiv.org/abs/2204.07137)
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](Model_Based_RL_Differentiable_World_Models_ZH.md) · [SuperMimic](https://arxiv.org/abs/2610.28480) · [SHAC](https://arxiv.org/abs/2204.07137) · [PDF](../pdf/Model_Based_RL_Differentiable_World_Models_EN.pdf)
 
 | Item | Details |
 |---|---|
-| Topic | Model-Based RL |
-| Revision | 2026-10-28 |
+| Topic | Model-based reinforcement learning and differentiable policy optimization |
+| Audience | Learners familiar with MDPs, PPO/SAC, and basic robot dynamics |
+| Revised | 2026-10-30 |
 | License | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
-
-
----
 
 ## Contents
 
-- [1. Why model-based reinforcement learning?](#supplement-course-section-01)
-- [2. Learning a world model](#supplement-course-section-02)
-- [3. Three ways to use the world model](#supplement-course-section-03)
-- [4. Deriving pathwise gradients and BPTT](#supplement-course-section-04)
-- [5. Short-horizon actor–critic and model bias](#supplement-course-section-05)
-- [6. SuperMimic: a shared dynamics model for whole-body tracking](#supplement-course-section-06)
-- [7. Contact gradients in manipulation](#supplement-course-section-07)
-- [8. Reproducible training and evaluation](#supplement-course-section-08)
-- [9. Study route and references](#supplement-course-section-09)
+1. [Why model-based reinforcement learning?](#course-01)
+2. [How do we learn a world model?](#course-02)
+3. [How does a world model improve actions?](#course-03)
+4. [How does a differentiable model optimize a policy?](#course-04)
+5. [SHAC: Why does short-horizon BPTT need a critic?](#course-05)
+6. [SuperMimic: From simulator data to differentiable policy learning](#course-06)
+7. [Dexterous manipulation: Contact gradients and deployment limits](#course-07)
+8. [Recap, self-check, and references](#course-08)
 
-<a id="supplement-course-section-01"></a>
+<a id="course-01"></a>
 
 ## 1. Why model-based reinforcement learning?
 
-In a Markov decision process, the environment evolves according to $P(s_{t+1}\mid s_t,a_t)$. The objective is
+### 1.1 Start with a robot task
+
+Consider a dexterous hand trying to rotate an object to a target orientation. After a joint command, the object might rotate, slide, or fall because friction is insufficient. **If the robot can predict these outcomes before acting, it can judge which action is worth trying.** This is the central motivation behind model-based reinforcement learning (MBRL).
+
+In a Markov decision process (MDP), states evolve according to the true transition kernel $P(s_{t+1}\mid s_t,a_t)$. The objective is to choose a policy $\pi$ maximizing discounted return:
 
 $$
 J(\pi)=\mathbb E_{P,\pi}\left[\sum_{t=0}^{T-1}\gamma^t r(s_t,a_t)\right].
 $$
 
-**Model-free RL** (such as PPO and SAC) updates a policy or value function from observed transitions and rewards without explicitly predicting the next state. **Model-based RL (MBRL)** additionally uses a known or learned transition model $\hat P$ (or deterministic $f_\omega$) to forecast, plan, or optimize.
-
-Three decisions are independent: whether a dynamics model exists, whether it is differentiable, and whether the actor is optimized by backpropagating through that model. MPC can optimize actions through a nondifferentiable model by sampling. Dyna can generate synthetic data for SAC. SuperMimic differentiates through a learned surrogate to obtain a pathwise policy gradient. **The high-fidelity physics engine itself need not be differentiable.**
-
-### 1.1 Data efficiency in robotic control
-
-Real robot interactions require wall-clock time, resets and safe handling of contact. Massively parallel simulation reduces sample cost, but large and diverse tracking tasks still require substantial compute. A shared learned model can reuse invariant robot and contact dynamics across many task commands rather than relying on new expensive physics rollouts for every local policy improvement.
-
-This does **not** imply that the model is more accurate than the simulator. Approximation error, distribution shift and model exploitation are first-class risks.
-
-<a id="supplement-course-section-02"></a>
-
-## 2. Learning a world model
-
-### 2.1 State, action, observation, context
-
-A useful robot-learning contract is
+**Model-free RL** methods such as PPO and SAC update a policy or value function using observed transitions and returns without explicitly learning to predict the next state. **Model-based RL** additionally uses a known or learned model $\hat P$, or a deterministic model $f_\omega$:
 
 $$
- s_t=(q_t,\dot q_t,x_t^{obj},v_t^{obj}),\quad
- a_t=\text{applied joint command},\quad
- o_t=h(s_t)+\eta_t.
+\hat s_{t+1}=f_\omega(s_t,a_t).
 $$
 
-The optional object pose/twist and domain context $\xi$ (inertia, friction, actuator gains) determine what can be learned. **Privileged simulator state $s_t$ and deployable observation $o_t$ are different.** A privileged teacher can train the model, but the deployed actor must respect its actual sensors.
+Three questions should be kept separate: **Does a dynamics model exist? Is it differentiable? Is the actor optimized by differentiating through it?** An MPC controller can plan using a black-box simulator, MBPO can train SAC on synthetic experience, and SHAC or SuperMimic can optimize an actor directly through a differentiable computation graph.
 
-The replay buffer contains
+### 1.2 The complete model-based feedback loop
+
+```mermaid
+flowchart LR
+  A["Real robot / physics simulator"] --> B["Collect states, actions, rewards"]
+  B --> C["Replay Buffer"]
+  C --> D["Learn and validate world model"]
+  D --> E["Plan / imagine futures"]
+  E --> F["Improve action or policy"]
+  F --> A
+```
+
+*Figure 1: A general MBRL loop. Online planning chooses actions directly; policy optimization instead encodes improvements in actor parameters.*
+
+This loop explains both the opportunity and the risk. A learned model can cheaply predict many futures, but an optimizer may also exploit its inaccuracies (**model exploitation**). World-model learning must therefore be coupled to feedback from the actual environment or reference simulator.
+
+<a id="course-02"></a>
+
+## 2. How do we learn a world model?
+
+### 2.1 Define states, actions, and observations first
+
+For a robot manipulation task, a convenient representation is
+
+$$
+\begin{aligned}
+s_t&=(q_t,\dot q_t,x_t^{\mathrm{obj}},v_t^{\mathrm{obj}}),\\
+a_t&=\text{actually applied joint command},\\
+o_t&=h(s_t)+\eta_t.
+\end{aligned}
+$$
+
+Here $q_t,\dot q_t$ are joint positions and velocities; $x_t^{\mathrm{obj}},v_t^{\mathrm{obj}}$ describe the object pose and twist. Observation noise is $\eta_t$. Environment parameters such as friction, mass, inertia, and actuator gains can be collected in $\xi$. **Privileged simulator state $s_t$ is not the same as deployable observation $o_t$.** A world model can be trained with privileged targets, but a deployed actor must operate with its available sensors.
+
+Transitions are stored in a replay buffer:
 
 $$
 \mathcal B=\{(s_t,a_t,r_{t+1},s_{t+1},d_{t+1},g_t,\xi)\}.
 $$
 
-Store actions **actually applied** after noise and saturation. Distinguish failure termination, successful completion and time-limit truncation. Never form autoregressive training sequences across an episode reset.
+The variable $g_t$ denotes a goal or reference command, while $d_{t+1}$ indicates termination. Store the action **actually executed after exploration noise, clipping, and saturation**. Distinguish success/failure termination from time-limit truncation; do not treat samples spanning an episode reset as a continuous trajectory.
 
-### 2.2 One-step and autoregressive multi-step fitting
+### 2.2 From one-step fitting to multi-step prediction
 
-A state model predicts
-
-$$
-\hat s_{t+1}=f_\omega(\hat s_t,a_t,\xi),\qquad \hat s_t=s_t.
-$$
-
-For multi-step fitting, recursively feed predictions into the next input, using actions recorded in the replay buffer:
+The simplest world model minimizes one-step supervised prediction error:
 
 $$
-\hat s_{t+j+1}=f_\omega(\hat s_{t+j},a_{t+j},\xi),\qquad
-\mathcal L_{dyn}=\mathbb E_{\mathcal B}\sum_{j=1}^{K}\|\hat s_{t+j}-s_{t+j}\|_{W_s}^2.
+\mathcal L_1(\omega)=\mathbb E_{\mathcal B}\bigl[\|f_\omega(s_t,a_t,\xi)-s_{t+1}\|_{W_s}^2\bigr].
 $$
 
-Autoregressive fitting exposes error accumulation hidden by one-step teacher forcing. Rotation losses must account for unit-quaternion normalization and the equivalence $q\sim-q$ or use a suitable rotation-geodesic metric.
-
-If reward, noise-free observation and termination are also modeled, one may use
+However, policy optimization runs the model repeatedly. At later imagined steps the input is **the model's previous prediction**, not the simulator's true state:
 
 $$
-\mathcal L_{WM}=\mathcal L_{dyn}
-+\lambda_r\mathcal L_{reward}
-+\lambda_o\mathcal L_{observation}
-+\lambda_d\mathcal L_{termination}.
+\hat s_t=s_t,\qquad
+\hat s_{t+j+1}=f_\omega(\hat s_{t+j},a_{t+j},\xi).
 $$
 
-Binary cross entropy suits termination probabilities. When a reward or observation is exactly computable from state, an analytic head can replace its learned counterpart.
+Using recorded actions to supervise an autoregressive window of length $K$, define
 
-### 2.3 Uncertainty and out-of-distribution control
+$$
+\mathcal L_K(\omega)=\mathbb E_{\mathcal B}\sum_{j=1}^{K}
+\|\hat s_{t+j}-s_{t+j}\|_{W_s}^2.
+$$
 
-A world model can be precise on replay-buffer states but wrong where an optimized actor subsequently visits. Report held-out multi-step accuracy, state coverage, ensemble disagreement and realized simulator performance. PETS uses probabilistic ensembles and trajectory sampling to estimate uncertainty; a single deterministic surrogate is cheaper but especially needs frequent refresh and conservative optimization.
+**Why is low one-step error insufficient?** A small state-prediction error at each step can feed into the next prediction and accumulate. More importantly, an updated actor may select actions that take the model into states not represented in its training data. Multi-step error and actual policy performance must therefore be checked separately.
 
-<a id="supplement-course-section-03"></a>
+For rotation states represented by quaternions, losses should respect the equivalence of $q$ and $-q$; an appropriate geodesic orientation loss is often preferable. Reward, noise-free observation, and termination probability can also be modeled. If reward is exactly computable from the predicted state, there is no need to train an additional reward head.
 
-## 3. Three ways to use the world model
+### 2.3 The fitting loop and model reliability
 
-| Family | Examples | Role of model | How actions improve |
+A standard iteration is: **collect transitions → split training and validation trajectories → fit one-step/multi-step dynamics → evaluate on held-out sequences → improve the policy with the model → collect fresh transitions**. Beyond training loss, ask:
+
+- **Prediction:** Do 1-, $K$-, and $H$-step errors increase sharply with rollout length?
+- **Coverage:** Does the improved actor visit states outside the replay distribution?
+- **Uncertainty:** Do ensemble models disagree about a particular transition?
+- **Reality check:** Does increasing imagined return actually improve return in the physics simulator?
+
+PETS uses probabilistic dynamics ensembles and trajectory sampling to quantify uncertainty. A single deterministic surrogate may be cheaper, but it generally needs frequent data refresh and conservative policy updates.
+
+<a id="course-03"></a>
+
+## 3. How does a world model improve actions?
+
+The central distinction is not the network architecture of a model, but **what the control algorithm does with its predictions**.
+
+| Method | Role of the model | Optimization mechanism | Main compute stage |
 |---|---|---|---|
-| Synthetic experience / Dyna | Dyna, MBPO-style learning | Imagined transitions for value/policy updates | SAC, temporal difference or similar updates |
-| Online planning | PETS, CEM, MPPI, MPC | Forecast candidate action sequences | Search / sampling at each control step |
-| Differentiable policy learning | SHAC, SuperMimic | Differentiable transition graph | BPTT on policy parameters |
-| Latent imagination | Dreamer, some TD-MPC variants | Compact latent predictions | Value learning, actor optimization and/or planning |
+| Dyna / MBPO | Generate extra transitions | Train actor–critic via SAC / TD | Mostly training |
+| PETS / MPC | Forecast candidate action sequences | Search action chunks using CEM / MPPI | Repeated online planning |
+| Dreamer | Imagine trajectories in latent states | Differentiate imagined value to train actor and critic | Mostly training |
+| SHAC | Differentiate the physics simulator | Short-horizon BPTT + critic | Mostly training |
+| SuperMimic | Learn a differentiable dynamics surrogate | Short-horizon BPTT + critic | Mostly training |
 
-The categories overlap. **Learning a world model** and **choosing CEM** are separate design decisions. CEM and MPPI generally optimize prospective action sequences, whereas BPTT can train a parameterized feedback policy that executes quickly after training.
+> **An important overlap:** Latent imagination and differentiable policy learning are not mutually exclusive. The original Dreamer itself propagates value gradients through imagined latent trajectories. SHAC uses a differentiable physics simulator rather than necessarily learning a world model.
 
-### 3.1 The planning objective
+### 3.1 Planning an action sequence versus learning a feedback policy
 
-Let $A=(a_0,\ldots,a_{H-1})$ denote a candidate action sequence. A planner solves
+PETS- and MPC-style approaches search for an action sequence $A=(a_0,\ldots,a_{H-1})$ from the current state:
 
 $$
-A^*=\arg\max_A\mathbb E_{\hat P}\left[\sum_{t=0}^{H-1}\gamma^t r(\hat s_t,a_t)\right].
+A^*=\arg\max_A\,\mathbb E_{\hat P}\left[
+\sum_{t=0}^{H-1}\gamma^t r(\hat s_t,a_t)\right].
 $$
 
-CEM updates the mean and covariance of a candidate-action distribution after elite selection. MPPI weights sampled action perturbations by trajectory return. Either method can treat the predictive model as a black box. Online planning repeatedly evaluates this objective during execution; a learned feedback policy may reduce test-time computation at the cost of a policy-training stage.
+CEM updates a distribution over candidates from high-return samples, while MPPI weights action perturbations by trajectory cost or return. Either can regard the dynamics model as a black box: **computing** $\partial f_\omega/\partial a$ **is not necessary**. Online planning repeats this computation at each control step. In contrast, policy learning trains $a_t=\pi_\theta(o_t)$, which generally requires only a forward pass at deployment.
 
-<a id="supplement-course-section-04"></a>
+**The next question:** If the model is differentiable, can we learn what action to take in each state rather than repeatedly searching over complete action sequences? That leads directly to the pathwise gradient.
 
-## 4. Deriving pathwise gradients and BPTT
+<a id="course-04"></a>
 
-### 4.1 One-step total derivatives
+## 4. How does a differentiable model optimize a policy?
 
-Let the actor and frozen world model be
+### 4.1 A two-step example: Past actions affect future states
+
+Consider a deliberately simple one-dimensional system:
+
+$$
+s_{t+1}=s_t+a_t,\qquad a_t=\theta s_t,\qquad s_0=1.
+$$
+
+The first two states are
+
+$$
+s_1=1+\theta,\qquad s_2=(1+\theta)^2.
+$$
+
+Therefore,
+
+$$
+\frac{\mathrm ds_2}{\mathrm d\theta}=2(1+\theta).
+$$
+
+Suppose the goal is to reach $s^*$ and define $J(\theta)=-(s_2-s^*)^2$. Then
+
+$$
+\frac{\mathrm dJ}{\mathrm d\theta}
+=-2(s_2-s^*)\,2(1+\theta).
+$$
+
+The gradient contains both the direct effect of the second action and the **indirect effect of the first action on the state from which the second action is chosen**. Repeated application of the chain rule over many steps is backpropagation through time (BPTT).
+
+### 4.2 Chain rule for a differentiable feedback loop
+
+Let the model weights $\omega$ remain fixed during the current actor update:
 
 $$
 a_t=\pi_\theta(h(\hat s_t),g_t),\qquad
 \hat s_{t+1}=f_\omega(\hat s_t,a_t,\xi).
 $$
 
-Set $D_t=\mathrm d\hat s_t/\mathrm d\theta$. Assuming the goal and domain context are held fixed,
+Write $D_t=\mathrm d\hat s_t/\mathrm d\theta$. With goal $g_t$ and context $\xi$ held fixed,
 
 $$
 \begin{aligned}
 \frac{\mathrm da_t}{\mathrm d\theta}
 &=\frac{\partial\pi_\theta}{\partial\theta}
- +\frac{\partial\pi_\theta}{\partial o_t}
-   \frac{\partial h}{\partial s_t}D_t,\\
-D_{t+1}
-&=\frac{\partial f_\omega}{\partial s_t}D_t
- +\frac{\partial f_\omega}{\partial a_t}
-  \frac{\mathrm da_t}{\mathrm d\theta}.
++\frac{\partial\pi_\theta}{\partial o_t}
+\frac{\partial h}{\partial s_t}D_t,\\[3pt]
+D_{t+1}&=\frac{\partial f_\omega}{\partial s_t}D_t
++\frac{\partial f_\omega}{\partial a_t}
+\frac{\mathrm da_t}{\mathrm d\theta}.
 \end{aligned}
 $$
 
-This is the **total derivative recurrence** through the closed loop. If the starting state is sampled from the replay buffer, $D_0=0$; subsequent states still inherit the effects of earlier actor choices.
+If the imagined initial state is sampled from replay and treated as constant, $D_0=0$; subsequent states still depend on earlier actions. In implementations, automatic differentiation handles these products without explicitly forming every full Jacobian.
 
-### 4.2 Differentiating a multi-step return
+### 4.3 From state derivatives to an actor objective
 
-With smooth predicted rewards and ignoring termination for a moment,
-
-$$
-\hat J_H(\theta)=\sum_{t=0}^{H-1}\gamma^t\hat r(\hat s_t,a_t)
-+\gamma^H V_\psi(\hat s_H).
-$$
-
-The gradient becomes
+Ignoring termination for the moment, a short-horizon imagined objective is
 
 $$
-\frac{\mathrm d\hat J_H}{\mathrm d\theta}=
-\sum_{t=0}^{H-1}\gamma^t\left(
-\frac{\partial\hat r_t}{\partial s_t}D_t+
-\frac{\partial\hat r_t}{\partial a_t}\frac{\mathrm da_t}{\mathrm d\theta}
-\right)+\gamma^H\frac{\partial V_\psi}{\partial s_H}D_H.
-$$
-
-Automatic differentiation implements this recurrence. Unlike PPO's likelihood-ratio estimator, the derivative relies on the learned dynamics Jacobian. It is a gradient of **surrogate return $\hat J_H$**, not necessarily an unbiased gradient of physical return $J$.
-
-### 4.3 Freezing parameters without detaching the graph
-
-Model parameters $\omega$ and actor parameters $\theta$ are optimized in alternating phases. During an actor phase, do not update $\omega$, but retain $\partial f_\omega/\partial a$. Running the entire model in `no_grad()` incorrectly blocks the very derivative needed for BPTT.
-
-### 4.4 Survival probabilities and termination
-
-For a predicted termination probability $\hat d_{t+1}\in[0,1]$, define $\hat c_0=1$ and
-
-$$
-\hat c_{t+1}=\hat c_t(1-\hat d_{t+1}).
-$$
-
-A differentiable short-horizon objective consistent with the SuperMimic construction is
-
-$$
-\boxed{
 \hat J_H(\theta)=\mathbb E\left[
-\sum_{t=0}^{H-1}\gamma^t\hat c_t\hat r_{t+1}
-+\gamma^H\hat c_H V_\psi(\hat s_H,g_H,\xi)
-\right].}
+\sum_{t=0}^{H-1}\gamma^t\hat r(\hat s_t,a_t)
++\gamma^H V_\psi(\hat s_H)\right].
 $$
 
-The correct definition depends on task reward, terminal semantics and which quantities are differentiable; it is not a universal copy-and-paste loss.
+Gradients propagate along $\theta\to a_t\to\hat s_{t+1}\to\hat r,V_\psi$. Unlike PPO's likelihood-ratio gradient, this direction depends on **the reliability of the dynamics Jacobian**. Strictly speaking, it optimizes surrogate return $\hat J_H$ and is not guaranteed to be an unbiased gradient of real return $J$.
 
-<a id="supplement-course-section-05"></a>
+**An important implementation detail:** During an actor update, freezing $\omega$ is appropriate, but wrapping the entire world model in `no_grad()` is not. Freezing model weights and cutting the input-to-state gradient are different operations.
 
-## 5. Short-horizon actor–critic and model bias
+<a id="course-05"></a>
 
-Long unrolled Jacobian products can explode or vanish. Learned state errors compound over time, while contact switches can destabilize local sensitivities. Truncating the backward horizon to $H$ limits the path length; a learned value function approximates the remaining return:
+## 5. SHAC: Why does short-horizon BPTT need a critic?
+
+### 5.1 Longer unrolls are not necessarily better
+
+Unrolling many steps creates two problems: **products of Jacobians can cause vanishing/exploding gradients**, and **model-prediction errors accumulate along the trajectory**. SHAC (Short-Horizon Actor–Critic) differentiates over only $H$ steps and asks a value function to estimate what happens after that:
 
 $$
-G_t^{(H)}=\sum_{j=0}^{H-1}\gamma^j r_{t+j+1}+\gamma^H V_\psi(s_{t+H}).
+G_t^{(H)}=\sum_{j=0}^{H-1}\gamma^j r_{t+j+1}
++\gamma^H V_\psi(s_{t+H}).
 $$
 
-True terminal states require masking the tail; time-limit truncations may still bootstrap, depending on the task contract. A critic can be fitted using TD($\lambda$)- or GAE-style imagined targets. **Do not conflate imagined returns with evaluation returns in the actual physics simulator.**
+The reward sum supplies near-term differentiable feedback; the terminal value $V_\psi$ supplies information about the long-term objective. This does not eliminate critic error. It is a trade-off between gradient instability, model bias, and imperfect value estimation.
 
-SHAC (Short-Horizon Actor-Critic) differentiates through a **differentiable physics simulator**. SuperMimic differentiates through a **learned model trained from ordinary simulator transitions**. They share short-horizon actor–critic principles without requiring the same simulation interface.
+### 5.2 Where does the critic come from?
 
-### 5.1 Failure modes
+The critic must still learn from trajectories. A simple $k$-step bootstrapped target is
 
-- **Model bias:** the model underestimates slip or impact penalties and the actor exploits inaccuracies;
-- **Gradient bias:** low state MSE conceals incorrect $\partial f_\omega/\partial a$;
-- **Distribution shift:** the actor visits regions absent from the replay buffer and receives inflated imagined return.
+$$
+\widetilde V_t^{(k)}=
+\sum_{j=0}^{k-1}\gamma^j r_{t+j+1}
++\gamma^k V_{\bar\psi}(s_{t+k}),\qquad
+\mathcal L_V=\mathbb E\bigl[(V_\psi(s_t)-\widetilde V_t^{(k)})^2\bigr].
+$$
 
-Practical mitigations include periodic resampling, action regularization, shorter imagination, ensemble uncertainty thresholds, early stopping and contact-stratified validation.
+TD($\lambda$) can combine returns with different $k$. A true episode termination masks the bootstrap tail; time-limit truncation may not, depending on the environment semantics. Critic-training trajectories need not be exactly the same samples used for differentiating the actor.
 
-<a id="supplement-course-section-06"></a>
+### 5.3 Gradient paths in SHAC and SuperMimic
 
-## 6. SuperMimic: a shared dynamics model for whole-body tracking
-
-[SuperMimic (2026)](https://arxiv.org/abs/2610.28480) studies humanoid whole-body motion tracking. Rather than repeatedly training large model-free policies across motion clips, it amortizes learning through a shared model of the humanoid's dynamics and improves tracking policies via short imagined trajectories.
-
-### 6.1 The alternating three-stage algorithm
-
-```text
-(1) Real simulator rollouts   : policy + MuJoCo Warp -> transitions -> replay
-(2) World-model optimization  : replay windows -> dynamics / reward / observation / done
-(3) Actor–critic optimization : sampled real states -> imagined rollouts -> BPTT
-    repeat from (1) with the improved policy
+```mermaid
+flowchart TB
+  subgraph S["SHAC: differentiable physics"]
+    direction LR
+    S1["Actor"] --> S2["Differentiable simulator"] --> S3["Short-horizon reward + critic"] --> S4["BPTT actor update"]
+  end
+  subgraph M["SuperMimic: learned dynamics"]
+    direction LR
+    M1["Actor"] --> M2["Learned surrogate model"] --> M3["Short-horizon reward + critic"] --> M4["BPTT actor update"]
+  end
 ```
 
-Reported design choices include an **eight-step autoregressive world-model fit**, a **32-step actor imagination horizon** and terminal critic bootstrapping. Model weights remain frozen during the actor's BPTT phase; repeated collection from the rigid-body simulator keeps the surrogate aligned with the evolving policy.
+*Figure 2: Both optimize an actor using differentiable short-horizon returns, but differ in the source of differentiable dynamics. SHAC differentiates through physics; SuperMimic through a model learned from conventional simulator data.*
 
-### 6.2 Input/output contract
+<a id="course-06"></a>
 
-- Inputs: simulator state $s_t$, actually executed action $a_t$, domain randomization context $\xi$;
-- Outputs: successor state $\hat s_{t+1}$, plus task-relevant reward, clean observation, and termination predictions (some heads may be analytic);
-- Goal: time-aligned motion reference or future command $g_t$ for actor and critic;
-- Deployment: the trained actor must not depend on simulator-only privileged variables that real sensors cannot provide.
+## 6. SuperMimic: From simulator data to differentiable policy learning
 
-### 6.3 Reading the comparison with SONIC correctly
+[SuperMimic (2026)](https://arxiv.org/abs/2610.28480) addresses large-scale humanoid whole-body motion tracking. A conventional rigid-body simulator supplies training data, while **one shared learned differentiable dynamics model** supports policy training. Backpropagation through the underlying physics simulator is not required.
 
-The authors report that roughly three hours on one H100 surpassed the return of a released SONIC checkpoint trained for around seven days on 128 L40 GPUs, with further reductions in tracking failures after longer SuperMimic training. **The hardware, training-motion data and engineering setup are not held constant**. This is not a causal, matched-resources ablation of BPTT versus PPO. Report GPU-hours, wall-clock time, actual simulator transitions and the complete evaluation protocol separately.
+### 6.1 The alternating three-stage loop
 
-### 6.4 What is and is not demonstrated
+1. **Collect simulator trajectories:** Execute the current actor in a physics simulator and record applied actions, state transitions, rewards, and reference commands in a replay buffer.
+2. **Update the world model:** Fit autoregressive dynamics using consecutive replay windows, together with observation, reward, or termination representations required by the task.
+3. **Update actor–critic:** Initialize short imagined rollouts from replay states. Keep model parameters unchanged while retaining differentiability from actions to predicted states. Bootstrap longer-term return with a critic, then go back to stage 1.
 
-The original paper evaluates **humanoid whole-body tracking**, including a physical Unitree G1 demonstration. It does **not** establish physical in-hand cube reorientation on a dexterous hand. That extension requires object dynamics, contact-event modeling and deployable visual/tactile state estimation.
+The essential feature is that **model and actor are improved in alternating phases**, rather than indefinitely exploiting a fixed offline model that is never refreshed.
 
-<a id="supplement-course-section-07"></a>
+### 6.2 Do not confuse model window $K$ with imagination horizon $H$
 
-## 7. Contact gradients in manipulation
+Representative settings in the paper are an **$K=8$-step world-model fitting window** and an **$H=32$-step actor imagination horizon**:
 
-Rigid-body interactions alternate between separation, impact, sticking and sliding. Nonsmooth changes at mode boundaries mean the learned smooth surrogate provides an optimization proxy rather than the exact derivative of each contact event. A precise local state prediction therefore does not automatically imply a useful policy update.
-
-At smooth points, compare model error and local finite-difference sensitivities. Near impacts, test whether small action perturbations improve **actual simulator return** rather than requiring a globally defined classical derivative.
-
-**Suggested hand-model inputs:** joint positions/velocities, object pose/twist, target orientation, recent actions, and available friction/actuator context. Privileged training targets and deployable observations must be distinguished.
-
-<a id="supplement-course-section-08"></a>
-
-## 8. Reproducible training and evaluation
-
-| Stage | Measurements | Failure response |
+| Quantity | Where is it used? | Purpose |
 |---|---|---|
-| A. Simulator validation | Inertia, joint PD, control rate, contact behavior | Repair robot asset or actuator settings |
-| B. Model-free baseline | PPO success, simulator transitions, GPU-hours | Fix seeds and make baseline repeatable |
-| C. Dynamics learning | 1/8/32-step prediction, contact errors | Multi-step fitting, contact-aware sampling |
-| D. BPTT + value | Real-simulator return gain, gradient norms, horizon sensitivity | Shorter horizon or fewer model steps |
-| E. Generalization | Held-out commands, initial states, physics | Broaden coverage and randomization |
-| F. Sim-to-real boundary | Estimation delay, drops, safety limits | Re-identify/calibrate before hardware trials |
+| $K=8$ | World-model fitting | Train autoregressive dynamics with supervised multi-step loss |
+| $H=32$ | Actor–critic update | Evaluate short-horizon imagined return, terminal value, and pathwise actor gradient |
 
-### 8.1 Required ablations
+These lengths need not be equal. **Training with $K=8$ does not limit a recursive model to eight predictions**; it can be unrolled further, but accuracy and gradient quality beyond the supervised window must be validated. Likewise, $H=32$ does not imply that every model-training example is supervised for 32 steps.
 
-1. PPO without a world model versus MBRL at matched **real-simulator transition** budgets;
-2. BPTT with versus without terminal critic;
-3. $H\in\{8,16,32,64\}$ rather than assuming longer is always better;
-4. Single-step versus eight-step autoregressive dynamics fitting;
-5. Frozen-buffer actor learning versus cyclic collection and model refresh;
-6. Termination prediction, contact-biased sampling and model ensembles.
+### 6.3 Boundaries of gradients, observations, and reported performance
 
-### 8.2 Reporting rules
+The world model may use privileged simulator state as a supervision target, but the deployed actor cannot depend on information unavailable to its sensors. Motion-reference phases and timestamps must also stay aligned between actor and critic. During actor updates, **freezing model parameters must not detach derivatives with respect to model inputs**.
 
-Separate physical-simulator and imagined transitions; time simulator collection, model fitting and actor/critic updates; state GPU type/count and seeds with uncertainty intervals. For contact-rich tasks, mean return alone cannot replace drop rate, orientation error, and success rate.
+The paper reports that about three hours on a single H100 surpassed the return of a released SONIC checkpoint, and it demonstrates large-scale motion tracking and physical Unitree G1 behavior. However, hardware, motion data, and engineering configurations are not completely matched; these figures are **not** a controlled equal-budget speedup of BPTT over PPO. The paper evaluates **humanoid whole-body tracking** and does not establish a physical dexterous-hand in-hand reorientation result.
 
-<a id="supplement-course-section-09"></a>
+<a id="course-07"></a>
 
-## 9. Study route and references
+## 7. Dexterous manipulation: Contact gradients and deployment limits
 
-**Recommended path:** Dynamics → Simulation → PPO and SAC → Sections 1–5 here → SuperMimic in Section 6. For online planning use PETS/CEM/MPPI; for video world models use the original WAM tutorial.
+### 7.1 Why contact makes gradients difficult
 
-**Self-check:**
+Grasping and in-hand reorientation involve mode changes between separation, impact, sticking, and sliding. Even a simple piecewise map illustrates the difficulty:
 
-1. Derive $\mathrm d\hat s_2/\mathrm d\theta$ and identify the effect of the first action on the second state.
-2. Which computation graph supplies the policy gradient in PPO, SHAC and SuperMimic, respectively?
-3. How can low one-step prediction MSE coexist with a poor actor update direction?
-4. Why is a 32-step imagination horizon compatible with eight-step world-model fitting?
-5. Name three measurable failure outcomes in dexterous cube reorientation.
+$$
+y=\max(0,x+a),\qquad
+\frac{\partial y}{\partial a}=
+\begin{cases}0,&x+a<0,\\1,&x+a>0.\end{cases}
+$$
 
-**Primary sources:**
+At $x+a=0$ the classical derivative is undefined. Real rigid-body contact is far more complex. A smooth neural model may predict nearby state values accurately while **smoothing away the contact-mode transition that determines which action direction is beneficial**. Low prediction MSE therefore does not guarantee a reliable BPTT policy gradient.
 
-- [SuperMimic: Scaling Humanoid Whole-Body Control with One Differentiable World Model (2026)](https://arxiv.org/abs/2610.28480)
-- [Accelerated Policy Learning with Parallel Differentiable Simulation / SHAC (2022)](https://arxiv.org/abs/2204.07137)
-- [PETS: Deep Reinforcement Learning in a Handful of Trials using Probabilistic Dynamics Models (2018)](https://arxiv.org/abs/1805.12114)
-- [Dreamer: Dream to Control (2019)](https://arxiv.org/abs/1912.01603)
-- [TD-MPC: Temporal Difference Learning for Model Predictive Control (2022)](https://arxiv.org/abs/2203.04955)
-- [Dex-Supermimic: independent community hand adaptation](https://github.com/CumulusAlpha/Dex-Supermimic) (not the original authors' training release)
+### 7.2 How can we test a surrogate gradient?
 
-**Attribution and limitations:** This is an independent course synthesis, not an official SuperMimic tutorial. No new benchmarks were claimed to have been executed. New original text follows [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/); existing course chapters, papers and external software retain their licenses.
+Besides measuring $\|f_\omega(s,a)-F_{\mathrm{sim}}(s,a)\|$, choose an action direction $u$ and measure a small symmetric perturbation of return in the actual simulator:
+
+$$
+\Delta_u J_{\mathrm{sim}}
+=J_{\mathrm{sim}}(a+\varepsilon u)-J_{\mathrm{sim}}(a-\varepsilon u).
+$$
+
+Compare its sign and local trend with the model's prediction. Near an impact threshold, this is a **finite-perturbation directional test**, not a claim that the real contact dynamics have classical derivatives everywhere. If imagined return rises while true simulator success falls, suspect model bias or distribution shift before trusting the gradient.
+
+### 7.3 A unifying in-hand reorientation example
+
+Consider **stabilize the object → redistribute finger contact forces → rotate to a target orientation**. Useful model inputs include joint positions/velocities, object pose/twist, recent actions, target orientation, and friction/actuator context where available. With a hand such as Revo3, one must also check that the simulated executed action matches the real control interface, and that contact mechanics and sensing delay are represented faithfully.
+
+Three complementary checks are **trajectory prediction** (object pose/velocity), **contact events** (separation, slip, drops), and **closed-loop performance** (orientation error and task success). Applying a SuperMimic-style scheme to this setting is a promising research direction, not a capability already demonstrated by the original paper.
+
+<a id="course-08"></a>
+
+## 8. Recap, self-check, and references
+
+### 8.1 One sentence for each method
+
+**MBRL** forecasts future outcomes with a model; **PETS/MPC** search for current actions within the model; **MBPO** uses the model to augment training data; **Dreamer** learns behaviors by imagining latent trajectories; **SHAC** obtains short-horizon actor gradients through differentiable physics; **SuperMimic** obtains analogous short-horizon actor–critic updates through a differentiable surrogate learned from ordinary simulation data.
+
+### 8.2 Self-check questions
+
+1. Why does using a model not necessarily mean differentiating through it? How do PETS and SuperMimic improve actions differently?
+2. Derive $\mathrm ds_2/\mathrm d\theta$ in the two-step example and identify the indirect role of the first action.
+3. Why is $K=8$ model fitting compatible with $H=32$ policy imagination?
+4. Where does the **differentiable computation graph** come from in SHAC versus SuperMimic?
+5. For dexterous-hand slip, how would you test whether low prediction error implies a useful action-improvement direction?
+
+### 8.3 Primary references
+
+- [Sutton, *Dyna: Integrated Architectures for Learning, Planning, and Reacting* (1991)](https://www.cs.utexas.edu/~pstone/Courses/394Rspring13/resources/sutton91dyna.pdf)
+- [Chua et al., *PETS: Deep Reinforcement Learning in a Handful of Trials using Probabilistic Dynamics Models* (NeurIPS 2018)](https://arxiv.org/abs/1805.12114)
+- [Janner et al., *When to Trust Your Model: Model-Based Policy Optimization* (NeurIPS 2019)](https://arxiv.org/abs/1906.08253)
+- [Hafner et al., *Dream to Control: Learning Behaviors by Latent Imagination* (ICLR 2020)](https://arxiv.org/abs/1912.01603)
+- [Xu et al., *Accelerated Policy Learning with Parallel Differentiable Simulation* (SHAC, ICLR 2022)](https://arxiv.org/abs/2204.07137)
+- [Liao et al., *SuperMimic: Scaling Humanoid Whole-Body Control with One Differentiable World Model* (2026)](https://arxiv.org/abs/2610.28480)
+
+External papers, code, and images retain their respective licenses.
