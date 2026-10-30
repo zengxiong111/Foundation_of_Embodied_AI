@@ -12,6 +12,8 @@
 - [全栈概念图](#map-section-02)
 - [推荐学习路线与交叉关系](#map-section-03)
 - [教程内容简介](#map-section-04)
+  - [理论与算法（1–12）](#theory-algorithms)
+  - [工程与系统（13–20）](#engineering-systems)
 
 <a id="map-section-01"></a>
 
@@ -92,6 +94,8 @@ Git **13** / ROS 2 **14**（按需）→ 相机标定 **15** → 动力学 **3**
 
 ## 教程内容简介
 
+<a id="theory-algorithms"></a>
+
 ### Part I：理论与算法
 
 #### 1. 深度学习基础
@@ -141,6 +145,8 @@ Git **13** / ROS 2 **14**（按需）→ 相机标定 **15** → 动力学 **3**
 #### 12. 后训练
 
 [后训练](../md/Embodied_Post_Training_ZH.md)：比较预训练 VLA 与 WAM 的监督微调和强化学习后训练，学习六类 VLA 强化学习路线、结合在线视频 SFT 与 Flow-SDE 的 WAM-RL，并联系行动者–评论家语义、RLinf 集成与机器人部署边界。
+
+<a id="engineering-systems"></a>
 
 ### Part II：工程与系统
 

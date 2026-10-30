@@ -12,6 +12,8 @@ Courses are numbered 1–20 in the current display order, matching the [README](
 - [Embodied AI system map](#map-section-02)
 - [Recommended reading paths and connections](#map-section-03)
 - [Tutorial overview](#map-section-04)
+  - [Theory & Algorithms (1–12)](#theory-algorithms)
+  - [Engineering & Systems (13–20)](#engineering-systems)
 
 <a id="map-section-01"></a>
 
@@ -92,6 +94,8 @@ These are knowledge connections, not claims that an engineering course implement
 
 ## Tutorial overview
 
+<a id="theory-algorithms"></a>
+
 ### Part I: Theory & Algorithms
 
 #### 1. Deep Learning Basics
@@ -141,6 +145,8 @@ These are knowledge connections, not claims that an engineering course implement
 #### 12. Post-training
 
 [Post-training](../md/Embodied_Post_Training_EN.md) — Compare SFT and RL for pretrained VLA and WAM models. Study six VLA RL routes, WAM-RL with online video SFT and Flow-SDE, then connect actor–critic semantics, RLinf integration and robot deployment limits.
+
+<a id="engineering-systems"></a>
 
 ### Part II: Engineering & Systems
 
