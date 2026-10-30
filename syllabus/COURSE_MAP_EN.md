@@ -2,9 +2,9 @@
 
 [简体中文](COURSE_MAP_ZH.md) | **English** | [PDF](COURSE_MAP_EN.pdf)
 
-Twenty-one topics are organized as tools → calibration and deep learning → physics, perception and control → robot RL → demonstrations and generative policies → communication and deployment → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
+Twenty topics are organized as tools → calibration and deep learning → physics, perception and control → robot RL → demonstrations and generative policies → communication and deployment → systems integration. Long-form derivations remain optional deep dives rather than strict prerequisites.
 
-Tutorial numbers 1–21 match the course order in the [README](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.md).
+Tutorial numbers 1–20 match the course order in the [README](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/README.md).
 
 ## Contents
 
@@ -24,7 +24,7 @@ Tutorial numbers 1–21 match the course order in the [README](https://github.co
 | 2. Physics, perception and neural foundations | Calibration, Deep Learning Basics, vision foundation models, dynamics, low-level control, Isaac / MuJoCo | Relate calibrated geometry, neural networks, physical models, actuator control and simulation |
 | 3. Reinforcement learning | Motion RL, PPO, SAC, Model-Based RL | Design observations, actions, rewards and data collection |
 | 4. Demonstrations and models | Imitation Learning, Flow Matching, GR00T / SONIC, World Action Models, Efficient Training & Inference, Post-training | Learn generative and predictive policies and connect efficient inference with hierarchical controllers |
-| 5. Deployment and integration | Communication & Real-Time Systems, Policy Deployment & Sim-to-Real, Robot Agents | Connect synchronized sensing, inference and actuator control, then orchestrate long-horizon tasks |
+| 5. Deployment and integration | Communication & Real-Time Systems, Robot Agents | Connect synchronized sensing, inference and actuator control, then orchestrate long-horizon tasks |
 
 <a id="map-section-02"></a>
 
@@ -56,9 +56,9 @@ flowchart LR
 ## Reading paths
 
 1. Beginners: orientation → essential Git and ROS 2 → calibration → deep learning → dynamics → low-level control → vision foundation models → simulation.
-2. Motion control: dynamics → low-level control → simulation → deep learning → PPO / SAC → motion control RL → Model-Based RL → communication and real-time systems → policy deployment.
-3. VLA: calibration → deep learning → vision foundation models → Imitation Learning → Flow Matching → GR00T / SONIC → World Action Models → efficient training and inference → post-training → communication and real-time systems → policy deployment → Robot Agents.
-4. Deployment prerequisites: complete ROS 2 and low-level control before communication and real-time systems; combine a trained motion or VLA policy with these foundations before policy deployment. Robot Agents then coordinate the full system.
+2. Motion control: dynamics → low-level control → simulation → deep learning → PPO / SAC → motion control RL → Model-Based RL → communication and real-time systems.
+3. VLA: calibration → deep learning → vision foundation models → Imitation Learning → Flow Matching → GR00T / SONIC → World Action Models → efficient training and inference → post-training → communication and real-time systems → Robot Agents.
+4. Deployment prerequisites: complete ROS 2 and low-level control before communication and real-time systems; combine a trained motion or VLA policy with these foundations for systems integration. Robot Agents then coordinate the full system.
 5. Mathematical deep dives: full PPO, SAC, and Flow Matching derivations are reference material; hands-on learning does not require deriving everything first.
 
 <a id="map-section-04"></a>
@@ -141,10 +141,6 @@ flowchart LR
 
 [Communication & Real-Time Systems](../md/Robot_Communication_Real_Time_Systems_EN.md) — Separate ROS 2/DDS, SDKs and CAN/EtherCAT buses. Explain timestamps, data freshness, latency and jitter, multirate scheduling, asynchronous inference and fault handling in robot feedback loops.
 
-### 20. Policy Deployment & Sim-to-Real
-
-[Policy Deployment & Sim-to-Real](../md/Robot_Policy_Deployment_Sim2Real_EN.md) — Connect trained policies to real robots through observation/action contracts, state estimation, action adapters and timestamped buffers. Cover system identification, sim-to-real alignment, staged deployment and diagnosis of policy, perception and transport failures.
-
-### 21. Robot Agents
+### 20. Robot Agents
 
 [Robot Agents](../md/Robot_Agent_Workflow_RPent_EN.md) — Distinguish foundation models, coding agents and agent harnesses. Connect RAX exploration, ASPIRE trace repair and RPent toolkits, memory, Flash Mode and the RLinf data flywheel to reusable robot workflows.

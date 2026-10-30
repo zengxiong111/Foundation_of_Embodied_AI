@@ -746,6 +746,6 @@ $$
 14. Xu et al. (2022). *Accelerated Policy Learning with Parallel Differentiable Simulation* (SHAC). [arXiv:2204.07137](https://arxiv.org/abs/2204.07137).
 15. *SuperMimic* (2026). [arXiv:2610.28480](https://arxiv.org/abs/2610.28480).
 
-**与其他课程的关系：**深入控制与 Sim2Real 参阅 Robot Dynamics、Low-Level Control、Isaac/MuJoCo 与 Policy Deployment；深入生成式动作参阅 Flow Matching、Imitation Learning 与 RL Post-training；理解视觉基础模型与 WAM 则继续阅读 Visual State Estimation 与 World Action Models。
+**与其他课程的关系：**深入控制与 Sim2Real 参阅 Robot Dynamics、Low-Level Control与 Isaac/MuJoCo；深入生成式动作参阅 Flow Matching、Imitation Learning 与 RL Post-training；理解视觉基础模型与 WAM 则继续阅读 Visual State Estimation 与 World Action Models。
 
 **版权说明：**本文延续原项目的学术课程格式。原教程中先前以 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 授权的内容维持该授权；符合权利条件、2026-10-22 后首发的新增原创内容按项目约定采用 [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)。引用论文及第三方项目遵循各自许可；本讲义中的结构图为教学示意，非对特定 VLA 官方架构的声明。

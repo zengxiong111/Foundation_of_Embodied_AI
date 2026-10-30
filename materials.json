@@ -633,39 +633,6 @@
       }
     },
     {
-      "id": "policy-deployment",
-      "title_en": "Policy Deployment & Sim-to-Real",
-      "title_zh": "策略部署与仿真到现实",
-      "reviewed_at": "2026-10-29",
-      "review_scope_en": "User-supplied bilingual teaching materials integrated; shared academic PDF layout checked. Hardware examples are conceptual, not measured device specifications.",
-      "review_scope_zh": "整合用户提供的中英文教学材料，核对统一学术 PDF 排版；硬件案例为概念说明，不代表实测设备规格。",
-      "versions_en": "Observation/action contracts, state estimation, action adapters, asynchronous execution and staged deployment.",
-      "versions_zh": "观测与动作契约、状态估计、动作适配、异步执行及分阶段部署。",
-      "source_refs": [
-        "https://docs.nvidia.com/isaaclab/concepts/actuators",
-        "https://mujoco.readthedocs.io/en/stable/modeling.html",
-        "https://control.ros.org/jazzy/",
-        "https://docs.ros.org/en/jazzy/Concepts/Intermediate/About-Quality-of-Service-Settings.html",
-        "https://github.com/NVlabs/FoundationPose"
-      ],
-      "documents": {
-        "en": {
-          "md": "md/Robot_Policy_Deployment_Sim2Real_EN.md",
-          "pdf": "pdf/Robot_Policy_Deployment_Sim2Real_EN.pdf",
-          "site_md": "files/Robot_Policy_Deployment_Sim2Real_EN.md",
-          "site_pdf": "files/Robot_Policy_Deployment_Sim2Real_EN.pdf",
-          "content_license": "CC-BY-NC-SA-4.0"
-        },
-        "zh": {
-          "md": "md/Robot_Policy_Deployment_Sim2Real_ZH.md",
-          "pdf": "pdf/Robot_Policy_Deployment_Sim2Real_ZH.pdf",
-          "site_md": "files/Robot_Policy_Deployment_Sim2Real_ZH.md",
-          "site_pdf": "files/Robot_Policy_Deployment_Sim2Real_ZH.pdf",
-          "content_license": "CC-BY-NC-SA-4.0"
-        }
-      }
-    },
-    {
       "id": "robot-agent",
       "title_en": "Robot Agents",
       "title_zh": "机器人智能体",

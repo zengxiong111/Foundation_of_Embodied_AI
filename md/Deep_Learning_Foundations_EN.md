@@ -746,6 +746,6 @@ where $\hat c_t$ denotes predicted survival/nontermination and $V_\psi$ approxim
 14. Xu et al. (2022). *Accelerated Policy Learning with Parallel Differentiable Simulation* (SHAC). [arXiv:2204.07137](https://arxiv.org/abs/2204.07137).
 15. *SuperMimic* (2026). [arXiv:2610.28480](https://arxiv.org/abs/2610.28480).
 
-**Links to other course modules:** For control and Sim2Real, see Robot Dynamics, Low-Level Control, Isaac/MuJoCo, and Policy Deployment. For generative actions, see Flow Matching, Imitation Learning, and RL Post-training. For foundation vision models and WAMs, continue with Visual State Estimation and World Action Models.
+**Links to other course modules:** For control and Sim2Real, see Robot Dynamics, Low-Level Control, and Isaac/MuJoCo. For generative actions, see Flow Matching, Imitation Learning, and RL Post-training. For foundation vision models and WAMs, continue with Visual State Estimation and World Action Models.
 
 **License note:** This revision follows the original academic course format. Earlier text previously distributed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) retains that license. New original material first released on or after 2026-10-22 follows the project's [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/) boundary where the contributors hold the necessary rights. Third-party papers and projects keep their own licenses. Diagrams are instructional abstractions, not official architecture claims for any particular VLA.
