@@ -4,10 +4,6 @@
 
 
 >
-> **Scope:** conceptual mechanisms, inputs and outputs, usage workflows, model combinations, and limitations. Camera-calibration derivations, state-estimation filters, network training, code, and lab exercises are intentionally out of scope.
-
-**Reading map:** language or visual prompt → **find and segment the target** → **recover distance or shape** → (only when needed) **estimate a rigid object's 6D pose** → **robot policy or controller**. These are different capabilities, often supplied by different tools; no robot pipeline needs to run every model.
-
 ## Contents
 
 - [1. Start with the robot's task, not the model name](#vision-section-01)

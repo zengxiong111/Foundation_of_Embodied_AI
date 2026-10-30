@@ -19,8 +19,6 @@ colorlinks: true
 | Revision | 2026-10-28 |
 | License | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
-**Scope.** This chapter follows the course material on imitation learning, flow matching, and GR00T/SONIC. It explains how predicted futures become executable robot actions. The original treatment of training data, inference options, efficiency, and deployment constraints is retained and augmented with two substantive case studies: **DreamZero, an open research method**, and **Dream-1, a cross-embodiment deployment system**, followed by a **systems-level VLA/WAM comparison of memory, compute, latency, and deployment costs**. We do not re-derive the flow-matching continuity equation, PPO, or general Transformer fundamentals; there are no programming exercises.
-
 **Key question added in this revision.** Why can Dream-1 sometimes operate on unseen robots and tasks without fine-tuning? The explanation combines **a shared EEF action interface, joint video–action world modeling, and transferable visual representations**; EEF control and inverse kinematics are not exclusive to WAMs. Sections 6, 8, and 11 discuss mechanisms, limits, and controlled comparisons.
 
 ## Contents

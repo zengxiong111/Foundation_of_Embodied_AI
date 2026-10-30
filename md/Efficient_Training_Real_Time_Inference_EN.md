@@ -9,8 +9,6 @@ lang: en-US
 
 [Course repository](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [中文版](Efficient_Training_Real_Time_Inference_ZH.md) · [Flow Matching](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Flow_Matching_Step_by_Step_Derivation_EN.md) · [Post-training](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Embodied_Post_Training_EN.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_EN.pdf)
 
-> **Scope.** This lecture connects Transformers, flow matching, vision-language-action models (VLAs), world action models (WAMs), and robot control. It addresses three questions: how to train with less compute, how to generate actions at low latency, and how to keep a physical robot moving continuously while a relatively slow VLA or WAM runs. Full WAM architectures, RL post-training algorithms, code, and hands-on experiments are outside its scope.
-
 
 
 ## Contents

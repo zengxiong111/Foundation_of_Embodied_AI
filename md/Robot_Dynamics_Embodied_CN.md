@@ -67,12 +67,6 @@ $$
 \boxed{a_t\ \longrightarrow\ \tau_t\ \longrightarrow\ (\ddot q_t,\lambda_t)\ \longrightarrow\ s_{t+1}\ \longrightarrow\ o_{t+1}.}
 $$
 
-**保留的内容**：最必要的坐标与 Jacobian、质量/惯量、标准机器人动力学、正逆动力学、接触与摩擦、执行器、浮动基座、控制、仿真与 Sim2Real。
-
-**有意略去的内容**：Lie 群证明、完整螺旋理论和 POE 展开、空间向量叉乘算子的详细矩阵推导、复杂 RNEA/ABA 的逐行实现、通用最优控制与 SDP 理论，以及软件安装命令和任何代码。需要研究级算法推导时，可直接查阅文末参考资料。
-
-**使用方式**：第 1–6 章建立动力学直觉，第 7–11 章解释接触和控制，第 12 章比较 MuJoCo 与 Isaac Sim / Isaac Lab，第 15 章联系真实机器人。公式属于可验证的物理模型。
-
 <a id="course-section-02"></a>
 
 ## 第一章 从一个具身任务看动力学

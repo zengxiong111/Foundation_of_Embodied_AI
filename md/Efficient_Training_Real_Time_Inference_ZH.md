@@ -9,8 +9,6 @@ lang: zh-CN
 
 [课程仓库](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [English](Efficient_Training_Real_Time_Inference_EN.md) · [流匹配](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Flow_Matching_详细推导_精简版.md) · [后训练](https://github.com/zengxiong111/Foundation_of_Embodied_AI/blob/main/md/Embodied_Post_Training_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Efficient_Training_Real_Time_Inference_ZH.pdf)
 
-> **本章定位。** 本讲义衔接 Transformer、Flow Matching、VLA、WAM 与机器人控制课程，集中回答三个问题：基础模型如何更省算力地训练，生成模型如何低延迟地推理，以及较慢的 VLA / WAM 如何持续驱动真实机器人。不重复 WAM 架构综述或后训练算法的完整推导；不包含代码和实验操作。
-
 
 
 ## 目录

@@ -16,7 +16,6 @@ toc-title: "目录"
 | 修订日期 | 2026-10-22 |
 | 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-> **课程定位。** 本讲义从 Bellman 方程出发，经过 TD、表格 Q-learning、Fitted Q-Iteration、DQN 与连续动作 Actor–Critic，最终完整解释现代 SAC。主线回答“算法为什么这样设计”；必要推导在正文给出，严格性细节统一放入附录。第 7 章连接真机机器人 RL 和 VLA/WAM 后训练。**无编程实验章节。**
 >
 > **先修知识。** 条件期望、概率分布、梯度下降、神经网络反向传播；建议先阅读本课程 PPO/Actor–Critic 讲义中关于 Policy Gradient 与 Advantage 的部分。
 >

@@ -67,12 +67,6 @@ $$
 \boxed{a_t\ \longrightarrow\ \tau_t\ \longrightarrow\ (\ddot q_t,\lambda_t)\ \longrightarrow\ s_{t+1}\ \longrightarrow\ o_{t+1}.}
 $$
 
-**Included**: the minimum coordinate and Jacobian concepts; mass, inertia, and gravity; manipulator equations; forward and inverse dynamics; contact and friction; actuation; floating-base dynamics; control; simulation; and sim-to-real transfer.
-
-**Deliberately omitted**: Lie-group proofs, full screw theory and product-of-exponentials derivations, detailed spatial cross-product operators, low-level implementations of RNEA/ABA, general-purpose SDP and optimal-control theory, software installation commands, and all programming code. Readers who need those topics can proceed to the references.
-
-**How to read**: Chapters 1–6 build the physics foundation. Chapters 7–11 explain actuation, contact, and control. Chapter 12 compares MuJoCo with Isaac Sim / Isaac Lab. Chapter 15 consolidates sim-to-real considerations.
-
 <a id="course-section-02"></a>
 
 ## Chapter 1. Dynamics through an embodied manipulation task

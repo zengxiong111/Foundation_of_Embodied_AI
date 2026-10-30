@@ -15,10 +15,6 @@ lang: zh-CN
 | 修订日期 | 2026-10-21 |
 | 许可 | CC BY 4.0 · Xiong Zeng and contributors |
 
-**定位**：本讲义讨论模仿学习算法、动作块建模、VLA 的动作监督训练与实时动作块执行。数据采集硬件、视频重定向、相机标定、完整部署流程和实验步骤不再独立成章。数学表达旨在解释方法及其假设，并非所有实现的逐行复刻。
-
-**阅读路线**：BC 的监督目标 → 分布偏移与 DAgger → ACT / Diffusion / Flow Matching → VLA 架构与动作监督 → Temporal Ensembling → 推理时 RTC 与训练时 RTC。
-
 **适用对象**：希望理解机器人操作策略、VLA 动作头和实时控制接口的研究者与研究生。
 
 <!-- toc:start -->

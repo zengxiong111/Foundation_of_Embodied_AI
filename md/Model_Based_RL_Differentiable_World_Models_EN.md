@@ -16,8 +16,6 @@ lang: en-US
 | License | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
 
-> **Scope:** A missing link between the course's PPO, SAC, robot dynamics, MuJoCo and motion tracking tutorials. This is a conceptual and mathematical tutorial; it does not present unverified code or invented experimental results.
-
 ---
 
 ## Contents

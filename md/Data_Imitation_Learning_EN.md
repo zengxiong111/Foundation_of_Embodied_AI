@@ -15,10 +15,6 @@ lang: en-US
 | Revision | 2026-10-21 |
 | License | CC BY 4.0 · Xiong Zeng and contributors |
 
-**Scope.** These notes connect imitation-learning objectives, generative action-chunk policies, VLA action supervision, and continuous real-time execution under inference latency. Demonstration hardware, camera calibration, human-video retargeting, comprehensive deployment engineering, and hands-on experiments are not standalone topics here. Equations explain mechanisms and assumptions; not every equation reproduces a particular implementation line for line.
-
-**Reading path.** Behavior cloning and covariate shift → DAgger and corrective supervision → ACT, diffusion, and flow matching → VLA architectures and supervised action learning → temporal ensembling → inference-time and training-time real-time chunking.
-
 **Audience.** Researchers and graduate students working on robot manipulation, visuomotor policies, and the action heads of vision-language-action (VLA) models.
 
 <!-- toc:start -->

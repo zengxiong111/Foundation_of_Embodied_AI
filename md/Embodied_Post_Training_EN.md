@@ -10,7 +10,6 @@ date: "2026-10-20"
 
 [Course repository](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [WAM-RL paper](https://arxiv.org/abs/2606.17906) · [RLinf documentation](https://rlinf.readthedocs.io/en/latest/) · [简体中文](Embodied_Post_Training_ZH.md) · [PDF](https://zengxiong111.github.io/zengxiong.github.io/files/Embodied_Post_Training_EN.pdf)
 
-> **Scope.** This course starts from **pretrained models** and distinguishes supervised fine-tuning (SFT) from reinforcement learning (RL) post-training. It examines VLA and WAM architectures separately. The VLA RL material retains the six methods and RLinf infrastructure discussion from the original tutorial; the WAM part follows Qian et al., *WAM-RL* (2026). Low-level controller training from scratch and executable labs are outside the scope.
 >
 >
 > WAM-RL methods and metrics are attributed to [Qian et al.](https://arxiv.org/abs/2606.17906).

@@ -16,7 +16,6 @@ toc-title: "Contents"
 | Revision | 2026-10-22 |
 | License | CC BY 4.0 · Xiong Zeng and contributors |
 
-> **Purpose and scope.** Starting from the Bellman equations, these notes derive temporal-difference learning, tabular Q-learning, fitted Q-iteration, DQN, continuous-action actor–critic methods, and modern SAC. The central question is *why each algorithmic component is needed*. The main text emphasizes conceptual progression and practical design; mathematical details are retained in the appendices. Chapter 7 connects the foundations to real-robot RL and VLA/WAM post-training. **There is no programming or experiment section.**
 >
 > **Prerequisites.** Conditional expectation, probability distributions, gradient descent, and neural-network backpropagation. The PPO/actor–critic notes in this course provide complementary background on policy gradients and advantages.
 >

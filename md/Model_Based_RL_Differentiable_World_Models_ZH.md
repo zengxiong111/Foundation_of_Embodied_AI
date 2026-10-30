@@ -16,8 +16,6 @@ lang: zh-CN
 | 许可 | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
 
 
-> **定位：**本课程原有 PPO、SAC、机器人动力学、MuJoCo 与 Motion Tracking 之间的新增桥梁。以公式和系统接口为中心，不包含未经验证的代码或假想实验结果。
-
 ---
 
 ## 目录
