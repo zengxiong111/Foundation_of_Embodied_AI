@@ -319,14 +319,24 @@
       "id": "motion-rl",
       "title_en": "Motion Control RL",
       "title_zh": "运动控制强化学习",
-      "reviewed_at": "2026-10-28",
-      "review_scope_en": "Bilingual sources and SuperMimic supplements integrated; shared academic PDF covers, fonts and retained formulas checked. Proposed comparisons and adaptations are teaching designs, not independently validated training or hardware results.",
-      "review_scope_zh": "整合中英文源码与 SuperMimic 补充内容，核对统一学术 PDF 首页、字体及保留公式；所述对比与迁移为教学设计，不代表独立验证的训练或硬件结果。",
-      "versions_en": "Motion-control algorithms and learning strategies: PPO/SAC interfaces, motion tracking, DeepMimic/AMP, HOVER/BeyondMimic/SONIC, privileged teachers, distillation, RMA, residual RL, recovery and Sim-to-Real; legged and dexterous-manipulation case studies. SuperMimic supplement: learned dynamics, differentiable optimization and connections to this topic.",
-      "versions_zh": "运动控制算法与学习策略：PPO/SAC 接口、运动跟踪、DeepMimic/AMP、HOVER/BeyondMimic/SONIC、特权教师、蒸馏、RMA、Residual RL、恢复与 Sim-to-Real；足式及灵巧操作案例。 SuperMimic 补充：学习动力学、可微优化及其与本主题的联系。",
+      "reviewed_at": "2026-10-30",
+      "review_scope_en": "Updated user-supplied bilingual sources integrated; shared academic PDF covers, fonts, diagrams and retained mathematical content checked. Case studies are teaching designs, not completed experiments or hardware validation.",
+      "review_scope_zh": "整合用户提供的新版中英文源码，核对统一学术 PDF 首页、字体、流程图及保留数学内容；案例为教学设计，不代表已完成的实验或真机验证。",
+      "versions_en": "Closed-loop motion tasks; observations, actions, rewards and resets; from-scratch RL, tracking and residual learning; DeepMimic/AMP/RSI, SuperMimic, HOVER/BeyondMimic/SONIC; teacher-student learning, RMA and Sim-to-Real; G1 locomotion and TRON2/Revo3 manipulation cases.",
+      "versions_zh": "闭环运控任务；观测、动作、奖励与重置；从零强化学习、运动跟踪与残差学习；DeepMimic/AMP/RSI、SuperMimic、HOVER/BeyondMimic/SONIC；教师–学生、RMA 与仿真到现实；G1 运动和 TRON2/Revo3 操作案例。",
       "source_refs": [
-        "isaac-sim/IsaacLab@v2.3.2",
-        "https://arxiv.org/abs/2610.28480"
+        "https://proceedings.mlr.press/v164/rudin22a.html",
+        "https://arxiv.org/abs/1804.02717",
+        "https://arxiv.org/abs/2104.02180",
+        "https://arxiv.org/abs/2410.21229",
+        "https://arxiv.org/abs/2508.08241",
+        "https://nvlabs.github.io/GEAR-SONIC/",
+        "https://arxiv.org/abs/2610.28480",
+        "https://arxiv.org/abs/2107.04034",
+        "https://isaac-sim.github.io/IsaacLab/main/index.html",
+        "https://leggedrobotics.github.io/rsl_rl/",
+        "https://github.com/google-deepmind/mujoco_playground",
+        "https://github.com/unitreerobotics/unitree_rl_lab"
       ],
       "documents": {
         "zh": {

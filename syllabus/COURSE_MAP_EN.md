@@ -99,7 +99,7 @@ flowchart LR
 
 ### 9. Motion Control RL
 
-[Motion Control RL](../md/Embodied_Motion_Control_RL_Tutorial_EN.md) — Study motion tracking, DeepMimic/AMP, universal controllers, teacher–student learning, RMA and residual RL. Connect these methods to legged and dexterous motion, recovery and Sim-to-Real. Adds a SONIC/SuperMimic comparison and differentiable motion-tracking connections.
+[Motion Control RL](../md/Embodied_Motion_Control_RL_Tutorial_EN.md) — Define closed-loop motion tasks through observations, goals, actions, rewards and resets. Distinguish from-scratch RL, Motion Tracking and Residual RL from PPO/SAC and model-based optimization; connect reference motions and generalist controllers to teacher–student learning, RMA and Sim-to-Real. Use G1 velocity tracking and TRON2/Revo3 screwdriver manipulation to organize evaluation of success, generalization and recovery.
 
 ### 10. PPO / Actor–Critic
 

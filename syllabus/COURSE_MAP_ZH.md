@@ -99,7 +99,7 @@ flowchart LR
 
 ### 9. 运动控制强化学习
 
-[运动控制强化学习](../md/Embodied_Motion_Control_RL_Tutorial_ZH.md)：学习运动跟踪、DeepMimic/AMP、通用控制器、教师–学生、RMA 与残差强化学习，并联系足式与灵巧操作、失败恢复及仿真到现实。补充 SONIC/SuperMimic 对比与可微运动跟踪的联系。
+[运动控制强化学习](../md/Embodied_Motion_Control_RL_Tutorial_ZH.md)：通过观测、目标、动作、奖励与重置定义闭环运控任务；区分从零强化学习、运动跟踪、残差学习与 PPO/SAC、基于模型的优化，将参考动作和通用控制连接到教师–学生、RMA 及仿真到现实。以 G1 速度跟踪和 TRON2/Revo3 螺丝刀操作串联成功、泛化与恢复能力的评估。
 
 ### 10. PPO / 行动者–评论家
 

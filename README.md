@@ -8,7 +8,7 @@ Chinese and English learning materials for a future Foundation of Embodied AI co
 
 ## Course materials
 
-20 topics, 40 Markdown files and 40 PDFs. Use the links below to read or download. All PDFs use a shared academic layout; the first chapter starts on page 2. Covers robot dynamics, modern simulation stacks, neural networks and vision Transformers, VLA imitation learning, FQI/SAC, and Dream-1 zero-shot embodiment transfer.
+20 topics, 40 Markdown files and 40 PDFs. Use the links below to read or download. All PDFs use a shared academic layout; the first chapter starts on page 2. Topics span robot mechanics and simulation, neural and policy learning, and robot systems.
 
 | No. | Topic | Chinese Markdown | English Markdown | Chinese PDF | English PDF |
 |---|---|---|---|---|---|
