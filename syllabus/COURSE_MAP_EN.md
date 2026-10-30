@@ -21,7 +21,7 @@ Tutorial numbers 1–20 match the course order in the [README](https://github.co
 |---|---|---|
 | 0. Orientation | Systems map and guide | Explain perception–policy–control loops |
 | 1. Tools | Git, ROS 2 | Manage code and understand ROS communication and TF |
-| 2. Physics, perception and neural foundations | Calibration, Deep Learning Basics, vision foundation models, dynamics, low-level control, Isaac / MuJoCo | Relate calibrated geometry, neural networks, physical models, actuator control and simulation |
+| 2. Physics, perception and neural foundations | Calibration, Deep Learning Basics, vision foundation models, dynamics, low-level control, Simulation & RL | Relate calibrated geometry, neural networks, physical models, actuator control and simulation |
 | 3. Reinforcement learning | Motion RL, PPO, SAC, Model-Based RL | Design observations, actions, rewards and data collection |
 | 4. Demonstrations and models | Imitation Learning, Flow Matching, GR00T / SONIC, World Action Models, Efficient Training & Inference, Post-training | Learn generative and predictive policies and connect efficient inference with hierarchical controllers |
 | 5. Deployment and integration | Communication & Real-Time Systems, Robot Agents | Connect synchronized sensing, inference and actuator control, then orchestrate long-horizon tasks |
@@ -40,7 +40,7 @@ flowchart LR
  T --> E["Robot and environment"]
  E --> B
  F["Demonstrations / imitation"] --> C
- G["Isaac / MuJoCo simulator"] --> H["PPO / SAC / MBRL optimization"]
+ G["Physics engines / simulators"] --> H["PPO / SAC / MBRL optimization"]
  H --> C
  H --> D
  M["Learned dynamics / BPTT"]
@@ -87,15 +87,15 @@ flowchart LR
 
 ### 6. Robot Dynamics
 
-[Robot Dynamics](../md/Robot_Dynamics_Embodied_EN.md) — Develop rigid-body motion and dynamics through coordinate frames, Jacobians, inertia and equations of motion. Connect contact, friction and control models to robot simulation. Adds learned surrogate dynamics, contact gradients and the role of actuator and object models.
+[Robot Dynamics](../md/Robot_Dynamics_Embodied_EN.md) — Build physical intuition from a grasp: actuator response, mass and inertia, joint coupling, Jacobian force mapping, contact and friction. Connect fixed- and floating-base dynamics to low-level control, simulator parameters and diagnosis of sim-to-real failures.
 
 ### 7. Low-Level Control
 
 [Low-Level Control](../md/Robot_Low_Level_Control_EN.md) — Connect motor servo loops, PD/PID and MIT Mode to impedance, admittance and contact control. Relate policy action semantics to actuator response, simulated hardware alignment and protected tuning.
 
-### 8. Isaac / MuJoCo Simulation
+### 8. Simulation & RL
 
-[Isaac / MuJoCo Simulation](../md/Isaac_MuJoCo_RL_Complete_Guide_EN.md) — Understand Isaac Sim, Isaac Lab and MuJoCo as simulation and training tools. Cover asset import, environment contracts, RL library selection, parallel throughput, deployment interfaces. Adds MuJoCo Warp sampling, replay, world-model fitting and differentiable policy-update interfaces.
+[Simulation & RL](../md/Isaac_MuJoCo_RL_Complete_Guide_EN.md) — Distinguish model descriptions, physics solvers, scenes and RL task frameworks across Isaac Sim/Lab, MuJoCo/mjlab, Genesis World and Newton. Follow robot modeling, observations/actions/rewards/resets, training and evaluation through sim-to-real interface alignment; compare tools by task requirements rather than a universal speed ranking.
 
 ### 9. Motion Control RL
 

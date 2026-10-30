@@ -1,473 +1,237 @@
 ---
-date: "2026-10-28"
-title: "Isaac Sim, Isaac Lab, and MuJoCo: A Complete Guide to Robot Simulation and Reinforcement Learning"
+title: "Embodied AI Simulation and Reinforcement Learning: From Physics Engines to Sim-to-Real"
+subtitle: "Making sense of Isaac Sim / Isaac Lab, MuJoCo / mjlab, Genesis World, and Newton"
+date: "2026-10-30"
 lang: en-US
 ---
 
-# Isaac Sim, Isaac Lab, and MuJoCo: A Complete Guide to Robot Simulation and Reinforcement Learning
+# Embodied AI Simulation and Reinforcement Learning: From Physics Engines to Sim-to-Real
 
-[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](Isaac_MuJoCo_RL_完整教程_中文.md) · [Motion-control RL](Embodied_Motion_Control_RL_Tutorial_EN.md)
+[Course home](https://github.com/zengxiong111/Foundation_of_Embodied_AI) · [简体中文](Isaac_MuJoCo_RL_完整教程_中文.md) · [PDF](../pdf/Isaac_MuJoCo_RL_Complete_Guide_EN.pdf)
 
-| Item | Details |
-|---|---|
-| Scope | Engineering tools and training infrastructure (How to Use); not a duplicate treatment of PPO, SAC, or control theory |
-| Version scope | Isaac Lab 2.3.2 / Isaac Sim 5.1; Isaac Lab 3.0 Early Access / Isaac Sim 6.1; MuJoCo/MJX/MJWarp versions depend on workload |
-| Documentation review | 2026-10-28 |
+| Item | Description |
+|:---|:---|
+| Purpose | Understand simulators, physics backends, RL frameworks and real-robot deployment. |
+| Running examples | Franka Panda (a basic robot arm) and BrainCo Revo3 (a dexterous hand). |
+| Prerequisites | Introductory robot kinematics, feedback control, and reinforcement learning. |
+| Version policy | Features vary across releases and tasks; this course does not claim a universal speed or accuracy ranking. |
 | License | CC BY-NC-SA 4.0 · Xiong Zeng and contributors |
-
-
-> **Boundary with the companion course：** This guide asks how to build a reliable, efficient, reproducible simulation/training platform; the companion motion-control RL guide asks how to learn tracking, dynamic skills, and recovery.
-
-
-**Course knowledge map:** Robot model → simulation scene → environment contract → parallel training → deployment validation.
 
 ## Contents
 
-- [1. Platform Roles and Research-Task Selection](#supplement-course-section-01)
-- [2. Versions, Hardware, and Platform Orientation](#supplement-course-section-02)
-- [3. Robot Assets: URDF, MJCF, and USD](#supplement-course-section-03)
-- [4. Dynamics, Control, Contact, and Sensors](#supplement-course-section-04)
-- [5. The Engineering Contract of an RL Environment](#supplement-course-section-05)
-- [6. Parallel Learning Workflows in Isaac Lab](#supplement-course-section-06)
-- [7. MuJoCo, MJX, and MJWarp Workflows](#supplement-course-section-07)
-- [8. Training Throughput, Memory, and Debugging](#supplement-course-section-08)
-- [9. Randomization Implementation, Evaluation, and Reproducibility](#supplement-course-section-09)
-- [10. Deployment Interfaces, Calibration, and Sim-to-Sim](#supplement-course-section-10)
-- [12. Troubleshooting and Readiness Checks](#supplement-course-section-11)
-- [Official References and Further Reading](#supplement-course-section-12)
-- [New Supplement: From MuJoCo Warp to a Differentiable World-Model Pipeline](#supplement-course-section-13)
+- [1. Understand the stack before choosing a platform](#simulation-section-01)
+- [2. Understand the robot model: why does it move?](#simulation-section-02)
+- [3. Understand the RL environment: how does the policy interact?](#simulation-section-03)
+- [4. A unified RL workflow across frameworks](#simulation-section-04)
+- [5. Move from simulation to reality: why isn't training enough?](#simulation-section-05)
+- [6. Common failures and practical principles](#simulation-section-06)
+- [References and further learning](#simulation-section-07)
 
-<a id="supplement-course-section-01"></a>
+<a id="simulation-section-01"></a>
 
-## 1. Platform Roles and Research-Task Selection
+## 1. Understand the stack before choosing a platform
 
-### 1.1 Their roles in the robotics workflow
+### 1.1 The robot-learning stack in one picture
 
-- **Isaac Sim** is NVIDIA's robotics simulation platform for scene authoring, USD assets, PhysX simulation, RTX rendering, camera simulation, and ROS 2 integration. Its primary concern is *how a robot and its environment operate and are perceived in simulation*.
-- **Isaac Lab** is a robot learning framework built on simulation backends. It provides task definitions, vectorized environments, observations, actions, rewards, resets, termination rules, domain randomization, and interfaces to RL libraries. Its primary concern is *how to train and evaluate a policy systematically*.
-- **MuJoCo** is a dynamics and contact simulation engine useful for rigid-body mechanics, constraints, actuators, control, and model debugging. Traditional MuJoCo is primarily CPU-based; MJX and MuJoCo Warp (MJWarp) enable accelerated batched simulation.
+No single tool performs every step of robot RL. **Model descriptions** specify robot geometry and dynamics. **Physics engines** compute motion and contacts. **Simulation platforms** manage scenes and sensors. **RL frameworks** organize tasks, parallel experience collection, and trainer interfaces. Projects combine several layers; keep their responsibilities explicit.
 
-**Important recent development:** Isaac Lab 3.0 Early Access introduces a multiple-physics-backend architecture, including Newton/MuJoCo-Warp-based execution paths. Accordingly, “Isaac Lab always means PhysX” and “MuJoCo always means CPU simulation” are no longer generally accurate. Backend feature parity and API compatibility must still be checked for each release. [1–4]
+| Layer | Primary responsibility | Examples |
+|:---|:---|:---|
+| **Robot and scene description** | Bodies, joints, inertia, collisions, and sensors | URDF, MJCF, USD |
+| **Physics solvers** | Dynamics, constraints, contacts, and integration | PhysX, MuJoCo, Newton solvers, Genesis solvers |
+| **Scenes and sensors** | Visualization, cameras, scene construction, timing | Isaac Sim, Genesis World, MuJoCo simulation API |
+| **RL task framework** | Observations, actions, rewards, termination, resets, vectorization | Isaac Lab, mjlab, MuJoCo Playground, custom Genesis environments |
+| **Learning and deployment** | PPO/SAC optimization, evaluation, safety integration | RSL-RL and other trainers, real-robot controllers |
 
-| Dimension | Isaac Sim | Isaac Lab | MuJoCo and GPU ecosystem |
-|---|---|---|---|
-| Primary focus | Scenes, sensing, digital twins | Robot learning and batched tasks | Dynamics, contact, control, batching |
-| Common assets | USD; URDF import | Backend-supported assets | MJCF; URDF import |
-| Visualization | Strong RTX rendering | Depends on the selected renderer | Lightweight viewer; backend-dependent batched rendering |
-| RL integration | Requires a learning/task layer | RSL-RL, RL-Games, skrl, etc. | MuJoCo Playground, Gymnasium, custom stacks |
-| Best first use | Scene and sensor inspection | Vectorized reinforcement learning | Dynamics and control |
-| Main pitfalls | GPU drivers, VRAM, RTX support | Version/API changes, rewards and resets | Actuation, contacts, CPU/GPU discrepancies |
+**Representative stack combinations** (illustrative, not exclusive):
 
-### 1.2 Which tool should you select?
+- **Isaac stack:** Isaac Sim + PhysX → Isaac Lab → RL trainer, often for scene-heavy or visual learning.
+- **Newton stack:** Newton (e.g., MJWarp solver) → a supported Isaac Lab task → RL trainer; supported Newton configurations can run without Isaac Sim.
+- **MuJoCo / mjlab stack:** MJCF → MuJoCo Warp → mjlab → RL trainer, with native model/data access and modular tasks.
+- **Genesis stack:** URDF/MJCF → Genesis World (physics + scenes + sensors) → custom or compatible RL environment and trainer.
 
-| Research goal | Suggested starting point | Why |
-|---|---|---|
-| Dynamics, PD/MPC, inverse dynamics | MuJoCo | Direct access to physical behavior and straightforward single-step debugging |
-| Replay-buffer-based SAC | A compatible MuJoCo RL stack or supported Isaac Lab integration | Confirm that SAC and vectorized replay are actually implemented |
-| Head and wrist RGB-D, lighting and occlusions | Isaac Sim / Isaac Lab | Integrated rendering and camera modeling |
-| High-throughput state-based contact simulation | Suitable Isaac Lab backend or MJX/MJWarp | Depends on scene complexity, hardware, and data movement |
-| Pre-deployment robustness checks | Both physics engines | Exposes dependence on one solver or actuator approximation |
+### 1.2 What are Genesis, Newton, and mjlab?
 
-**Selection rule:** Decide on the physical task and observations before optimizing raw simulation FPS. Photorealism, contact fidelity, and real-world compatibility may be more consequential than peak steps per second.
+| Platform or component | Primary role | Key limitation or distinction |
+|:---|:---|:---|
+| **Isaac Sim** | USD assets, scenes, physics, cameras, rendering | Not an RL algorithm; often paired with Isaac Lab. |
+| **Isaac Lab** | Robot-learning tasks and environment framework | Not synonymous with PhysX; backend support depends on the task. |
+| **MuJoCo** | Rigid-body, joints, actuators, contacts | Not itself an RL task framework; distinguish CPU and batched GPU paths. |
+| **MJX / MuJoCo Warp** | Batched implementations in the MuJoCo ecosystem | MJX-JAX and MJWarp differ in computation and differentiability. |
+| **mjlab** | Lightweight GPU RL framework built on MuJoCo Warp | Manager-based design inspired by Isaac Lab; high-fidelity RGB is not its focus. |
+| **Genesis World** (formerly Genesis) | Pythonic, multi-physics simulation platform | Combines rigid, deformable, and particle solvers; verify individual features. |
+| **Newton** | Extensible Warp-based GPU physics engine | Several solvers; not a substitute for a complete RL task framework. |
+| **MuJoCo Playground** | Ready-made MuJoCo robot-learning tasks | Useful for benchmarks; distinct from the MuJoCo engine. |
 
+**Two especially important distinctions.** First, **Newton is not simply another name for MJWarp**. Newton can expose MuJoCo Warp through its solver interface alongside other solvers; differentiability is solver-specific and is not a property of every MJWarp rollout. Second, **mjlab directly uses MuJoCo Warp**. That does not imply automatic access to Newton's other solvers. Verify these relationships against the versions actually installed.
 
-<a id="supplement-course-section-02"></a>
+### 1.3 Choose by task, not marketing claims
 
-## 2. Versions, Hardware, and Platform Orientation
+| Research need | Start by considering | What really matters |
+|:---|:---|:---|
+| Robot mechanics and control debugging | MuJoCo | Transparent actuators, models, and contacts |
+| Lightweight structured, parallel RL | mjlab + MuJoCo Warp | Rigid-body tasks, PyTorch tensors, composable MDP terms |
+| Multi-camera visual tasks and complex scenes | Isaac Sim + Isaac Lab | Rendering, sensors, and task compatibility |
+| Soft bodies, particles, and coupled materials | Genesis World or a suitable Newton solver | Material model, coupling, numerical behavior |
+| Physics-backend comparisons | Isaac Lab with supported Newton / PhysX choices | Task support, interface alignment, solver validation |
 
-### 2.1 Two sensible version tracks
+A GPU-accelerated or differentiable platform is **not automatically faster, more accurate, or easier to transfer** for dexterous manipulation. We use **Panda grasping a cube** to develop intuition and **Revo3 grasping an object** to discuss actuator coupling, inertia, and fingertip contacts. Neither is a hands-on exercise.
 
-**Stable reproduction track: Isaac Lab 2.3.2 with Isaac Sim 5.1.** This is a practical option for replicating existing 2.x research code, RSL-RL pipelines, and established PhysX manipulation tasks. Pin the Git tag, Python, PyTorch, extensions, and GPU driver rather than installing moving targets.
+<a id="simulation-section-02"></a>
 
-**New architecture track: Isaac Lab 3.0 Early Access with Isaac Sim 6.1 when full Isaac Sim integration is needed.** Version 3.0 adds selected kit-less workflows and a multi-backend architecture, but includes breaking changes. As of this guide's date it is still Early Access; older tasks and extensions should not be assumed compatible. A particularly important migration detail is the change from the common **wxyz** quaternion convention in 2.x to **xyzw** in 3.0, alongside data interface changes. [1][2]
+## 2. Understand the robot model: why does it move?
 
-**Recommended setup sequence:** (1) Identify the paper or feature to reproduce; (2) consult the relevant release compatibility table; (3) keep Isaac and MuJoCo dependencies isolated; (4) validate an official minimal scene; (5) check simulation stepping, asset import, and GPU use; and only then (6) connect the RL trainer. Avoid installing unrelated machine-learning packages before the simulator baseline works.
+### 2.1 One robot, three common descriptions
 
-### 2.2 Where should the compute run?
+| Format | Primary use | What may change during conversion |
+|:---|:---|:---|
+| **URDF** | Links, joints, geometry, and basic inertial properties | Actuator details, contact solver settings, scene configuration |
+| **MJCF** | MuJoCo models, actuators, constraints, and contacts | Solver-specific behavior may lack an exact counterpart elsewhere |
+| **USD** | Isaac scene graphs, assets, physics, and rendering properties | Imported drives, collision shapes, and sensors need validation |
 
-- **RTX 4090, 24 GB:** Well suited to GPU physics training and carefully budgeted vision-based experiments. High-resolution multi-camera tasks still need active memory management.
-- **RTX 3090, 24 GB:** Useful for compatible experiments and MuJoCo GPU training; however, Isaac Sim 5.1 lists an RTX 4080 as its minimum GPU performance tier. Treat a 3090-based Isaac Sim setup as a configuration requiring its own verification.
-- **A100/A800:** Excellent for many neural-network workloads and compute paths that do not need RTX rendering. **The A100 is not supported for the full RTX-dependent Isaac Sim 5.1 experience.** High tensor throughput does not imply RTX renderer compatibility.
-- **CPU machines:** Often appropriate for classic MuJoCo model validation, MPC, single-robot control, and smaller rollouts. Move to MJX/MJWarp when a measured batch-throughput need justifies it.
+Successful import does **not** imply physical equivalence. Maintain a **single source of truth for robot parameters**: joint names, axes, zero positions, limits, masses, centers of mass, inertia tensors, collision shapes, actuator types, tool frames, and sensor extrinsics.
 
-Official Isaac Sim 5.1 requirements specify supported Ubuntu configurations, GPU classes, memory, storage, and driver expectations. Updating every dependency to “latest” can easily break an otherwise working simulator stack. [5]
+### 2.2 Six layers: from geometry to contact
 
-### 2.3 Acceptance checks: launching is not enough
+**1. Kinematics.** How are joints connected? What are their axes, zero positions, and limits? For Panda, verify the arm and tool-center point (TCP). For Revo3, also inspect joint order, any coupling, and each finger's range of motion.
 
-| Check | Acceptance criterion |
-|---|---|
-| Basic scene | Ground, gravity, and robot load; no unintended penetration |
-| Joint motion | Directions, limits, home positions, and velocities verified joint by joint |
-| Robot state | Poses, velocities, and forces agree with the model definitions |
-| Rendering and cameras | Correct orientation, depth interpretation, timestamps, and resolution |
-| Physics stability | No persistent resting oscillation; plausible free fall |
-| RL connectivity | Observation-action-step-reset-reward loop operates correctly |
-| Reproducibility | Software versions, asset hashes, GPU, driver, and random seeds recorded |
+**2. Mass and inertia.** Link mass, center of mass, and rotational inertia determine gravitational and inertial response. A visually convincing model can still have incorrect grasping dynamics.
 
-### 2.4 A practical MuJoCo learning sequence
+**3. Actuation.** After the policy specifies a joint target, how does the low-level servo generate effort? Specify control mode, proportional gain $K_p$, derivative gain $K_d$, speed/effort limits, and response latency. **Armature** represents additional effective inertia at a joint, often associated with motor and transmission dynamics. It is not a parameter that should simply be maximized, and it does not replace identifying the real mechanism. Different finger joints may use different values, provided those choices are justified by the model or measurements.
 
-1. **Understand the model:** A robot is built from bodies, joints, geoms, actuators, sensors, and constraints. Its rendered geometry and collision geometry can be distinct.
-2. **Inspect a robot:** Check joint axes, home positions, collision shapes, inertia, and tool reference frames in the viewer.
-3. **Test passive motion:** Observe a pendulum or arm moving under gravity; compare physical intuition with simulated behavior.
-4. **Test actuation:** Examine position, velocity, and torque control separately. An actuator's command is not necessarily an applied joint torque.
-5. **Introduce contacts:** Add a tabletop and a small object. Study free fall, sliding, grasping, and release.
-6. **Prepare for RL:** Specify observations, actions, resets, and randomization before integrating a trainer.
+**4. Collision and contact.** Visual meshes are not necessarily collision shapes. Whether a fingertip can hold an object depends on collision geometry, friction, the numerical solver, and actuator output. Increasing friction alone rarely repairs penetration or oscillation.
 
-**Recommended first complete robot:** Franka Panda. It is sufficiently complex for useful manipulation while remaining easy to inspect; start from a maintained model in MuJoCo Menagerie. [6]
+**5. Sensors.** For encoders, cameras, force sensors, and tactile devices, define units, reference frames, sample timestamps, and noise. Ground-truth object poses available in simulation are not necessarily valid observations for a deployable policy.
 
-### 2.5 An Isaac Sim / Isaac Lab learning sequence
+**6. Constraints and coupling.** If the Revo3 asset being used includes linked joints, transmissions, or tendon constraints, validate these against the actual mechanism. Do not assume every visible joint can receive independent torque commands.
 
-1. **Scene authoring in Isaac Sim:** Learn the Stage, Prims, USD assets, viewport, timeline, physical materials, and rigid-body properties.
-2. **Import a robot:** Inspect the articulation root, drives, masses, joint limits, and collision geometry after URDF import.
-3. **Build a simple scene:** Ground, table, fixed-base arm, manipulated object, and lighting.
-4. **Validate sensors:** Place head and wrist cameras; verify intrinsics, extrinsics, depth semantics, occlusions, and synchronization.
-5. **Study the Isaac Lab task abstraction:** Scene, robot assets, observations, actions, rewards, terminations, and events/domain randomization.
-6. **Try maintained benchmark tasks:** Cartpole, Franka Reach, Franka Lift.
-7. **Add RL gradually:** Start with state-based policies and limited randomization before adding vision and difficult contacts.
+### 2.3 A target position is not a teleport command
 
-**Manager-based vs. Direct workflows:** Manager-based tasks emphasize reuse of observation, reward, reset, and event components. Direct tasks offer more explicit control for unusual contact phases or research algorithms. Both support reinforcement learning; the difference is software organization rather than inherent learning power. [7]
+A simple position servo can be represented conceptually by
 
-### 2.6 A shared exercise: Panda, cube, and table
+$$
+\tau = \operatorname{sat}\!\left(K_p(q_{\mathrm{target}}-q)-K_d\dot q\right),
+$$
 
-Do not begin by comparing two entirely different robots in different engines. Fix the robot, cube dimensions, table height, tool frame, initial pose distribution, and action definition. Progress through **single-joint response → end-effector tracking → cube grasping → perturbed regrasping**.
+where $\operatorname{sat}$ enforces effort limits. A real robot may also include gravity compensation, friction, filtering, and additional internal control loops. When the **action is a target position**, the controller and dynamics still determine motion. Writing the joint state directly to that target may bypass physics and produce misleading sim-to-real results.
 
+Keep three clocks separate: **physics integration, low-level control, and policy/camera sampling**. For example, at 500 Hz physics, 250 Hz control, and 50 Hz policy inference, each policy decision spans 10 physics steps and five controller updates. A 30 Hz camera does not provide a synchronized new image at every policy step. These numbers illustrate timing only; **they are not Revo3 specifications**.
 
-<a id="supplement-course-section-03"></a>
+**Takeaway:** Before comparing simulators, align the robot structure, actuator semantics, action scales, integration periods, and contact settings as closely as possible.
 
-## 3. Robot Assets: URDF, MJCF, and USD
+**Cross-engine model checks:** Importing one URDF, MJCF, or USD into Isaac Sim, MuJoCo, Genesis World, or Newton does not ensure identical collisions, actuators, constraints, friction, or sensors. Validate joints and static contacts first.
 
-### 3.1 There is no universally lossless conversion
+<a id="simulation-section-03"></a>
 
-| Modeling aspect | URDF | MJCF | USD / Isaac |
-|---|---|---|---|
-| Links, joints, inertia | Standard capabilities | Supported | Supported |
-| Visual and collision meshes | Supported | Rich contact modeling | Strong scene and rendering support |
-| Motors and actuation | Limited in core standard | Actuators, tendons, transmissions | Joint drives and physics properties |
-| Advanced contact behavior | Usually engine-specific extensions | Detailed contact parameters | PhysX contacts and materials |
-| Scene composition | Relatively basic | Physics-centric | Scalable scene composition |
+## 3. Understand the RL environment: how does the policy interact?
 
-Maintain a **canonical physical parameter sheet** covering joint names, axis orientations, zero positions, limits, link masses, centers of mass, inertias, TCP, collision meshes, actuation modes, and sensor extrinsics. This provides better cross-engine consistency than an URDF file alone.
+An RL environment wraps continuous robot simulation into a trainable loop: **read observations → choose a policy action → execute the controller → advance physics → compute reward and completion conditions → reset when required**.
 
-### 3.2 Ten checks after import
+| Interface | Plain-language meaning | Conceptual Revo3 grasping example |
+|:---|:---|:---|
+| **Observation** | What the policy can see | Finger positions/velocities; deployable object-pose estimates or tactile data |
+| **Action** | What the policy asks the robot to do | Bounded joint-position targets or increments |
+| **Reward** | What behavior is encouraged | Approach, useful contact, stable holding; penalties for unsafe behavior |
+| **Termination** | Whether an episode truly ends | Success or unrecoverable failure; time limits tracked separately |
+| **Reset** | Where the next episode begins | Restore finger states, reposition the object, clear history buffers |
 
-1. Base and world frames; 2. joint names and ordering; 3. positive rotation directions; 4. angle and length units; 5. tool-center-point definition; 6. mass and center of mass; 7. physically plausible inertias; 8. collision simplification; 9. appropriate self-collision filtering; and 10. actuation limits, stiffness, damping, and control period.
+**Observations are not the entire simulator state.** During training, a critic may use privileged object state. But if the deployed actor only has joints and cameras, it must not silently depend on the object's ground-truth pose. If tactile feedback is required, verify that a real sensor exists and model its timing.
 
+**Actions are not always torques.** Two environments can both expose a 20-dimensional action vector while one means joint-position increments and the other means torque commands. Align joint order, semantics, scaling, clipping, and update period before comparing policies.
 
-<a id="supplement-course-section-04"></a>
+**Termination is not truncation.** An irrecoverable drop and reaching the episode time limit are different events. They should be tracked separately for sound learning targets and success statistics. Reset must synchronize physical state, controller memory, and observation history.
 
-## 4. Dynamics, Control, Contact, and Sensors
+**Frameworks only implement these concepts.** In Isaac Lab, mjlab, Playground, or a custom Genesis environment, the five RL interfaces mean the same thing. Equivalent interface names do not guarantee matching observation timing, action scaling, rewards, or resets.
 
-### 4.1 A common mechanics perspective
+<a id="simulation-section-04"></a>
 
-For rigid-body robots, the essential balance is:
+## 4. A unified RL workflow across frameworks
 
-**Inertial effects + Coriolis/centrifugal/gravity-related bias terms = generalized actuator forces + generalized contact/constraint forces.**
+### 4.1 Eight steps shared by every stack
 
-MuJoCo and PhysX use different numerical implementations. Before attributing discrepancies to the engine, first make robot parameters, actuation, and contact scenarios as equivalent as possible.
+**Validate the robot model → define the five RL interfaces → inspect actions and contacts → establish a simple baseline → scale up training → evaluate independently → add plausible randomization → archive reproducible settings.** This is our only training workflow; there is no need to memorize separate recipes for Isaac Lab, mjlab, and Genesis.
 
-### 4.2 Five common control interfaces
+Validate a fixed, interpretable starting condition before scaling out or adding complex contacts. If reward rises but grasp success does not, check success criteria, reward loopholes, and observation design before enlarging the policy network.
 
-| Control style | Policy produces | Main caveats |
-|---|---|---|
-| Joint position targets | Desired joint angles | Hidden PD gains, torque saturation, velocity limits |
-| Joint position increments | Changes relative to a target or state | Accumulated drift, scaling, temporal smoothness |
-| Joint velocity | Desired joint velocity | Stability near contact, integration error |
-| Joint torque | Actuator effort | Gravity compensation, friction, saturation, hardware safety |
-| Cartesian pose or impedance | TCP pose or impedance quantities | IK feasibility, singularities, frame conventions |
+### 4.2 How engineering entry points differ
 
-**Crucial distinction:** A policy that *commands* a joint position does not instantaneously *set* the simulated joint to that position. The position target must go through a comparable controller and actuator. Directly teleporting joints can bypass physical constraints and create a major sim-to-real mismatch.
+| Stack | Scene and model | RL organization | First things to verify |
+|:---|:---|:---|:---|
+| **Isaac Lab (PhysX)** | Isaac Sim, USD, articulations | Manager-based / Direct vectorized tasks | Rendering, sensors, assets, PhysX settings |
+| **Isaac Lab (Newton)** | Warp-native backend; task-selected solver | Supported tasks under the shared environment API | Solver support, feature coverage, data and joint ordering |
+| **mjlab / MuJoCo Warp** | MJCF, `MjModel`, `MjData` | Manager-based style with GPU rollout | Actuators, contacts, model data, GPU requirements |
+| **MuJoCo Playground** | MuJoCo/MJX ecosystem models | Task library, wrappers, compatible training scripts | Selected MJX implementation, task/trainer interface |
+| **Genesis World** | Python scene with multi-physics solvers | Custom or compatible RL environment | Material models, coupled contacts, observations, trainer wiring |
 
-### 4.3 Keep three clocks separate
+**Manager-based and Direct** are two ways to implement Isaac Lab tasks, not distinct RL theories. mjlab uses reusable manager-based MDP terms but keeps native MuJoCo data access. Genesis World integrates physics and scenes, while the learning algorithm still needs a suitable environment/trainer interface. Newton belongs at the physics layer rather than acting as another PPO implementation.
 
-- **Physics step:** Integrates motion, collision, and contact. Smaller steps often improve stability at higher cost.
-- **Low-level control frequency:** Updates servo, impedance, or IK targets.
-- **Policy and sensor frequencies:** RL decisions and camera acquisitions; these rates may be asynchronous.
+### 4.3 Where do PPO, SAC, and differentiable simulation fit?
 
-Example: 500 Hz physics and 50 Hz policy inference imply **10 physics steps per policy action**. A 30 Hz camera requires explicit frame holding, timestamps, and delay handling. The deployed system additionally includes communication, estimation, filtering, and actuator response latency.
+**PPO** is widely used for synchronous, batched rollouts; **SAC** learns off-policy with a replay buffer. Physics engines do not automatically guarantee support for SAC, GPU rollout, or a particular observation pipeline. Verify trainer integration.
 
-### 4.4 Fair control comparisons
+**Differentiable simulation** means gradients can propagate through certain solver operations; it may help with system identification or gradient-based optimization, but is **not required** for standard PPO or SAC. Newton and Genesis capabilities are solver-specific. In the MuJoCo ecosystem, MJX-JAX and MJWarp should not be conflated when discussing autodiff.
 
-Hold four things constant: **action meaning in joint or task space, action scaling, low-level controller semantics, and effective sampling period**. Without those controls, measured differences cannot be cleanly attributed to the physics engine.
+### 4.4 Measure more than peak FPS
 
-<a id="supplement-course-section-05"></a>
+Report **environment steps/s, physics steps/s, policy update time, peak memory, and wall-clock time to the target success rate**. For visual or dexterous tasks, separately profile rendering, encoding, contact solving, and CPU–GPU transfers. Fair comparisons align mass/inertia, action semantics, control rates, disturbances, success criteria, and training budgets.
 
-## 5. The Engineering Contract of an RL Environment
+**Replaying the same policy in multiple engines** can reveal model sensitivity, but differences may arise from assets, actuation, contact, and timing—not just from one engine being more physically accurate.
 
-This section specifies an **engineering contract for simulation interfaces** rather than repeating reward-design theory. For mathematical control objectives, see the companion motion-control RL tutorial.
+<a id="simulation-section-05"></a>
 
-| Module | Isaac Lab interface | MuJoCo interface | Validation contract |
-|---|---|---|---|
-| Scene and batch | Scene / Articulation / Manager-based or Direct workflows | `MjModel` / `MjData`, vectorized model/data | No state leakage across instances; versioned assets |
-| Observation | Observation Manager or custom buffers | Sensors, state extraction and wrappers | Shapes, units, frames, timestamps, deployability |
-| Action | Action Manager or custom control path | `ctrl` and actuator interface | Limits, semantics, update rate |
-| Reward/termination | Reward/Termination Manager or Direct callback | Task callbacks | Explicit success tests, separate time limits, logged components |
-| Reset and randomization | Event/Reset Manager or Direct callbacks | Vectorized reset/parameter updates | Seed control, no stale hidden state |
-| Learning adapter | Supported RSL-RL, RL-Games, skrl integrations | Playground/Brax/other adapters | Rollout, device, checkpoint and normalizer consistency |
+## 5. Move from simulation to reality: why isn't training enough?
 
-### 5.1 Minimal interface acceptance tests
+### 5.1 Five sources of the sim-to-real gap
 
-- **Reset consistency:** identical assets, initial conditions and seeds should permit meaningful reruns; document nondeterminism in CUDA and asynchronous pipelines.
-- **Clock integrity:** record physics steps, actuator updates, policy actions, and sensor timestamps separately. Physics FPS is not policy experience throughput.
-- **Numeric contract:** verify action scaling, joint limits, reward bounds, NaN/Inf handling, terminal signals and time limits.
-- **Privileged-state isolation:** information available only in simulation may be used by a critic or teacher, never accidentally leaked to the deployed actor.
-- **Traceable dependencies:** persist model hashes, backend choices, sensor settings, trainer configuration, normalization statistics and policy checkpoints.
+| Source | What to inspect for Panda / Revo3 |
+|:---|:---|
+| **Geometry and inertia** | Joint zero positions, TCP, link inertia, payload mass |
+| **Actuation** | Position/current/torque semantics, $K_p$/$K_d$, saturation, delay |
+| **Contacts** | Fingertip collision shapes, friction, slip, compliance |
+| **Observations** | Camera calibration, depth error, occlusion, tactile noise |
+| **Timing and communications** | Control rates, timestamps, buffering, packet loss, action filtering |
 
-### 5.2 PPO/SAC: selection at the tooling layer only
+**System identification** estimates the important parameters of the real mechanism and objects; **domain randomization** then trains robustness to plausible remaining uncertainty. Randomization does not correct a fundamentally wrong robot model, and wider ranges are not always more useful.
 
-PPO commonly uses synchronized, high-throughput rollouts. SAC requires replay buffers, off-policy updates, and reliable handling of parallel sampling. The **engineering** question here is whether the selected trainer supports the algorithm and the environment correctly; the algorithmic derivation belongs in the dedicated PPO/SAC tutorials.
+A reasonable progression is **learn under fixed conditions → vary initial poses → randomize dynamics and actuators → add state-estimation/visual errors → add disturbances and recovery**. For Revo3 grasping, object mass and friction, finger response, fingertip contact, and slip often deserve attention before elaborate visual background variation.
 
+### 5.2 Preserve the interface contract on the real robot
 
-<a id="supplement-course-section-06"></a>
+At minimum, check that **joint order and reference frames** agree; **action meanings and limits** match; **policy, controller, and sensor frequencies and latency** are compatible; **observations are truly available on the robot**; and independent **safety constraints** enforce speed, effort, workspace, and emergency stop behavior.
 
-## 6. Parallel Learning Workflows in Isaac Lab
+A state-based teacher can be useful during training, but the policy deployed after vision distillation must be the student that can obtain its inputs from real sensors—not a teacher that requires simulator-only ground truth. Also check quaternion component order (`wxyz` versus `xyzw`) when transferring poses.
 
-### 6.1 From a benchmark to a custom manipulation task
+### 5.3 Evaluate robustness, not only reward
 
-**Step 1 — Pick a starting task.** Cartpole demonstrates the end-to-end RL loop; Franka Reach checks controls and observations; Lift adds contacts.
+Report at least **success rate on held-out starts, time to success, slip/drop rate, recovery rate after perturbations, and unsafe-event rate**, together with simulation interactions and wall-clock training time. Multiple training seeds and held-out disturbances help distinguish training-distribution fit from generalization. Testing across PhysX, MuJoCo, Genesis, or Newton solvers can expose model dependence but cannot guarantee real-world success.
 
-**Step 2 — Fix the backend and release.** Established 2.x PhysX tasks and new 3.0 multi-backend workflows are not automatically interchangeable. Reproduce one supported baseline first.
+<a id="simulation-section-06"></a>
 
-**Step 3 — Specify the scene.** Record the robot, table, object, drive settings, physics material, initial configurations, and camera geometry.
+## 6. Common failures and practical principles
 
-**Step 4 — Define five environment interfaces.** Observations, actions, rewards, termination, and reset; make sure state and cached sensor history are synchronized after every reset.
+| Symptom | Check first | Avoid doing immediately |
+|:---|:---|:---|
+| Robot shakes or joints diverge | Zero positions, axes, $K_p$/$K_d$, timestep, effort limits | Blindly raising gains |
+| Fingertips penetrate or cannot hold | Collision shapes, contact settings, friction, servo response | Only raising friction |
+| Reward improves but grasping fails | Success checks, reward loopholes, termination/reset | Only extending training |
+| Training is slow or runs out of memory | Environment count, cameras, rendering, transfers | Maximizing environment count |
+| Simulation works but hardware fails | Joint/frame mapping, action semantics, latency, friction, calibration | Immediately enlarging the policy |
 
-**Step 5 — Overfit a single easy configuration.** Use fixed objects and goals, with randomization disabled. If the policy cannot solve that configuration, inspect the environment before scaling the neural network.
+**Unified debugging order:** **robot model → units and reference frames → actuation → contact and timestep → observation/latency → RL task → optimization algorithm**. Tuning PPO or SAC before checking upstream errors often misses the actual problem.
 
-**Step 6 — Grow vectorization carefully.** Begin with a manageable batch, then measure environment steps per second, GPU utilization, VRAM, and contact stability. More environments do not guarantee faster end-to-end learning.
+**Course summary:** MuJoCo makes mechanics and control inspectable; Isaac Sim supports scenes and vision; Isaac Lab and mjlab structure RL tasks; Genesis World extends multi-physics simulation; Newton offers extensible GPU physics solvers. There is **no universal best platform**. Correct models, explicit interfaces, reproducible evaluation, and safe real-robot behavior matter more than a framework name.
 
-**Step 7 — Establish a PPO baseline.** Freeze seeds, rollout horizon, optimizer settings, architecture, reward scales, and control period. Change one factor family at a time.
+<a id="simulation-section-07"></a>
 
-**Step 8 — Evaluate independently.** Use a fixed evaluation protocol, archive trajectories and failure videos, and measure success and safety rather than training return alone.
+## References and further learning
 
-**Step 9 — Introduce realistic variation.** Add dynamics uncertainty, actuator delay, observation noise, visual occlusions, and disturbances one at a time.
-
-**Step 10 — Archive a reproducibility bundle.** Preserve model assets, full task configuration, reward weights, normalization statistics, trainer version, checkpoints, evaluation implementation, and logs.
-
-### 6.2 Selecting the Isaac Lab RL library
-
-| Training library | Good starting use | Caveats |
-|---|---|---|
-| RSL-RL | GPU-parallel PPO, state control, distillation | Verify actor/critic observation groups and architecture |
-| RL-Games | Existing RL-Games projects or its supported algorithms | Capabilities and task schemas vary across releases |
-| skrl | Wider algorithm range or PyTorch/JAX options | Needs careful integration and reproducibility checks |
-| Stable-Baselines3 | Smaller baselines and familiar analysis ecosystem | Not necessarily optimal for large GPU-resident batches |
-
-### 6.3 Common Isaac Lab RL pitfalls
-
-**VRAM:** Memory can grow rapidly with camera count × resolution × environment count; benchmark again after adding vision. **Headless mode:** No interactive viewport does not imply that all offscreen rendering is disabled, or that camera-based RL works without configuring camera outputs. **Reset correctness:** Individual environments terminate asynchronously; reset indices and observation history must be updated correctly. **Reward timing:** Changing physics rate or policy decimation can unintentionally change accumulated reward magnitudes if time weighting is inconsistent.
-
-
-<a id="supplement-course-section-07"></a>
-
-## 7. MuJoCo, MJX, and MJWarp Workflows
-
-### 7.1 Classic MuJoCo: correctness first
-
-Classic MuJoCo is well suited to isolated control tests, dynamics validation, small Gymnasium tasks, and CPU rollouts. It offers direct debugging and low single-step latency. In very large GPU-training workflows, repeated CPU-to-GPU movement of observations may become a bottleneck. [3]
-
-Use classic MuJoCo to validate the robot model, reward, reset, contact behavior, and low-level control before deciding whether the environment needs a GPU-batched implementation.
-
-### 7.2 MJX and MJWarp: throughput-oriented training
-
-**MJX-JAX** uses JAX/XLA for batched computation. **MJWarp** targets NVIDIA GPU parallel simulation, especially many independent robot environments. Higher *aggregate throughput* does not imply lower *single-step latency*: MJWarp focuses on throughput, while classic MuJoCo is often preferable for low-latency single-system control. The current MJX-Warp route does not target automatic differentiation. [3][4]
-
-**MuJoCo Playground** provides locomotion, some vision-enabled tasks, and RL baselines built around MJX/MJWarp. It is a useful counterpart to Isaac Lab for evaluating state-control tasks and cross-engine robustness. [10]
-
-### 7.3 Ten steps for a MuJoCo RL project
-
-1. Choose a maintained Menagerie or validated MJCF robot model; 2. align the joints and actuators with hardware; 3. build a minimal scene; 4. validate free dynamics and contact; 5. define observations, actions, and normalization; 6. design rewards, resets, and terminal rules; 7. run a small deterministic debug experiment; 8. choose CPU, MJX-JAX, or MJWarp; 9. connect PPO or another supported learner; and 10. evaluate held-out initial states, physical parameters, and other simulation engines.
-
-**Backend feature check:** GPU implementations need not have full one-to-one support for every solver feature. Revalidate tendons, unusual constraints, contact capacities, sensors, and batched resets. A CPU MuJoCo model should not automatically be assumed to produce identical results after migration to GPU simulation.
-
-
-<a id="supplement-course-section-08"></a>
-
-## 8. Training Throughput, Memory, and Debugging
-
-### 8.1 Measure at least five quantities
-
-Track **environment steps per second, aggregate physics steps per second, optimizer time, peak VRAM, and wall-clock time to a fixed success threshold**. For vision-based RL, also track rendering time, encoder inference, and inter-device transfers.
-
-FPS/SPS reported by different projects may refer to one world's physics frames, aggregate vectorized steps, or policy steps. Always report environment count, physics/control frequencies, GPU model, and camera configuration alongside throughput.
-
-### 8.2 More environments are not always better
-
-Too few worlds underutilize the GPU; too many exhaust VRAM or stress contact solving, rendering, transfers, and optimization. Increase batch size incrementally and select the operating point using measured **success improvement per hour**, not an arbitrary goal of thousands of environments.
-
-### 8.3 Two routes to visual RL
-
-- **End-to-end visual RL:** Train directly from images. Conceptually simple but more expensive and sensitive to occlusion and appearance mismatch.
-- **Privileged-state teacher to visual student:** Learn competent control before introducing perception; separates “the task is mechanically hard” from “the image is ambiguous.”
-
-When teacher and student update actions at different rates, distillation must align timestamps and action meanings, not merely array dimensions.
-
-### 8.4 Debugging priorities before optimizer tuning
-
-When learning fails, check data contracts first: observation shape and normalization, action scale and clipping, reward/termination logs, batch definitions after changing parallelism, and the physical meaning of one episode step. PPO KL/clip fraction/value loss or SAC Q-values/temperature/replay age are **diagnostic signals**, not a reason to turn this tools course into an algorithm derivation.
-
-For image-based RL, report image sizes, camera count, rendering throughput, encoder latency, peak VRAM and queuing delays from rendering to action execution. A genuine speedup reduces wall-clock time without sacrificing performance under an identical evaluation protocol.
-
-
-<a id="supplement-course-section-09"></a>
-
-## 9. Randomization Implementation, Evaluation, and Reproducibility
-
-| Category | Example randomized factors | Intended generalization |
-|---|---|---|
-| Geometry | Initial object pose, table height, small size errors | Workspace and layout variation |
-| Dynamics | Mass, inertia, friction, joint damping | Modeling uncertainty |
-| Actuation | Delay, deadband, stiffness, saturation, filtering | Real servo behavior |
-| Observation | Encoder noise, pose bias, dropped frames | Sensing and synchronization robustness |
-| Vision | Lighting, material, background, occlusion, camera extrinsics | Visual domain shift |
-| Disturbances | Pushes, slip, drops, moving targets | Recovery and corrective behavior |
-
-**Recommended sequence:** First solve the task without randomization; then expand initial states; then dynamics and actuator uncertainty; followed by state-estimation errors, visual randomization, and finally externally induced drops/recovery. Set ranges using measured robot uncertainty or physically defensible identification intervals, not arbitrarily extreme values.
-
-**Keep training and evaluation distributions distinct.** Use held-out combinations of poses, friction, mass, lighting, and calibration offsets to distinguish true robustness from interpolation within the training set.
-
-### 9.1 Core metrics
-
-| Metric | What it measures |
-|---|---|
-| Success rate | Fraction of episodes meeting objective completion criteria |
-| Time-to-success | Steps or elapsed real time until task completion |
-| Drop/slip rate | Frequency of losing or slipping the object |
-| Recovery success | Success after a recoverable perturbation |
-| Pose/tracking error | Object or end-effector trajectory accuracy |
-| Unsafe-event rate | Collisions, excessive loads, workspace violations |
-| Environment steps / wall-clock | Sample efficiency and total training efficiency |
-| Real-time latency | End-to-end perception, inference, and control delay |
-
-Use multiple random seeds, report central estimates and uncertainty, and avoid cherry-picking one unusually strong checkpoint. For algorithm comparisons, align assets, observations, action interfaces, training budgets, and evaluation distributions.
-
-### 9.2 Avoid unsupported conclusions
-
-- **Cross-engine comparison is not exact mechanics equivalence.** Report friction and contact-model differences.
-- **Equal success rate does not imply equal robustness.** Break down failures by grasp, reorientation, release, and recovery phase.
-- **Training frames are not automatically interaction samples.** Distinguish physics steps, policy steps, and vectorized totals.
-- **Checkpoint weights are not the entire policy.** Retain normalization statistics, action scaling, and software dependencies.
-
-
-<a id="supplement-course-section-10"></a>
-
-## 10. Deployment Interfaces, Calibration, and Sim-to-Sim
-
-### 10.1 Six calibration layers
-
-1. **Geometry:** Joint zero positions, TCP, robot base relative to the table.
-2. **Dynamics:** End-effector payload, center of mass, inertia, friction, and gravity compensation.
-3. **Actuation:** Command mode, position/velocity/torque limits, and response delay.
-4. **Vision:** Head/wrist camera intrinsics and extrinsics, image timestamps, depth units.
-5. **Software integration:** ROS 2 or vendor SDK timing, buffering, packet loss, and error recovery.
-6. **Safety:** Emergency stops, workspace restrictions, collision thresholds, current limits, and dropped-object handling.
-
-### 10.2 A deployment validation ladder
-
-**Unloaded joint motion → contact-free tracking → slow approach → low-force grasp → object lift → object rotation → small supervised disturbance → controlled drop-and-regrasp.** Apply limits, protection, and human supervision before advancing to each stage.
-
-**If hardware results lag behind simulation:** First inspect frames and synchronization, then action meaning and servo period, then contacts and mechanical parameters. Only afterward should you consider a larger neural network or more complex RL hyperparameter search.
-
-
-<a id="supplement-course-section-11"></a>
-
-## 12. Troubleshooting and Readiness Checks
-
-| Symptom | Inspect first | Avoid the reflex to... |
-|---|---|---|
-| Robot jitters after reset | Joint zeros, stiffness, collisions, physics step | Raise gains immediately |
-| Cube penetrates surfaces | Collision meshes, contacts, step size | Only increase friction |
-| PPO reward rises but success stays low | Reward terms, success metric, rollout video | Just train longer |
-| SAC critic diverges | Replay distribution, critic, target update, reward scales | Only enlarge the network |
-| GPU remains underutilized | CPU/GPU transfers, rendering, batch size, sync points | Maximize environment count blindly |
-| Visual training is extremely slow | Camera count, resolution, renderer, encoder | Start with full-resolution cameras |
-| Hardware grasp is too weak | Contact geometry, materials, servo behavior, model error | Raise simulated friction only |
-| Policy cannot recover after a drop | Termination logic, RSI, visual coverage, objective | Increase success bonuses alone |
-| Arm tracking error is high | IK, TCP, delays, scaling, velocity limits | Retune PPO first |
-| Behavior changes after Isaac update | Pinned dependencies, quaternion order, sensor/backend changes | Trust old checkpoints without revalidation |
-
-**Global diagnostic order:** Model integrity → frames and units → actuator control → physics/contact → observations and delay → reward/reset design → optimization algorithm.
-
-**Model and physics:** Verified joint order, axes, limits, masses, inertias, TCP, collisions, actuators, physics step, and friction.  
-**RL environment:** Explicit success criterion, no observation leakage, bounded actions, interpretable reward terms, correct timeout semantics, and reset coverage near key events.  
-**Training:** Fixed-start baseline solved; seeds, trainer, task, and model releases recorded; interaction count, throughput, wall time, and peak VRAM reported.  
-**Evaluation:** Multiple seeds, held-out initial states, OOD disturbances, cross-engine tests, failure categories, and drop recovery documented.  
-**Deployment:** Frames and cameras calibrated; rates and delays matched; joint/force/velocity limits, supervision, and emergency stops prepared.
-
-> **One-sentence takeaway:** MuJoCo clarifies the mechanics and actuation; Isaac Sim provides rich scenes and realistic sensing; Isaac Lab or MuJoCo Playground structures RL training; cross-engine, out-of-distribution, and real-hardware evaluation determine whether the policy is genuinely robust.
-
-<a id="supplement-course-section-12"></a>
-
-## Official References and Further Reading
-
-1. [Isaac Lab Releases and compatibility](https://github.com/isaac-sim/IsaacLab/releases)
-2. [Isaac Lab 3.0 EA documentation](https://isaac-sim.github.io/IsaacLab/v3.0.0-EA/source/setup/installation/index.html)
-3. [MuJoCo Warp documentation](https://mujoco.readthedocs.io/en/latest/mjwarp/)
-4. [MuJoCo XLA](https://mujoco.readthedocs.io/en/stable/mjx.html)
-5. [Isaac Sim 5.1 requirements](https://docs.isaacsim.omniverse.nvidia.com/5.1.0/installation/requirements.html)
-6. [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie)
-7. [Isaac Lab 2.3.2 Direct RL Environment](https://isaac-sim.github.io/IsaacLab/v2.3.2/source/tutorials/03_envs/create_direct_rl_env.html)
-8. [Isaac Lab sensors](https://isaac-sim.github.io/IsaacLab/v2.3.2/source/api/lab/isaaclab.sensors.html)
-9. [Isaac Lab RL integrations](https://isaac-sim.github.io/IsaacLab/main/source/overview/reinforcement-learning/rl_frameworks.html)
-10. [MuJoCo Playground](https://github.com/google-deepmind/mujoco_playground)
-11. [MuJoCo official documentation](https://mujoco.readthedocs.io/en/stable/)
-12. [Isaac Sim official documentation](https://docs.isaacsim.omniverse.nvidia.com/)
-13. [MuJoCo MJX implementations and differentiability](https://mujoco.readthedocs.io/en/stable/mjx.html)
-14. [Isaac Lab 3.0 Early Access release notes](https://github.com/isaac-sim/IsaacLab/releases)
-
-**Companion guide:** Motion tracking, Residual RL, Teacher–Student methods and recovery are covered in *Reinforcement Learning for Motion Control in Embodied AI*.
-
----
-
-<a id="supplement-course-section-13"></a>
-
-## New Supplement: From MuJoCo Warp to a Differentiable World-Model Pipeline
-
-> Added 2026-10-28. Existing Isaac/MuJoCo material, controller choices, and deployment recommendations remain unchanged. This supplement adds a SuperMimic-style model-based training interface.
-
-### 1. Separate the data simulator from the gradient model
-
-- **MuJoCo Warp or Isaac simulation**: produces high-throughput state transitions with contact and actuator physics; it need not appear inside the actor's differentiation graph.
-- **Learned dynamics $f_\omega$**: maps states, applied actions, and optional environment context into subsequent states; its parameters are frozen, but its input Jacobians remain active during actor training.
-- **Actor and critic**: optimize imagined short-horizon rewards and estimate value beyond the imagination window.
-
-```text
-Current policy --> Parallel MuJoCo Warp --> Replay Buffer
-      ^                                       |
-      |                                       v
-      |                             Train world model
-      |                                       |
-      +--- BPTT actor/critic <-- Imagined rollouts
-```
-
-### 2. Minimal replay-buffer contract
-
-| Field | Essential semantics |
-|---|---|
-| $s_t,s_{t+1}$ | State coordinate frames, quaternion ordering, normalization |
-| $a_t$ | **Actually executed** action after exploration noise and saturation |
-| $r_t,d_t$ | Distinguish terminal failures, timeouts, and successes |
-| $o_t$ | Separate noise-free observation targets from sensor perturbations |
-| $g_t$ | Correctly time-aligned goals or motion reference |
-| $\xi$ | Context: friction, mass, actuator gains, damping, etc. |
-| timestamps | Keep physics substeps, controller rate, and model steps distinct |
-
-Autoregressive training windows must not cross episode resets. For rotational states, use an appropriate SO(3) representation or carefully normalized unit quaternions, accounting for the $q\sim -q$ equivalence.
-
-### 3. Stage gates from simulator to trained policy
-
-1. **Asset validation:** joint step response, PD behavior, contact, object inertia, time step, action limits.
-2. **Matched baseline:** obtain PPO results under the same observation/action specification and evaluation seeds.
-3. **Model training:** progress from one-step loss to eight-step autoregressive loss and stratify errors by contact mode.
-4. **Policy optimization:** compare imagination horizons such as $H=16$ and $H=32$, use terminal value, monitor model exploitation and gradient norms.
-5. **Refresh:** periodically return to the original simulator to evaluate policies and update the replay buffer.
-6. **Deployment boundary:** domain randomization, cross-engine validation, torque/velocity limits and emergency stop remain independent prerequisites.
-
-The eight-step model-training and 32-step imagination horizons are **paper-specific SuperMimic choices**, not universal dexterous-hand settings.
-
-### 4. Fair throughput and efficiency accounting
-
-Report simulator FPS, imagined FPS, world-model optimization time, actor/critic training time, GPU-hours, physical-simulator transitions, and held-out success rate. Never conflate imagined transitions with real-simulator interaction or compare incomparable GPU clusters by wall-clock alone.
-
-**References:** [SuperMimic](https://arxiv.org/abs/2610.28480); [Dex-Supermimic (independent hand adaptation)](https://github.com/CumulusAlpha/Dex-Supermimic).
-
-*New supplement CC BY-NC-SA 4.0; prior text and third-party permissions are unchanged.*
+1. [Isaac Sim documentation](https://docs.isaacsim.omniverse.nvidia.com/) — scenes, USD, rendering, sensors.
+2. [Isaac Lab documentation](https://docs.nvidia.com/isaaclab/) and [physics backends](https://docs.nvidia.com/isaaclab/concepts/physics-backends) — RL environments, supported Newton/PhysX configurations.
+3. [MuJoCo documentation](https://mujoco.readthedocs.io/en/stable/) — dynamics, actuators, contact.
+4. [MuJoCo MJX documentation](https://mujoco.readthedocs.io/en/latest/mjx.html) — MJX-JAX versus MJX-Warp.
+5. [mjlab documentation](https://mujocolab.github.io/mjlab/main/) — MuJoCo Warp and manager-based RL environments.
+6. [MuJoCo Playground](https://github.com/google-deepmind/mujoco_playground) — robot-learning tasks and benchmarks.
+7. [Genesis World documentation](https://genesis-world.readthedocs.io/en/latest/) — multi-physics solvers, scenes, sensors.
+8. [Newton documentation](https://newton-physics.github.io/newton/stable/guide/overview.html) and [solver comparison](https://newton-physics.github.io/newton/latest/solvers/index.html) — Warp engine and solver-specific capabilities.
+9. [MuJoCo Menagerie](https://github.com/google-deepmind/mujoco_menagerie) — public robot models.
+10. [BrainCo robot descriptions](https://github.com/BrainCoTech/brainco-description) — validate the exact Revo3 asset revision.
