@@ -115,7 +115,7 @@ flowchart LR
 
 ### 13. Imitation Learning
 
-[Imitation Learning](../md/Data_Imitation_Learning_EN.md) — Study BC, DAgger and corrective demonstrations, then connect ACT, Diffusion Policy and Flow Matching to action chunks. Explain VLA architectures and supervised action learning, temporal ensembling, and inference-time versus training-time RTC.
+[Imitation Learning](../md/Data_Imitation_Learning_EN.md) — Connect BC/DAgger and human corrections to ACT, Diffusion/Flow action chunks and multimodal VLA policies. Distinguish prediction/execution horizons, prefix continuity and stale conditioning; compare RTC, Training-Time RTC, VLASH/FutureRTC, RDP and RTR as complementary approaches to physical-time execution.
 
 ### 14. Flow Matching
 
@@ -127,7 +127,7 @@ flowchart LR
 
 ### 16. World Action Models
 
-[World Action Models](../md/World_Action_Models_EN.md) — Distinguish world models, VLAs and WAMs, then study DreamZero training and accelerated inference. Explain Dream-1 zero-shot embodiment transfer through shared EEF/IK interfaces, joint video–action modeling and transferable visual representations; compare FaaS adaptation, VLA/WAM compute, latency, contact control and evaluation. Distinguishes SuperMimic state-dynamics models from visual WAMs.
+[World Action Models](../md/World_Action_Models_EN.md) — Study how future video information supervises robot actions, then compare joint, feature-conditioned and action-only inference. Use DreamZero and Dream-1 to discuss training and cross-embodiment transfer; distinguish Fast-WAM and the two Faster-WAM approaches, and compare VLA/WAM designs through data, robustness, compute, latency and contact-control requirements.
 
 ### 17. Efficient Training & Inference
 

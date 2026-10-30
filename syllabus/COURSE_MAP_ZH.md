@@ -115,7 +115,7 @@ flowchart LR
 
 ### 13. 模仿学习
 
-[模仿学习](../md/Data_Imitation_Learning_ZH.md)：介绍 BC、DAgger 与纠错示教，理解 ACT、扩散策略和流匹配的动作块生成；进一步学习 VLA 架构与动作监督、时序集成，以及推理时与训练时 RTC。
+[模仿学习](../md/Data_Imitation_Learning_ZH.md)：从 BC/DAgger 与人类纠错数据连接到 ACT、扩散/流匹配动作块和多模态 VLA 策略；区分预测与执行视野、动作前缀连续性及过期条件信息，比较 RTC、训练时 RTC、VLASH/FutureRTC、RDP 与 RTR 如何互补地处理物理时钟下的实时执行。
 
 ### 14. 流匹配
 
@@ -127,7 +127,7 @@ flowchart LR
 
 ### 16. 世界动作模型
 
-[世界动作模型](../md/World_Action_Models_ZH.md)：区分世界模型、VLA 与 WAM，学习 DreamZero 训练与加速推理；从共享 EEF/IK 接口、视频—动作联合建模和可迁移视觉表征理解 Dream-1 零样本跨本体迁移，并比较 FaaS 适配、VLA/WAM 算力、时延、接触控制与评估。进一步区分 SuperMimic 状态动力学模型与视觉 WAM。
+[世界动作模型](../md/World_Action_Models_ZH.md)：学习未来视频信息如何监督机器人动作，比较联合生成、特征条件化与仅动作推理；以 DreamZero、Dream-1 讨论训练与跨本体迁移，区分 Fast-WAM 和两条 Faster-WAM 路线，并从数据、鲁棒性、算力、延迟及接触控制需求比较 VLA/WAM。
 
 ### 17. 高效训练与实时推理
 
